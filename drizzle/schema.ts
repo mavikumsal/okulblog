@@ -82,6 +82,14 @@ export const siteSettings = mysqlTable("site_settings", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const newsCategories = mysqlTable("news_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull().unique(),
+  slug: varchar("slug", { length: 150 }).notNull().unique(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const storedFiles = mysqlTable("stored_files", {
   id: int("id").autoincrement().primaryKey(),
   fileName: varchar("fileName", { length: 255 }).notNull(),
@@ -110,3 +118,4 @@ export type ContentItem = typeof contentItems.$inferSelect;
 export type Question = typeof questions.$inferSelect;
 export type Test = typeof tests.$inferSelect;
 export type StoredFile = typeof storedFiles.$inferSelect;
+export type NewsCategory = typeof newsCategories.$inferSelect;

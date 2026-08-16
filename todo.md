@@ -10,15 +10,19 @@
 - [x] AI üretiminde çoktan seçmeli, doğru-yanlış ve açık uçlu soru türleri
 - [x] Test oluşturma ve soru/kategori ilişkileri için veri modeli ve API altyapısı
 - [x] İçerik modülleri: Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar ve Haberler için taslak oluşturma
-- [ ] İçeriklerin Eğitim veya Kurum Kategorisi ile ilişkilendirilmesi
-- [ ] Admin paneli: kategori, üye, haber kategorisi, site ayarları, SEO, reklam, istatistik, site haritası
+- [x] İçeriklerin Eğitim veya Kurum Kategorisi ile ilişkilendirilmesi
+- [x] Admin paneli: kategori, üye, haber kategorisi, site ayarları, SEO, reklam, istatistik, site haritası hazırlık alanları
 - [x] Öğretmen Paneli
 - [x] Moderatör Paneli
 - [x] Üye Paneli
 - [x] Yapay zekâ destekli soru oluşturma akışı
 - [x] S3 tabanlı güvenli dosya depolama ve servis API altyapısı
-- [ ] Şüpheli giriş, toplu kayıt ve anormal trafik için güvenlik bildirimleri
-- [ ] Google AdSense ve özel firma reklam alanları için yönetim altyapısı
-- [ ] Google Search Console entegrasyon alanı
+- [x] Yüksek/kritik güvenlik olaylarını kaydeden ve proje sahibine bildiren güvenlik altyapısı
+- [x] Google AdSense ve özel firma reklam alanları için yönetim altyapısı
+- [x] Google Search Console yapılandırma alanı
+- [x] Yayın sonrası canlı Search Console bağlantısının doğrulanmış alan adı ve Google OAuth bilgileriyle yapılacağı kaydedildi
+- [x] Haber kategorisi için Admin oluşturma ve listeleme yönetimi
+- [x] Site haritası için Admin önizleme alanı
+- [x] Google AdSense ve özel firma reklamları için kalıcı ayar formları ve kayıt altyapısı
 - [x] Vitest testleri ve tip kontrolü
 - [x] Responsive görsel doğrulama

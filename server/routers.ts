@@ -7,12 +7,18 @@ import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_
 import {
   createCategoryNode,
   createContentItem,
+  createNewsCategory,
   createQuestion,
   createStoredFile,
   createTest,
   getContentOverview,
   getRolePermissions,
+  listSecurityEvents,
+  listSiteSettings,
+  listUsersForAdmin,
+  listNewsCategories,
   listCategoryNodes,
+  saveSiteSetting,
   setRolePermission,
   listQuestions,
   recordSecurityEvent,
@@ -182,6 +188,7 @@ export const appRouter = router({
     }),
   }),
   security: router({
+    list: adminProcedure.query(() => listSecurityEvents()),
     report: protectedProcedure.input(z.object({
       eventType: z.string().trim().min(3).max(120),
       severity: z.enum(["low", "medium", "high", "critical"]),
@@ -191,6 +198,19 @@ export const appRouter = router({
       if (input.severity === "high" || input.severity === "critical") {
         await notifyOwner({ title: `OkulBlog güvenlik uyarısı: ${input.severity === "critical" ? "Kritik" : "Yüksek"}`, content: `${input.eventType}: ${input.description}` });
       }
+      return { success: true };
+    }),
+  }),
+  admin: router({
+    users: adminProcedure.query(() => listUsersForAdmin()),
+    settings: adminProcedure.query(() => listSiteSettings()),
+    newsCategories: adminProcedure.query(() => listNewsCategories()),
+    createNewsCategory: adminProcedure.input(z.object({ name: z.string().trim().min(2).max(120) })).mutation(async ({ input }) => {
+      await createNewsCategory(input.name);
+      return { success: true };
+    }),
+    saveSetting: adminProcedure.input(z.object({ settingKey: z.string().trim().min(2).max(120), settingValue: z.string().trim().max(4000) })).mutation(async ({ ctx, input }) => {
+      await saveSiteSetting({ ...input, updatedBy: ctx.user.id });
       return { success: true };
     }),
   }),

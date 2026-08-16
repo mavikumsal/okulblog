@@ -1,6 +1,6 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, InsertUser, questions, rolePermissions, securityEvents, storedFiles, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, InsertUser, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -194,4 +194,46 @@ export async function recordSecurityEvent(input: { eventType: string; severity: 
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   await db.insert(securityEvents).values(input);
+}
+
+export async function listUsersForAdmin() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ id: users.id, name: users.name, email: users.email, role: users.role, lastSignedIn: users.lastSignedIn }).from(users).orderBy(asc(users.name));
+}
+
+export async function listSecurityEvents() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(securityEvents).orderBy(desc(securityEvents.createdAt));
+}
+
+export async function listSiteSettings() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(siteSettings).orderBy(asc(siteSettings.settingKey));
+}
+
+export async function saveSiteSetting(input: { settingKey: string; settingValue: string; updatedBy: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const existing = await db.select().from(siteSettings).where(eq(siteSettings.settingKey, input.settingKey)).limit(1);
+  if (existing[0]) {
+    await db.update(siteSettings).set({ settingValue: input.settingValue, updatedBy: input.updatedBy }).where(eq(siteSettings.id, existing[0].id));
+  } else {
+    await db.insert(siteSettings).values(input);
+  }
+}
+
+export async function listNewsCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(newsCategories).orderBy(asc(newsCategories.name));
+}
+
+export async function createNewsCategory(name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const slug = `${name.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşöçıİ]+/gi, "-").replace(/(^-|-$)/g, "")}-${crypto.randomUUID().slice(0, 6)}`;
+  await db.insert(newsCategories).values({ name, slug });
 }
