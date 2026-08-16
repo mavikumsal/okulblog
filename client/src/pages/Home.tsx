@@ -62,7 +62,7 @@ export default function Home() {
             <button onClick={() => goTo("sinavlar")} className="transition-colors hover:text-[#18344f]">Sınavlar</button>
           </nav>
           <div className="hidden items-center gap-2 md:flex">
-            {isAuthenticated ? <Button onClick={openPanel} variant="ghost" className="font-semibold">{user?.name ?? "Panelim"}</Button> : <Button onClick={startLogin} variant="ghost" className="font-semibold">Giriş yap</Button>}
+            {isAuthenticated ? <Button onClick={openPanel} variant="ghost" className="font-semibold">Panelim</Button> : <Button onClick={startLogin} variant="ghost" className="font-semibold">Giriş yap</Button>}
             <Button onClick={isAuthenticated ? openPanel : startLogin} className="rounded-xl bg-[#18344f] px-5 font-semibold text-white shadow-[0_10px_20px_rgba(24,52,79,.17)] transition-transform duration-200 hover:bg-[#234864] active:scale-[.97]">
               {isAuthenticated ? "Panele git" : "Hemen başla"}<ArrowRight size={16} />
             </Button>

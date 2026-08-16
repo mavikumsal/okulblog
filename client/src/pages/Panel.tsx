@@ -130,7 +130,7 @@ function PanelContent() {
     <div className="mx-auto max-w-7xl space-y-8 pb-12">
       <div className="flex flex-col gap-5 rounded-[26px] border border-[#e4e5db] bg-[#fbfaf4] p-6 shadow-[0_12px_35px_rgba(37,61,77,.05)] sm:p-8 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl"><p className="text-[11px] font-bold tracking-[.18em] text-[#668278] uppercase">{page.eyebrow}</p><h1 className="mt-3 text-3xl font-semibold tracking-[-.05em] text-[#18344f] sm:text-4xl">{page.title}</h1><p className="mt-3 max-w-xl text-sm leading-6 text-[#657b87]">{page.text}</p></div>
-        <div className="flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#d9eee7] text-[#266b5d]"><GraduationCap size={22} /></div><div><p className="text-sm font-bold text-[#244359]">{user?.name ?? "OkulBlog kullanıcısı"}</p><Badge className="mt-1 border-0 bg-[#eef4f0] text-[#548073] hover:bg-[#eef4f0]">{roleName[user?.role ?? "member"]}</Badge></div></div>
+        <div className="flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#d9eee7] text-[#266b5d]"><GraduationCap size={22} /></div><div><p className="text-sm font-bold text-[#244359]">OkulBlog hesabı</p><Badge className="mt-1 border-0 bg-[#eef4f0] text-[#548073] hover:bg-[#eef4f0]">{roleName[user?.role ?? "member"]}</Badge></div></div>
       </div>
 
       {section === "restricted-settings" && <RestrictedNotice />}
