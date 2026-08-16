@@ -1,4 +1,4 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { eq, asc, desc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { categoryNodes, contentItems, homeSlides, InsertUser, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -223,6 +223,40 @@ export async function saveSiteSetting(input: { settingKey: string; settingValue:
   } else {
     await db.insert(siteSettings).values(input);
   }
+}
+
+export async function getPopularEducationCategoryIds() {
+  const db = await getDb();
+  if (!db) return [];
+  const setting = await db.select().from(siteSettings).where(eq(siteSettings.settingKey, "home_popular_category_ids")).limit(1);
+  if (!setting[0]?.settingValue) return [];
+  try {
+    const parsed: unknown = JSON.parse(setting[0].settingValue);
+    return Array.isArray(parsed) ? parsed.filter((id): id is number => typeof id === "number") : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function listPopularEducationCategories() {
+  const ids = await getPopularEducationCategoryIds();
+  if (!ids.length) return [];
+  const db = await getDb();
+  if (!db) return [];
+  const categories = await db.select().from(categoryNodes).where(inArray(categoryNodes.id, ids));
+  const byId = new Map(categories.map(category => [category.id, category]));
+  return ids.map(id => byId.get(id)).filter((category): category is typeof categories[number] => Boolean(category && category.categoryType === "education" && category.isActive));
+}
+
+export async function savePopularEducationCategoryIds(input: { categoryIds: number[]; updatedBy: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const uniqueIds = Array.from(new Set(input.categoryIds)).slice(0, 12);
+  if (uniqueIds.length) {
+    const valid = await db.select({ id: categoryNodes.id }).from(categoryNodes).where(inArray(categoryNodes.id, uniqueIds));
+    if (valid.length !== uniqueIds.length) throw new Error("Yalnızca geçerli kategori kayıtları seçilebilir.");
+  }
+  await saveSiteSetting({ settingKey: "home_popular_category_ids", settingValue: JSON.stringify(uniqueIds), updatedBy: input.updatedBy });
 }
 
 export async function listNewsCategories() {

@@ -21,6 +21,9 @@ import {
   listUsersForAdmin,
   listNewsCategories,
   listCategoryNodes,
+  listPopularEducationCategories,
+  getPopularEducationCategoryIds,
+  savePopularEducationCategoryIds,
   listHomeSlidesForAdmin,
   saveSiteSetting,
   setRolePermission,
@@ -93,6 +96,7 @@ export const appRouter = router({
     })),
     homeSlides: publicProcedure.query(() => listActiveHomeSlides()),
     contentByCategory: publicProcedure.input(z.object({ categoryId: z.number().int().positive() })).query(({ input }) => listContentByCategory(input.categoryId)),
+    popularEducationCategories: publicProcedure.query(() => listPopularEducationCategories()),
   }),
   categories: router({
     list: protectedProcedure.input(z.object({ categoryType: z.enum(["education", "institution"]).optional() })).query(({ input }) => listCategoryNodes(input.categoryType)),
@@ -233,6 +237,14 @@ export const appRouter = router({
       return { success: true };
     }),
     homeSlides: adminProcedure.query(() => listHomeSlidesForAdmin()),
+    popularEducationCategories: adminProcedure.query(async () => ({
+      selectedIds: await getPopularEducationCategoryIds(),
+      available: await listCategoryNodes("education"),
+    })),
+    savePopularEducationCategories: adminProcedure.input(z.object({ categoryIds: z.array(z.number().int().positive()).max(12) })).mutation(async ({ ctx, input }) => {
+      await savePopularEducationCategoryIds({ categoryIds: input.categoryIds, updatedBy: ctx.user.id });
+      return { success: true };
+    }),
     createHomeSlide: adminProcedure.input(homeSlideInput).mutation(async ({ ctx, input }) => {
       await createHomeSlide({ ...input, createdBy: ctx.user.id });
       return { success: true };

@@ -37,3 +37,16 @@
 - [x] Popüler kategori kartlarını platform.overview veya kategori API’sinden gerçek eğitim/kurum kategorileriyle dinamik besleme
 - [x] Popüler kategori kartlarına kategori kimliği/slug bazlı gerçek hedef bağlantıları veya filtreli içerik görünümü ekleme
 - [x] Popüler kategori bölümü için boş veri, yükleniyor ve hata durumlarını ele alma
+- [x] Admin panelinde popüler eğitim kategorilerini seçme ve kaldırma ekranı
+- [ ] Admin panelinde popüler kategorileri sıralama ve aktif/pasif yönetimi
+- [ ] Popüler kategori seçimlerini kalıcı kaydetme ve ana sayfada seçili sırayla gösterme
+- [ ] Popüler kategori yönetimi için Admin yetki, test ve responsive doğrulaması
+
+- [x] Ana sayfayı referanslardaki pastel, yumuşak gölgeli 3D eğitim kartı tasarımına uyarlamak
+- [x] İlkokul, Ortaokul ve Lise için 3D görsel destekli eğitim seviyesi kartları oluşturmak
+- [x] Testler, Dokümanlar, Simülasyonlar, Videolar, Oyunlar ve Haberler alanlarını yeni görsel dille sunmak
+- [x] 3D görsel dilini responsive masaüstü ve mobil yerleşimde doğrulamak
+- [ ] Popüler kategori yönetimindeki aktif/pasif davranışı ve boş seçim durumunu netleştirmek
+- [ ] Popüler kategori yönetimi için Vitest testi eklemek ve Admin/mobil görünümü doğrulamak
+- [x] Ana sayfanın içerik kartlarında üretilen 3D görsel varlıklarını kullanmak
+- [x] 3D pastel tasarım dilini ana sayfanın ilgili bölümlerine daha kapsamlı yaymak
