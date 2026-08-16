@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1786897558182,
+      "tag": "0000_amusing_kinsey_walden",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1786897821424,
+      "tag": "0001_complex_ikaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786898452517,
+      "tag": "0002_free_lila_cheney",
+      "breakpoints": true
+    }
+  ]
 }

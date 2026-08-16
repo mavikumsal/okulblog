@@ -21,15 +21,23 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import { trpc } from "@/lib/trpc";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Genel Bakış", path: "/panel" },
+  { icon: FolderTree, label: "Kategoriler", path: "/panel/kategoriler" },
+  { icon: Target, label: "Soru Havuzu", path: "/panel/soru-havuzu" },
+  { icon: FileText, label: "İçerikler", path: "/panel/icerikler" },
+  { icon: Sparkles, label: "AI Oluşturucu", path: "/panel/ai" },
+  { icon: Users, label: "Üye Yönetimi", path: "/panel/uyeler" },
+  { icon: BarChart3, label: "İstatistikler", path: "/panel/istatistikler" },
+  { icon: ShieldCheck, label: "Güvenlik", path: "/panel/guvenlik" },
+  { icon: Settings, label: "Site Ayarları", path: "/panel/ayarlar" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -62,10 +70,10 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
             <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Sign in to continue
+              Panele giriş yapın
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
+              Bu kontrol paneli yetkilendirilmiş kullanıcılar içindir. Devam etmek için giriş yapın.
             </p>
           </div>
           <Button
@@ -73,7 +81,7 @@ export default function DashboardLayout({
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
-            Sign in
+            Giriş yap
           </Button>
         </div>
       </div>
@@ -112,6 +120,16 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+  const accessibleSections = trpc.panel.accessibleSections.useQuery(undefined, { enabled: Boolean(user) });
+  const visibleMenuItems = menuItems.filter(item => {
+    if (user?.role === "admin") return true;
+    const visible = accessibleSections.data ?? [];
+    if (item.label === "Genel Bakış") return true;
+    if (item.label === "Kategoriler") return (visible as string[]).includes("Kategoriler") || (visible as string[]).includes("Kurum Kategorisi");
+    if (item.label === "Soru Havuzu" || item.label === "AI Oluşturucu") return (visible as string[]).includes("Soru Havuzu");
+    if (item.label === "İçerikler") return ["Testler", "Dokümanlar", "Videolar", "Simülasyonlar", "Oyunlar", "Haberler"].some(section => (visible as string[]).includes(section));
+    return false;
+  });
 
   useEffect(() => {
     if (isCollapsed) {
@@ -169,7 +187,7 @@ function DashboardLayoutContent({
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-semibold tracking-tight truncate">
-                    Navigation
+                    okul<span className="font-serif italic text-[#8f7027]">blog</span>
                   </span>
                 </div>
               ) : null}
@@ -178,7 +196,7 @@ function DashboardLayoutContent({
 
           <SidebarContent className="gap-0">
             <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
+              {visibleMenuItems.map(item => {
                 const isActive = location === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
@@ -224,7 +242,7 @@ function DashboardLayoutContent({
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>Çıkış yap</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

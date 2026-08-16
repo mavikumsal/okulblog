@@ -1,0 +1,24 @@
+# OkulBlog Proje TODO
+
+- [x] Zarif, profesyonel ve responsive genel tasarım sistemi
+- [x] Anasayfa: Testler, Dokümanlar, Simülasyonlar, Videolar, Oyunlar ve Haberler bölümleri
+- [x] Dört rol: Admin, Öğretmen, Moderatör ve Üye
+- [x] Admin panelinde Öğretmen ve Moderatör bölüm izinlerini açıp kapatma
+- [x] Eğitim kategorisi hiyerarşisi: Ana Grup → İlkokul/Ortaokul → Sınıf → Ders → Ünite → Kazanım
+- [x] Kurum Kategorisi: sınıf/ders zorunluluğu olmadan alt kategori, aktif/pasif durum
+- [x] Soru havuzu: çoktan seçmeli ve açık uçlu soru oluşturma ve listeleme
+- [x] AI üretiminde çoktan seçmeli, doğru-yanlış ve açık uçlu soru türleri
+- [x] Test oluşturma ve soru/kategori ilişkileri için veri modeli ve API altyapısı
+- [x] İçerik modülleri: Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar ve Haberler için taslak oluşturma
+- [ ] İçeriklerin Eğitim veya Kurum Kategorisi ile ilişkilendirilmesi
+- [ ] Admin paneli: kategori, üye, haber kategorisi, site ayarları, SEO, reklam, istatistik, site haritası
+- [x] Öğretmen Paneli
+- [x] Moderatör Paneli
+- [x] Üye Paneli
+- [x] Yapay zekâ destekli soru oluşturma akışı
+- [x] S3 tabanlı güvenli dosya depolama ve servis API altyapısı
+- [ ] Şüpheli giriş, toplu kayıt ve anormal trafik için güvenlik bildirimleri
+- [ ] Google AdSense ve özel firma reklam alanları için yönetim altyapısı
+- [ ] Google Search Console entegrasyon alanı
+- [x] Vitest testleri ve tip kontrolü
+- [x] Responsive görsel doğrulama
