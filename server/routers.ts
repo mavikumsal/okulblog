@@ -7,22 +7,27 @@ import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_
 import {
   createCategoryNode,
   createContentItem,
+  createHomeSlide,
   createNewsCategory,
   createQuestion,
   createStoredFile,
   createTest,
   getContentOverview,
   getRolePermissions,
+  listActiveHomeSlides,
   listSecurityEvents,
   listSiteSettings,
   listUsersForAdmin,
   listNewsCategories,
   listCategoryNodes,
+  listHomeSlidesForAdmin,
   saveSiteSetting,
   setRolePermission,
   listQuestions,
   recordSecurityEvent,
   setInstitutionCategoryStatus,
+  updateHomeSlide,
+  deleteHomeSlide,
 } from "./db";
 import { generateQuestionDraft } from "./aiQuestionGenerator";
 import { storagePut } from "./storage";
@@ -33,6 +38,17 @@ const categoryInput = z.object({
   categoryType: z.enum(["education", "institution"]),
   level: z.enum(["ana-grup", "school-level", "class", "subject", "unit", "outcome", "institution-root", "institution-child"]),
   parentId: z.number().int().positive().nullable().optional(),
+});
+
+const homeSlideInput = z.object({
+  eyebrow: z.string().trim().max(100).optional().nullable(),
+  title: z.string().trim().min(3).max(240),
+  description: z.string().trim().max(3000).optional().nullable(),
+  buttonLabel: z.string().trim().max(80).optional().nullable(),
+  buttonLink: z.string().trim().max(500).optional().nullable(),
+  imageUrl: z.string().trim().url().max(700).optional().nullable(),
+  sortOrder: z.number().int().min(0).max(1000),
+  isActive: z.boolean(),
 });
 
 const permittedSections = [
@@ -74,6 +90,7 @@ export const appRouter = router({
       educationCategories: await listCategoryNodes("education"),
       institutionCategories: await listCategoryNodes("institution"),
     })),
+    homeSlides: publicProcedure.query(() => listActiveHomeSlides()),
   }),
   categories: router({
     list: protectedProcedure.input(z.object({ categoryType: z.enum(["education", "institution"]).optional() })).query(({ input }) => listCategoryNodes(input.categoryType)),
@@ -211,6 +228,19 @@ export const appRouter = router({
     }),
     saveSetting: adminProcedure.input(z.object({ settingKey: z.string().trim().min(2).max(120), settingValue: z.string().trim().max(4000) })).mutation(async ({ ctx, input }) => {
       await saveSiteSetting({ ...input, updatedBy: ctx.user.id });
+      return { success: true };
+    }),
+    homeSlides: adminProcedure.query(() => listHomeSlidesForAdmin()),
+    createHomeSlide: adminProcedure.input(homeSlideInput).mutation(async ({ ctx, input }) => {
+      await createHomeSlide({ ...input, createdBy: ctx.user.id });
+      return { success: true };
+    }),
+    updateHomeSlide: adminProcedure.input(homeSlideInput.extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+      await updateHomeSlide(input);
+      return { success: true };
+    }),
+    deleteHomeSlide: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+      await deleteHomeSlide(input.id);
       return { success: true };
     }),
   }),

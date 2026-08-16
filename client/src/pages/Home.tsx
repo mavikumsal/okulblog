@@ -1,10 +1,11 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
+import { getSlideNavigation } from "@/lib/homeSlide";
 import {
+  ArrowDownRight,
   ArrowRight,
-  BadgeCheck,
   BookOpen,
   BrainCircuit,
   ChevronRight,
@@ -14,99 +15,139 @@ import {
   Layers3,
   Menu,
   PlayCircle,
-  ShieldCheck,
+  Search,
   Sparkles,
   Target,
   Video,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 
-const sections = [
-  { name: "Testler", description: "Kazanım odaklı ölçme deneyimi", icon: Target, tone: "bg-[#d7f0e9] text-[#165e56]", count: "1.240+ test" },
-  { name: "Dokümanlar", description: "Düzenli ve erişilebilir kaynaklar", icon: FileText, tone: "bg-[#f6e5bc] text-[#80591a]", count: "980+ içerik" },
-  { name: "Simülasyonlar", description: "Etkileşimle kavrayın", icon: Layers3, tone: "bg-[#e8e2f8] text-[#56428a]", count: "62 deneyim" },
-  { name: "Videolar", description: "Kısa, odaklı konu anlatımları", icon: Video, tone: "bg-[#f8ddd9] text-[#99473c]", count: "340+ video" },
-  { name: "Oyunlar", description: "Öğrenmeyi canlı tutan pratik", icon: Gamepad2, tone: "bg-[#dcebf7] text-[#285d81]", count: "48 oyun" },
-  { name: "Haberler", description: "Eğitim gündeminden seçkiler", icon: BookOpen, tone: "bg-[#e5edcf] text-[#506b29]", count: "Güncel akış" },
+const contentAreas = [
+  { name: "Testler", detail: "Ölçme ve değerlendirme", icon: Target, accent: "bg-[#e7b354]", ink: "text-[#7b4d0e]" },
+  { name: "Dokümanlar", detail: "Düzenli kaynak arşivi", icon: FileText, accent: "bg-[#b8ddd4]", ink: "text-[#155d55]" },
+  { name: "Simülasyonlar", detail: "Görerek ve deneyerek öğren", icon: Layers3, accent: "bg-[#d8c8e8]", ink: "text-[#60447a]" },
+  { name: "Videolar", detail: "Odaklı anlatımlar", icon: Video, accent: "bg-[#f3c7bd]", ink: "text-[#873d31]" },
+  { name: "Oyunlar", detail: "Aktif tekrar deneyimi", icon: Gamepad2, accent: "bg-[#bcd5ee]", ink: "text-[#24567b]" },
+  { name: "Haberler", detail: "Eğitimden seçili gündem", icon: BookOpen, accent: "bg-[#d6dfad]", ink: "text-[#536a1d]" },
 ];
 
-const workflow = [
-  { number: "01", title: "Hedefi seç", text: "Sınıf, ders, ünite veya kazanımı belirleyin." },
-  { number: "02", title: "İçeriği keşfet", text: "Test, doküman ve simülasyonları tek düzende bulun." },
-  { number: "03", title: "İlerlemeni izle", text: "Öğrenme yolculuğunuz görünür ve anlamlı kalsın." },
+const steps = [
+  ["01", "Yolunu seç", "Sınıf, ders, ünite veya kurum sınavı odağını belirle."],
+  ["02", "Doğru içeriğe gir", "Testler, dokümanlar ve diğer öğrenme araçlarına ulaş."],
+  ["03", "Çalışmanı sürdür", "Tekrarla, ölç, geri dön ve hedefini görünür tut."],
 ];
 
 export default function Home() {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [, setLocation] = useLocation();
+  const homeSlides = trpc.platform.homeSlides.useQuery();
+  const configuredSlides = homeSlides.data ?? [];
+  const fallbackSlide = {
+    eyebrow: "Eğitim için düzenli bir alan",
+    title: "Aradığın içerik, doğru öğrenme bağlamında.",
+    description: "OkulBlog; testleri, dokümanları, simülasyonları ve sınav çalışmalarını tek bir eğitim düzeninde bir araya getirir.",
+    buttonLabel: "İçerikleri keşfet",
+    buttonLink: "#icerikler",
+  };
+  const currentSlide = configuredSlides[activeSlideIndex] ?? fallbackSlide;
+
+  useEffect(() => {
+    if (activeSlideIndex >= configuredSlides.length && configuredSlides.length) setActiveSlideIndex(0);
+  }, [activeSlideIndex, configuredSlides.length]);
+
   const goTo = (id: string) => {
     setMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const openPanel = () => setLocation("/panel");
+  const accountAction = () => (isAuthenticated ? openPanel() : startLogin());
+  const followSlideLink = () => {
+    const destination = getSlideNavigation(currentSlide.buttonLink);
+    if (destination.kind === "anchor") return goTo(destination.target);
+    if (destination.kind === "internal") return setLocation(destination.target);
+    window.open(destination.target, "_blank", "noopener,noreferrer");
+  };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#fbfaf4] text-[#18344f]">
-      <header className="sticky top-0 z-50 border-b border-[#e8e4d8] bg-[#fbfaf4]/90 backdrop-blur-xl">
-        <div className="container flex h-[76px] items-center justify-between gap-6">
-          <button onClick={() => goTo("baslangic")} className="group flex items-center gap-3 text-left" aria-label="OkulBlog ana sayfa">
-            <span className="grid h-10 w-10 place-items-center rounded-[14px] bg-[#18344f] text-[#f5d37c] shadow-[0_10px_22px_rgba(24,52,79,.2)] transition-transform duration-200 group-hover:-translate-y-0.5"><GraduationCap size={22} /></span>
-            <span className="text-xl font-bold tracking-[-0.04em]">okul<span className="font-serif italic font-semibold text-[#8f7027]">blog</span></span>
+    <div className="min-h-screen overflow-x-hidden bg-[#f7f4ed] text-[#102e49]">
+      <header className="sticky top-0 z-50 border-b border-[#dfe0d8]/80 bg-[#f7f4ed]/95 backdrop-blur-xl">
+        <div className="container flex h-[76px] items-center justify-between gap-5">
+          <button onClick={() => goTo("baslangic")} className="flex items-center gap-2.5 text-left" aria-label="OkulBlog ana sayfa">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#102e49] text-[#f2c866] shadow-[0_9px_20px_rgba(16,46,73,.17)]"><GraduationCap size={21} /></span>
+            <span className="text-[21px] font-bold tracking-[-.06em] text-[#102e49]">okul<span className="font-serif text-[#bd8331]">blog</span></span>
           </button>
-          <nav className="hidden items-center gap-7 text-sm font-semibold text-[#526879] md:flex">
-            <button onClick={() => goTo("kesfet")} className="transition-colors hover:text-[#18344f]">Keşfet</button>
-            <button onClick={() => goTo("yaklasim")} className="transition-colors hover:text-[#18344f]">Nasıl çalışır?</button>
-            <button onClick={() => goTo("sinavlar")} className="transition-colors hover:text-[#18344f]">Sınavlar</button>
+
+          <nav className="hidden items-center gap-8 text-sm font-bold text-[#516674] md:flex">
+            <button onClick={() => goTo("icerikler")} className="transition-colors hover:text-[#102e49]">İçerikler</button>
+            <button onClick={() => goTo("yolculuk")} className="transition-colors hover:text-[#102e49]">Nasıl çalışır?</button>
+            <button onClick={() => goTo("sinavlar")} className="transition-colors hover:text-[#102e49]">Sınav hazırlığı</button>
           </nav>
+
           <div className="hidden items-center gap-2 md:flex">
-            {isAuthenticated ? <Button onClick={openPanel} variant="ghost" className="font-semibold">Panelim</Button> : <Button onClick={startLogin} variant="ghost" className="font-semibold">Giriş yap</Button>}
-            <Button onClick={isAuthenticated ? openPanel : startLogin} className="rounded-xl bg-[#18344f] px-5 font-semibold text-white shadow-[0_10px_20px_rgba(24,52,79,.17)] transition-transform duration-200 hover:bg-[#234864] active:scale-[.97]">
-              {isAuthenticated ? "Panele git" : "Hemen başla"}<ArrowRight size={16} />
+            <Button onClick={accountAction} variant="ghost" className="font-bold text-[#28445a] hover:bg-[#ecece2]">{isAuthenticated ? "Panelim" : "Giriş yap"}</Button>
+            <Button onClick={accountAction} className="h-11 rounded-full bg-[#102e49] px-5 font-bold text-white shadow-[0_10px_20px_rgba(16,46,73,.15)] hover:bg-[#1b425f] active:scale-[.97]">
+              {isAuthenticated ? "Panele git" : "Başla"}<ArrowRight size={16} />
             </Button>
           </div>
-          <button onClick={() => setMenuOpen(v => !v)} className="grid h-10 w-10 place-items-center rounded-xl border border-[#e8e4d8] bg-white md:hidden" aria-label="Menüyü aç">{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
+
+          <button onClick={() => setMenuOpen(value => !value)} className="grid h-10 w-10 place-items-center rounded-xl border border-[#d8dcd6] bg-white md:hidden" aria-label="Menüyü aç">
+            {menuOpen ? <X size={19} /> : <Menu size={19} />}
+          </button>
         </div>
-        {menuOpen && <div className="border-t border-[#e8e4d8] bg-[#fbfaf4] px-4 py-4 md:hidden"><div className="grid gap-2"><button onClick={() => goTo("kesfet")} className="rounded-xl px-4 py-3 text-left font-semibold hover:bg-white">Keşfet</button><button onClick={() => goTo("yaklasim")} className="rounded-xl px-4 py-3 text-left font-semibold hover:bg-white">Nasıl çalışır?</button><Button onClick={isAuthenticated ? openPanel : startLogin} className="mt-1 bg-[#18344f]">{loading ? "Yükleniyor..." : isAuthenticated ? "Panele git" : "Giriş yap"}</Button></div></div>}
+        {menuOpen && <div className="border-t border-[#dedfd7] bg-[#f7f4ed] px-4 py-4 md:hidden"><div className="grid gap-1"><button onClick={() => goTo("icerikler")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">İçerikler</button><button onClick={() => goTo("yolculuk")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">Nasıl çalışır?</button><button onClick={() => goTo("sinavlar")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">Sınav hazırlığı</button><Button onClick={accountAction} className="mt-2 bg-[#102e49]">{loading ? "Yükleniyor..." : isAuthenticated ? "Panele git" : "Giriş yap"}</Button></div></div>}
       </header>
 
       <main>
-        <section id="baslangic" className="relative isolate overflow-hidden border-b border-[#e8e4d8]">
-          <div className="pointer-events-none absolute inset-0 -z-10 grid-wash opacity-45" />
-          <div className="pointer-events-none absolute -right-16 top-10 -z-10 h-80 w-80 rounded-full bg-[#d8efe7] blur-3xl" />
-          <div className="pointer-events-none absolute left-[40%] top-4 -z-10 h-40 w-40 rounded-full bg-[#f6e2ad] blur-3xl" />
-          <div className="container grid min-h-[630px] items-center gap-12 py-16 lg:grid-cols-[1.1fr_.9fr] lg:py-20">
+        <section id="baslangic" className="relative overflow-hidden bg-[#102e49] text-white">
+          <div className="pointer-events-none absolute inset-0 opacity-[.08]" style={{ backgroundImage: "radial-gradient(#f6d881 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+          <div className="pointer-events-none absolute -right-36 top-[-13rem] h-[36rem] w-[36rem] rounded-full border-[62px] border-[#e5ae55]/20" />
+          <div className="container relative grid gap-12 py-16 sm:py-20 lg:min-h-[650px] lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:py-24">
             <div className="max-w-2xl">
-              <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#d7e5df] bg-white/80 px-3.5 py-2 text-xs font-bold tracking-wide text-[#376c63]"><Sparkles size={14} className="text-[#ae8024]" /> Öğrenme için daha sakin bir düzen</div>
-              <h1 className="max-w-xl text-5xl font-semibold leading-[.98] tracking-[-0.065em] text-[#18344f] sm:text-6xl lg:text-7xl">Her hedef için <span className="font-serif italic font-semibold text-[#8b6b23]">doğru</span> öğrenme alanı.</h1>
-              <p className="mt-7 max-w-lg text-base leading-7 text-[#5b7080] sm:text-lg">OkulBlog, eğitim içeriklerini, ölçme araçlarını ve sınav hazırlığını tek bir yalın yolculukta birleştirir.</p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row"><Button onClick={() => goTo("kesfet")} size="lg" className="h-13 rounded-xl bg-[#18344f] px-6 font-semibold text-white hover:bg-[#234864]">İçerikleri keşfet <ArrowRight size={17} /></Button><Button onClick={() => goTo("yaklasim")} size="lg" variant="outline" className="h-13 rounded-xl border-[#d9d8ce] bg-white/70 px-6 font-semibold text-[#28475e] hover:bg-white"><PlayCircle size={18} className="text-[#6d978d]" /> Nasıl çalışır?</Button></div>
-              <div className="mt-12 flex flex-wrap gap-x-7 gap-y-4 text-sm text-[#5c7180]"><span className="flex items-center gap-2"><BadgeCheck size={17} className="text-[#4b897c]" /> Kazanım odaklı</span><span className="flex items-center gap-2"><ShieldCheck size={17} className="text-[#4b897c]" /> Güvenli alan</span><span className="flex items-center gap-2"><BrainCircuit size={17} className="text-[#4b897c]" /> Yapay zekâ destekli</span></div>
-            </div>
-            <div className="relative mx-auto w-full max-w-[490px] pb-6 pt-4 lg:pt-0">
-              <div className="absolute inset-x-8 top-0 h-24 rounded-[30px] bg-[#e9c86f]/35 blur-2xl" />
-              <div className="relative rounded-[30px] border border-white/75 bg-white/75 p-4 shadow-[0_24px_80px_rgba(23,51,76,.14)] backdrop-blur-sm sm:p-6">
-                <div className="flex items-center justify-between border-b border-[#edf0eb] pb-5"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#d7f0e9] text-[#176257]"><Target size={20} /></div><div><p className="text-sm font-bold">Bugünün rotası</p><p className="text-xs text-[#718391]">Kazanıma göre ilerle</p></div></div><span className="rounded-full bg-[#fff4d9] px-3 py-1 text-xs font-bold text-[#95702a]">%74 tamamlandı</span></div>
-                <div className="mt-5 rounded-2xl bg-[#18344f] p-5 text-white"><div className="flex items-start justify-between"><div><p className="text-xs font-semibold tracking-[.13em] text-[#a9c6ca] uppercase">Türkçe · 1. Sınıf</p><h2 className="mt-2 text-xl font-semibold">Okuduğunu anlama</h2></div><BookOpen size={22} className="text-[#f5d37c]" /></div><div className="mt-7 h-2 overflow-hidden rounded-full bg-white/15"><div className="h-full w-[74%] rounded-full bg-[#f5d37c]" /></div><div className="mt-3 flex justify-between text-xs text-[#c8d5d8]"><span>8 içerik işlendi</span><span>2 içerik kaldı</span></div></div>
-                <div className="mt-4 grid grid-cols-3 gap-3"><div className="rounded-2xl bg-[#f0f6f2] p-3"><FileText size={17} className="text-[#4b897c]" /><p className="mt-4 text-xs font-bold">Doküman</p><p className="mt-1 text-[11px] text-[#74858a]">4 yeni kaynak</p></div><div className="rounded-2xl bg-[#fcf5e5] p-3"><Target size={17} className="text-[#b57b28]" /><p className="mt-4 text-xs font-bold">Test</p><p className="mt-1 text-[11px] text-[#74858a]">12 soru</p></div><div className="rounded-2xl bg-[#f1eef9] p-3"><Layers3 size={17} className="text-[#6f5c9c]" /><p className="mt-4 text-xs font-bold">Simülasyon</p><p className="mt-1 text-[11px] text-[#74858a]">1 deneyim</p></div></div>
+              <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.06] px-3.5 py-2 text-[11px] font-bold tracking-[.12em] text-[#f6d47f] uppercase"><Sparkles size={14} /> {currentSlide.eyebrow || "Eğitim için düzenli bir alan"}</div>
+              <h1 className="max-w-2xl text-[3.35rem] font-semibold leading-[.92] tracking-[-.073em] sm:text-7xl lg:text-[5.45rem]">{currentSlide.title}</h1>
+              <p className="mt-8 max-w-lg text-base leading-7 text-[#c4d1d3] sm:text-lg">{currentSlide.description || fallbackSlide.description}</p>
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+                <Button onClick={followSlideLink} size="lg" className="h-13 rounded-full bg-[#f2c866] px-6 font-bold text-[#1b354c] hover:bg-[#f7d982]">{currentSlide.buttonLabel || "İçerikleri keşfet"} <ArrowDownRight size={18} /></Button>
+                <Button onClick={() => goTo("yolculuk")} variant="outline" size="lg" className="h-13 rounded-full border-white/25 bg-white/[.03] px-6 font-bold text-white hover:bg-white/10 hover:text-white"><PlayCircle size={18} /> Nasıl çalışır?</Button>
               </div>
-              <div className="absolute -bottom-1 -left-8 hidden rounded-2xl border border-white bg-white px-4 py-3 shadow-xl sm:flex sm:items-center sm:gap-3"><div className="grid h-9 w-9 place-items-center rounded-xl bg-[#f8e1da] text-[#a35346]"><Sparkles size={16} /></div><div><p className="text-xs font-bold">Akıllı öneri</p><p className="text-[11px] text-[#74858a]">Sana uygun yeni içerikler</p></div></div>
+              {configuredSlides.length > 1 && <div className="mt-8 flex items-center gap-2" aria-label="Slider seçimi">{configuredSlides.map((slide, index) => <button key={slide.id} onClick={() => setActiveSlideIndex(index)} className={`h-2.5 rounded-full transition-all ${index === activeSlideIndex ? "w-8 bg-[#f2c866]" : "w-2.5 bg-white/35 hover:bg-white/60"}`} aria-label={`${index + 1}. slide: ${slide.title}`} />)}</div>}
+              <div className="mt-12 flex flex-wrap gap-x-7 gap-y-3 text-sm font-medium text-[#b6c7c9]"><span>• Kazanım odaklı</span><span>• Rol tabanlı</span><span>• Yapay zekâ destekli</span></div>
+            </div>
+
+            <div className="relative mx-auto w-full max-w-[510px] lg:translate-y-2">
+              <div className="absolute -left-5 top-20 h-48 w-48 rounded-full bg-[#c9e4dc]/20 blur-3xl" />
+              <div className="relative overflow-hidden rounded-[32px] border border-white/15 bg-[#f8f5ed] p-4 text-[#15344e] shadow-[0_28px_80px_rgba(0,0,0,.23)] sm:p-5">
+                <div className="flex items-center justify-between border-b border-[#e1e2d9] pb-4"><div className="flex items-center gap-2.5"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#cce9df] text-[#176559]"><Search size={17} /></span><div><p className="text-sm font-bold">Öğrenme yolu</p><p className="text-[11px] text-[#75838a]">Adım adım keşfet</p></div></div><span className="rounded-full bg-[#f5e4b6] px-3 py-1 text-[10px] font-bold text-[#855f20]">AKILLI SEÇİM</span></div>
+                <div className="mt-4 rounded-[22px] bg-[#153b58] p-5 text-white"><p className="text-[10px] font-bold tracking-[.16em] text-[#a9c9c4] uppercase">Eğitim kategorisi</p><p className="mt-2 text-xl font-semibold tracking-[-.03em]">Türkçe · 1. Sınıf</p><div className="mt-5 flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-[#e7eff0]"><span className="rounded-md bg-white/10 px-2 py-1">Ders</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-white/10 px-2 py-1">Ünite</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-[#e8b75e] px-2 py-1 text-[#19384f]">Kazanım</span></div></div>
+                <div className="mt-3 grid grid-cols-3 gap-2"><MiniTile icon={FileText} label="Doküman" tone="bg-[#e6f1ec] text-[#286b5e]" /><MiniTile icon={Target} label="Test" tone="bg-[#fbefd3] text-[#8f6621]" /><MiniTile icon={BrainCircuit} label="AI çalışma" tone="bg-[#ece8f7] text-[#604985]" /></div>
+                <div className="mt-3 flex items-center justify-between rounded-2xl border border-[#e3e5dc] bg-white px-4 py-3"><div><p className="text-xs font-bold">Sıradaki çalışma</p><p className="mt-0.5 text-[11px] text-[#77858a]">Okuduğunu anlama</p></div><ArrowRight size={17} className="text-[#739b90]" /></div>
+              </div>
+              <div className="absolute -bottom-5 -right-3 rounded-2xl bg-[#e8b85d] px-4 py-3 text-[#2b4050] shadow-xl sm:-right-9"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div>
             </div>
           </div>
         </section>
 
-        <section id="kesfet" className="container py-20 sm:py-24">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="editorial-kicker">Keşif alanı</p><h2 className="mt-3 max-w-xl text-4xl font-semibold tracking-[-.05em] text-[#18344f] sm:text-5xl">İçerik tek yerde, odağın sende.</h2></div><p className="max-w-sm text-sm leading-6 text-[#627887]">Öğrenme ihtiyacına göre tasarlanmış altı içerik alanı; erişilebilir, düzenli ve birbiriyle bağlantılı.</p></div>
-          <div className="mt-11 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{sections.map(({ name, description, icon: Icon, tone, count }) => <button key={name} onClick={() => toast.info(`${name} alanı içerik yönetimi modülüyle birlikte hazırlanıyor.`)} className="group rounded-[23px] border border-[#ebe7dc] bg-white p-6 text-left shadow-[0_8px_22px_rgba(34,59,73,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_35px_rgba(34,59,73,.1)]"><div className="flex items-start justify-between"><span className={`grid h-12 w-12 place-items-center rounded-2xl ${tone}`}><Icon size={22} /></span><ChevronRight size={19} className="text-[#b7c2c4] transition-transform group-hover:translate-x-1 group-hover:text-[#18344f]" /></div><h3 className="mt-12 text-xl font-bold tracking-[-.03em] text-[#203c54]">{name}</h3><p className="mt-2 text-sm leading-6 text-[#6d808b]">{description}</p><p className="mt-5 text-xs font-bold text-[#839196]">{count}</p></button>)}</div>
+        <section className="border-b border-[#dfdfd5] bg-[#f7f4ed]"><div className="container grid gap-5 py-6 sm:grid-cols-[auto_1fr_auto] sm:items-center"><p className="text-sm font-bold text-[#24435b]">Nereden başlamak istersiniz?</p><div className="hidden h-px bg-[#d9ddd5] sm:block" /><div className="flex flex-wrap gap-2"><button onClick={() => goTo("icerikler")} className="rounded-full border border-[#d8dcd5] bg-white px-4 py-2 text-xs font-bold text-[#466170] transition hover:border-[#9abbb1] hover:text-[#155e55]">Okul dersleri</button><button onClick={() => goTo("sinavlar")} className="rounded-full border border-[#d8dcd5] bg-white px-4 py-2 text-xs font-bold text-[#466170] transition hover:border-[#9abbb1] hover:text-[#155e55]">Kurum sınavları</button></div></div></section>
+
+        <section id="icerikler" className="container py-20 sm:py-28">
+          <div className="grid gap-7 lg:grid-cols-[.82fr_1.18fr] lg:items-end"><div><p className="editorial-kicker text-[#5c877e]">İçerik alanları</p><h2 className="mt-4 max-w-md text-4xl font-semibold leading-[.98] tracking-[-.058em] text-[#102e49] sm:text-6xl">Tek arayüz.<br /><span className="font-serif italic text-[#b77a29]">Altı farklı</span> çalışma biçimi.</h2></div><p className="max-w-xl border-l-2 border-[#e0b65f] pl-5 text-base leading-7 text-[#617783]">İhtiyacınız olan materyale ulaşmak için hangi kapıdan gireceğinizi bilmeniz yeterli. Her alan, aynı kategori düzeniyle çalışır.</p></div>
+          <div className="mt-14 grid gap-px overflow-hidden rounded-[26px] border border-[#dfe1d9] bg-[#dfe1d9] sm:grid-cols-2 lg:grid-cols-3">{contentAreas.map(({ name, detail, icon: Icon, accent, ink }) => <button key={name} onClick={accountAction} className="group min-h-[220px] bg-[#fbfaf6] p-6 text-left transition duration-200 hover:bg-white"><div className="flex items-start justify-between"><span className={`grid h-12 w-12 place-items-center rounded-2xl ${accent} ${ink}`}><Icon size={21} /></span><ArrowRight size={18} className="text-[#a3afb0] transition-transform group-hover:translate-x-1 group-hover:text-[#102e49]" /></div><h3 className="mt-14 text-2xl font-bold tracking-[-.045em] text-[#17354d]">{name}</h3><p className="mt-2 text-sm text-[#71828a]">{detail}</p></button>)}</div>
         </section>
 
-        <section id="yaklasim" className="border-y border-[#e7e2d7] bg-[#eef5f0] py-20 sm:py-24"><div className="container grid gap-12 lg:grid-cols-[.85fr_1.15fr]"><div><p className="editorial-kicker text-[#548074]">Net bir yaklaşım</p><h2 className="mt-3 text-4xl font-semibold tracking-[-.05em] text-[#18344f] sm:text-5xl">Öğrenme yolunu karmaşadan çıkarır.</h2><p className="mt-6 max-w-md leading-7 text-[#5e757a]">Her içerik, sabit kategori hiyerarşisiyle ilişkilendirilir. Böylece doğru materyale doğru anda ulaşırsınız.</p></div><div className="grid gap-3">{workflow.map(item => <div key={item.number} className="group grid grid-cols-[55px_1fr_auto] items-center gap-4 rounded-2xl border border-white/80 bg-white/70 px-5 py-5 transition hover:bg-white"><span className="font-serif text-2xl italic text-[#b58c3a]">{item.number}</span><div><h3 className="font-bold text-[#23435a]">{item.title}</h3><p className="mt-1 text-sm text-[#6f8286]">{item.text}</p></div><ArrowRight size={18} className="text-[#a5b6b1] transition-transform group-hover:translate-x-1" /></div>)}</div></div></section>
+        <section id="sinavlar" className="border-y border-[#dae0d8] bg-[#dcece6]"><div className="container grid gap-10 py-20 sm:py-24 lg:grid-cols-[1fr_.94fr] lg:items-center"><div><p className="editorial-kicker text-[#4a786d]">Kurum kategorisi</p><h2 className="mt-4 max-w-xl text-4xl font-semibold leading-[.99] tracking-[-.055em] text-[#12364f] sm:text-5xl">Sınav hazırlığı, okul akışından bağımsız hareket eder.</h2><p className="mt-6 max-w-lg leading-7 text-[#4d6d70]">KPSS ve kamu kurumu sınavları için alt kategori yapısı, aktif/pasif yönetim ve ilgili içeriklerinizi ayrı bir alanda düzenleyin.</p><Button onClick={accountAction} className="mt-8 rounded-full bg-[#12364f] px-6 font-bold text-white hover:bg-[#214c66]">Sınav alanına git <ArrowRight size={16} /></Button></div><div className="rounded-[28px] border border-white/80 bg-[#f7f5ed] p-6 shadow-[0_18px_35px_rgba(33,78,74,.1)] sm:p-8"><div className="flex items-center justify-between"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#153b58] text-[#f1c867]"><BookOpen size={21} /></span><span className="rounded-full bg-[#e2f0eb] px-3 py-1.5 text-[10px] font-bold text-[#2f6c5d]">BAĞIMSIZ YAPI</span></div><div className="mt-9 space-y-2">{["Kurum Kategorisi", "Alt Kategori", "İçerik ve Soru Havuzu"].map((item, index) => <div className="flex items-center gap-3" key={item}><span className="grid h-7 w-7 place-items-center rounded-full bg-[#dcece6] text-xs font-bold text-[#28685c]">{index + 1}</span><div className="flex flex-1 items-center justify-between rounded-xl border border-[#e2e4dd] bg-white px-4 py-3 text-sm font-bold text-[#29475b]"><span>{item}</span>{index < 2 && <ChevronRight size={15} className="text-[#82a69e]" />}</div></div>)}</div></div></div></section>
 
-        <section id="sinavlar" className="container py-20 sm:py-24"><div className="overflow-hidden rounded-[30px] bg-[#18344f] px-6 py-10 text-white sm:px-10 lg:px-14 lg:py-14"><div className="grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:items-center"><div><p className="editorial-kicker text-[#a5cac0]">Kurum kategorisi</p><h2 className="mt-3 max-w-xl text-4xl font-semibold tracking-[-.055em] sm:text-5xl">Sınav hazırlığı da kendine ait bir düzende.</h2><p className="mt-6 max-w-lg leading-7 text-[#c5d1d2]">KPSS ve kamu kurumu sınavlarında, eğitim hiyerarşisinden bağımsız; aktif/pasif yönetilebilen kapsamlı kategori altyapısı.</p><Button onClick={() => toast.info("Kurum Kategorisi yönetimi Admin panelinde açılacak.")} className="mt-8 rounded-xl bg-[#f5d37c] px-5 font-bold text-[#203b51] hover:bg-[#f8dea0]">Sınav alanını incele <ArrowRight size={16} /></Button></div><div className="grid grid-cols-2 gap-3"><div className="rounded-2xl bg-white/9 p-5"><p className="text-3xl font-semibold text-[#f5d37c]">02</p><p className="mt-5 text-sm font-bold">Ayrı kategori mantığı</p><p className="mt-1 text-xs leading-5 text-[#b8c9cb]">Eğitim ve kurum yapıları birbirinden ayrıdır.</p></div><div className="rounded-2xl bg-white/9 p-5"><p className="text-3xl font-semibold text-[#f5d37c]">06</p><p className="mt-5 text-sm font-bold">Bağlanan içerik alanı</p><p className="mt-1 text-xs leading-5 text-[#b8c9cb]">Testten oyuna aynı düzenle bağlanır.</p></div><div className="col-span-2 rounded-2xl border border-white/12 bg-[#234761] p-5"><p className="text-xs font-bold tracking-[.16em] text-[#a5cac0] uppercase">Yönetilebilir erişim</p><p className="mt-3 text-sm leading-6 text-[#d2dddd]">Admin, Öğretmen ve Moderatör panellerinde hangi alanların görünür olacağını bölüm bazında belirler.</p></div></div></div></div></section>
+        <section id="yolculuk" className="container py-20 sm:py-28"><div className="rounded-[32px] bg-[#102e49] px-6 py-10 text-white sm:px-10 lg:px-14 lg:py-14"><div className="grid gap-12 lg:grid-cols-[.72fr_1.28fr]"><div><p className="editorial-kicker text-[#a8cfc5]">Çalışma düzeni</p><h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-.055em] sm:text-5xl">Daha az karmaşa.<br /><span className="font-serif italic text-[#f2c866]">Daha çok odak.</span></h2><p className="mt-6 max-w-sm leading-7 text-[#c0d0d3]">OkulBlog, içerik üretiminden çalışmaya kadar her adımı izlenebilir bir eğitim yoluna bağlar.</p></div><div className="grid gap-3">{steps.map(([number, title, text]) => <div key={number} className="grid grid-cols-[42px_1fr_auto] gap-3 rounded-2xl border border-white/10 bg-white/[.055] p-5 sm:grid-cols-[55px_1fr_auto] sm:items-center"><span className="font-serif text-2xl italic text-[#f2c866]">{number}</span><div><h3 className="font-bold">{title}</h3><p className="mt-1 text-sm leading-6 text-[#b9c9cc]">{text}</p></div><ArrowRight size={17} className="text-[#83ada5]" /></div>)}</div></div></div></section>
       </main>
-      <footer className="border-t border-[#e8e4d8] bg-[#f6f3ea]"><div className="container flex flex-col gap-4 py-8 text-sm text-[#667b87] sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-2 font-semibold text-[#23435a]"><GraduationCap size={18} className="text-[#92712a]" /> okulblog</div><p>Öğrenme için daha sakin, daha düzenli bir alan.</p><p>© {new Date().getFullYear()} OkulBlog</p></div></footer>
+
+      <footer className="border-t border-[#dfe1d9] bg-[#efede5]"><div className="container flex flex-col gap-3 py-8 text-sm text-[#66777d] sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-2 font-bold text-[#244259]"><GraduationCap size={18} className="text-[#b77a29]" /> okulblog</div><p>İçerik, ölçme ve öğrenme için düzenli bir alan.</p><p>© {new Date().getFullYear()} OkulBlog</p></div></footer>
     </div>
   );
+}
+
+function MiniTile({ icon: Icon, label, tone }: { icon: typeof FileText; label: string; tone: string }) {
+  return <div className={`rounded-2xl p-3 ${tone}`}><Icon size={16} /><p className="mt-5 text-[11px] font-bold">{label}</p></div>;
 }

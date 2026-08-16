@@ -90,6 +90,21 @@ export const newsCategories = mysqlTable("news_categories", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const homeSlides = mysqlTable("home_slides", {
+  id: int("id").autoincrement().primaryKey(),
+  eyebrow: varchar("eyebrow", { length: 100 }),
+  title: varchar("title", { length: 240 }).notNull(),
+  description: text("description"),
+  buttonLabel: varchar("buttonLabel", { length: 80 }),
+  buttonLink: varchar("buttonLink", { length: 500 }),
+  imageUrl: varchar("imageUrl", { length: 700 }),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const storedFiles = mysqlTable("stored_files", {
   id: int("id").autoincrement().primaryKey(),
   fileName: varchar("fileName", { length: 255 }).notNull(),
@@ -119,3 +134,4 @@ export type Question = typeof questions.$inferSelect;
 export type Test = typeof tests.$inferSelect;
 export type StoredFile = typeof storedFiles.$inferSelect;
 export type NewsCategory = typeof newsCategories.$inferSelect;
+export type HomeSlide = typeof homeSlides.$inferSelect;

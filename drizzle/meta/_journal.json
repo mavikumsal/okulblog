@@ -29,6 +29,13 @@
       "when": 1786900127919,
       "tag": "0003_youthful_chamber",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786900774671,
+      "tag": "0004_smart_scalphunter",
+      "breakpoints": true
     }
   ]
 }

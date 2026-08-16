@@ -26,7 +26,8 @@
 - [x] Google AdSense ve özel firma reklamları için kalıcı ayar formları ve kayıt altyapısı
 - [x] Vitest testleri ve tip kontrolü
 - [x] Responsive görsel doğrulama
-- [ ] Ana sayfanın görsel hiyerarşisini ve genel düzenini baştan tasarlama
-- [ ] Ana sayfanın tipografi, renk, boşluk ve içerik odaklı deneyimini rafine etme
-- [ ] Yeniden tasarlanan ana sayfayı masaüstü ve mobil görünümde doğrulama
+- [x] Ana sayfanın görsel hiyerarşisini ve genel düzenini baştan tasarlama
+- [x] Ana sayfanın tipografi, renk, boşluk ve içerik odaklı deneyimini rafine etme
+- [x] Yeniden tasarlanan ana sayfayı masaüstü ve mobil görünümde doğrulama
 - [x] “Pekşen Yayınları” ibaresini ana sayfa ve panellerdeki tüm görünür alanlardan kaldırma
+- [x] Admin tarafından başlık, açıklama, görsel URL'si, bağlantı, sıralama ve aktif/pasif durumu yönetilebilen slider

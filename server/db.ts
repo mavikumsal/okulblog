@@ -1,6 +1,6 @@
 import { asc, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, InsertUser, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, homeSlides, InsertUser, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -236,4 +236,54 @@ export async function createNewsCategory(name: string) {
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   const slug = `${name.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşöçıİ]+/gi, "-").replace(/(^-|-$)/g, "")}-${crypto.randomUUID().slice(0, 6)}`;
   await db.insert(newsCategories).values({ name, slug });
+}
+
+export async function listActiveHomeSlides() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(homeSlides).where(eq(homeSlides.isActive, true)).orderBy(asc(homeSlides.sortOrder), asc(homeSlides.id));
+}
+
+export async function listHomeSlidesForAdmin() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(homeSlides).orderBy(asc(homeSlides.sortOrder), asc(homeSlides.id));
+}
+
+export type HomeSlideInput = {
+  eyebrow?: string | null;
+  title: string;
+  description?: string | null;
+  buttonLabel?: string | null;
+  buttonLink?: string | null;
+  imageUrl?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export async function createHomeSlide(input: HomeSlideInput & { createdBy: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.insert(homeSlides).values(input);
+}
+
+export async function updateHomeSlide(input: HomeSlideInput & { id: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.update(homeSlides).set({
+    eyebrow: input.eyebrow ?? null,
+    title: input.title,
+    description: input.description ?? null,
+    buttonLabel: input.buttonLabel ?? null,
+    buttonLink: input.buttonLink ?? null,
+    imageUrl: input.imageUrl ?? null,
+    sortOrder: input.sortOrder,
+    isActive: input.isActive,
+  }).where(eq(homeSlides.id, input.id));
+}
+
+export async function deleteHomeSlide(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.delete(homeSlides).where(eq(homeSlides.id, id));
 }
