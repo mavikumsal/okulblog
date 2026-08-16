@@ -9,6 +9,7 @@ import {
   createContentItem,
   createHomeSlide,
   createNewsCategory,
+  listContentByCategory,
   createQuestion,
   createStoredFile,
   createTest,
@@ -91,6 +92,7 @@ export const appRouter = router({
       institutionCategories: await listCategoryNodes("institution"),
     })),
     homeSlides: publicProcedure.query(() => listActiveHomeSlides()),
+    contentByCategory: publicProcedure.input(z.object({ categoryId: z.number().int().positive() })).query(({ input }) => listContentByCategory(input.categoryId)),
   }),
   categories: router({
     list: protectedProcedure.input(z.object({ categoryType: z.enum(["education", "institution"]).optional() })).query(({ input }) => listCategoryNodes(input.categoryType)),

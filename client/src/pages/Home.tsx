@@ -2,7 +2,6 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { getSlideNavigation } from "@/lib/homeSlide";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -39,12 +38,27 @@ const steps = [
   ["03", "Çalışmanı sürdür", "Tekrarla, ölç, geri dön ve hedefini görünür tut."],
 ];
 
+function getSlideNavigation(link: string | null | undefined) {
+  const target = (link ?? "#icerikler").trim() || "#icerikler";
+  if (target.startsWith("#")) return { kind: "anchor" as const, target };
+  if (target.startsWith("/")) return { kind: "internal" as const, target };
+  return { kind: "external" as const, target };
+}
+
 export default function Home() {
   const { isAuthenticated, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [, setLocation] = useLocation();
   const homeSlides = trpc.platform.homeSlides.useQuery();
+  const overview = trpc.platform.overview.useQuery();
+  const educationCategories = overview.data?.educationCategories ?? [];
+  const selectedCategory = educationCategories.find(category => category.id === selectedCategoryId);
+  const filteredContent = trpc.platform.contentByCategory.useQuery(
+    { categoryId: selectedCategoryId ?? 1 },
+    { enabled: selectedCategoryId !== null }
+  );
   const configuredSlides = homeSlides.data ?? [];
   const fallbackSlide = {
     eyebrow: "Eğitim için düzenli bir alan",
@@ -133,7 +147,9 @@ export default function Home() {
 
         <section className="border-b border-[#dfdfd5] bg-[#f7f4ed]"><div className="container grid gap-5 py-6 sm:grid-cols-[auto_1fr_auto] sm:items-center"><p className="text-sm font-bold text-[#24435b]">Nereden başlamak istersiniz?</p><div className="hidden h-px bg-[#d9ddd5] sm:block" /><div className="flex flex-wrap gap-2"><button onClick={() => goTo("icerikler")} className="rounded-full border border-[#d8dcd5] bg-white px-4 py-2 text-xs font-bold text-[#466170] transition hover:border-[#9abbb1] hover:text-[#155e55]">Okul dersleri</button><button onClick={() => goTo("sinavlar")} className="rounded-full border border-[#d8dcd5] bg-white px-4 py-2 text-xs font-bold text-[#466170] transition hover:border-[#9abbb1] hover:text-[#155e55]">Kurum sınavları</button></div></div></section>
 
-        <section id="populer-kategoriler" className="border-b border-[#e0e1d9] bg-[#f7f4ed] py-16 sm:py-20"><div className="container"><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="editorial-kicker text-[#5c877e]">Hızlı başlangıç</p><h2 className="mt-3 text-3xl font-semibold tracking-[-.055em] text-[#102e49] sm:text-4xl">Popüler eğitim kategorileri</h2><p className="mt-3 max-w-xl text-sm leading-6 text-[#6b7d82]">Öğrenme yolunuza en sık kullanılan başlangıç noktalarından biriyle devam edin.</p></div><button onClick={() => goTo("icerikler")} className="inline-flex items-center gap-2 self-start text-sm font-bold text-[#356f68] transition hover:text-[#102e49] sm:self-auto">Tüm içerikleri gör <ArrowRight size={16} /></button></div><div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"><PopularCategory icon={GraduationCap} label="İlkokul" detail="Temel dersler ve kazanımlar" tone="bg-[#e5f1eb]" ink="text-[#2b7062]" onClick={() => goTo("icerikler")} /><PopularCategory icon={BookOpen} label="Ortaokul" detail="Ders, ünite ve konu akışı" tone="bg-[#e9e4f3]" ink="text-[#625087]" onClick={() => goTo("icerikler")} /><PopularCategory icon={Target} label="Türkçe" detail="Okuma, anlama ve dil bilgisi" tone="bg-[#fbefd3]" ink="text-[#90661e]" onClick={() => goTo("icerikler")} /><PopularCategory icon={BrainCircuit} label="Matematik" detail="Adım adım problem çözme" tone="bg-[#f4ddd8]" ink="text-[#8a4d42]" onClick={() => goTo("icerikler")} /><PopularCategory icon={Layers3} label="Fen Bilimleri" detail="Kavramları bağlantılarıyla öğren" tone="bg-[#dce9f4]" ink="text-[#2b5c82]" onClick={() => goTo("icerikler")} /><PopularCategory icon={Search} label="KPSS ve kurum sınavları" detail="Bağımsız sınav çalışma alanı" tone="bg-[#e7e4d2]" ink="text-[#6b6b37]" onClick={() => goTo("sinavlar")} /></div></div></section>
+        <section id="populer-kategoriler" className="border-b border-[#e0e1d9] bg-[#f7f4ed] py-16 sm:py-20"><div className="container"><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="editorial-kicker text-[#5c877e]">Hızlı başlangıç</p><h2 className="mt-3 text-3xl font-semibold tracking-[-.055em] text-[#102e49] sm:text-4xl">Popüler eğitim kategorileri</h2><p className="mt-3 max-w-xl text-sm leading-6 text-[#6b7d82]">Öğrenme yolunuza en sık kullanılan başlangıç noktalarından biriyle devam edin.</p></div><button onClick={() => goTo("icerikler")} className="inline-flex items-center gap-2 self-start text-sm font-bold text-[#356f68] transition hover:text-[#102e49] sm:self-auto">Tüm içerikleri gör <ArrowRight size={16} /></button></div>{overview.isLoading ? <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-[132px] animate-pulse rounded-[22px] border border-[#e1e2da] bg-white/70" />)}</div> : overview.isError ? <div className="mt-8 rounded-[22px] border border-[#ead6c9] bg-[#fff8f1] p-6 text-sm text-[#8a5a43]">Kategoriler şu anda yüklenemiyor. Lütfen biraz sonra tekrar deneyin.</div> : educationCategories.length === 0 ? <div className="mt-8 rounded-[22px] border border-dashed border-[#c9d6cf] bg-white/60 p-7 text-sm text-[#6b7d82]">Henüz eğitim kategorisi eklenmedi. Admin panelinden İlkokul veya Ortaokul kategorisi oluşturarak bu alanı doldurabilirsiniz.</div> : <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{educationCategories.slice(0, 6).map((category) => <PopularCategory key={category.id} icon={categoryIcon(category.name)} label={category.name} detail={categoryLevelLabel(category.level)} tone={categoryTone(category.id)} ink={categoryInk(category.id)} active={selectedCategoryId === category.id} onClick={() => { setSelectedCategoryId(category.id); window.setTimeout(() => goTo("kategori-sonuclar"), 0); }} />)}</div>}</div></section>
+
+        {selectedCategory && <section id="kategori-sonuclar" className="container pt-8 scroll-mt-24" aria-live="polite"><div className="rounded-[26px] border border-[#cfe0d9] bg-[#eef6f1] p-5 sm:p-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-[#5c877e]">Seçili öğrenme yolu</p><h3 className="mt-1 text-xl font-bold tracking-[-.035em] text-[#17354d]">{selectedCategory.name}</h3></div><button onClick={() => setSelectedCategoryId(null)} className="self-start text-sm font-bold text-[#356f68] underline underline-offset-4">Temizle</button></div>{filteredContent.isLoading ? <div className="mt-5 h-20 animate-pulse rounded-2xl bg-white/70" /> : filteredContent.isError ? <p className="mt-5 rounded-2xl bg-[#fff8f1] p-4 text-sm text-[#8a5a43]">Bu kategoriye ait içerikler şu anda yüklenemiyor.</p> : filteredContent.data?.length ? <div className="mt-5 grid gap-3 sm:grid-cols-2">{filteredContent.data.slice(0, 4).map(item => <button key={item.id} onClick={accountAction} className="group rounded-2xl border border-[#d8e6de] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(16,46,73,.06)]"><div className="flex items-center justify-between gap-3"><span className="rounded-full bg-[#e7f2ec] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.1em] text-[#397267]">{contentTypeLabel(item.contentType)}</span><ArrowRight size={15} className="text-[#8aa99e] transition-transform group-hover:translate-x-1" /></div><p className="mt-3 font-bold text-[#17354d]">{item.title}</p>{item.summary && <p className="mt-1 line-clamp-2 text-sm leading-5 text-[#71828a]">{item.summary}</p>}</button>)}</div> : <p className="mt-5 rounded-2xl border border-dashed border-[#c9d6cf] bg-white/60 p-4 text-sm text-[#6b7d82]">Bu kategoriye henüz içerik eklenmemiş. Admin veya Öğretmen panelinden bu kategoriye bağlı içerik oluşturabilirsiniz.</p>}</div></section>}
 
         <section id="icerikler" className="container py-20 sm:py-28">
           <div className="grid gap-7 lg:grid-cols-[.82fr_1.18fr] lg:items-end"><div><p className="editorial-kicker text-[#5c877e]">İçerik alanları</p><h2 className="mt-4 max-w-md text-4xl font-semibold leading-[.98] tracking-[-.058em] text-[#102e49] sm:text-6xl">Tek arayüz.<br /><span className="font-serif italic text-[#b77a29]">Altı farklı</span> çalışma biçimi.</h2></div><p className="max-w-xl border-l-2 border-[#e0b65f] pl-5 text-base leading-7 text-[#617783]">İhtiyacınız olan materyale ulaşmak için hangi kapıdan gireceğinizi bilmeniz yeterli. Her alan, aynı kategori düzeniyle çalışır.</p></div>
@@ -150,8 +166,35 @@ export default function Home() {
   );
 }
 
-function PopularCategory({ icon: Icon, label, detail, tone, ink, onClick }: { icon: typeof FileText; label: string; detail: string; tone: string; ink: string; onClick: () => void }) {
-  return <button onClick={onClick} className="group flex min-h-[132px] items-center gap-4 rounded-[22px] border border-[#e1e2da] bg-[#fbfaf6] p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-[#b6c9c0] hover:bg-white hover:shadow-[0_14px_28px_rgba(16,46,73,.07)]"><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${tone} ${ink}`}><Icon size={21} /></span><span className="min-w-0 flex-1"><span className="block text-lg font-bold tracking-[-.035em] text-[#17354d]">{label}</span><span className="mt-1 block text-sm leading-5 text-[#74848a]">{detail}</span></span><ArrowRight size={17} className="shrink-0 text-[#a3afb0] transition-transform group-hover:translate-x-1 group-hover:text-[#356f68]" /></button>;
+function contentTypeLabel(type: string) {
+  const labels: Record<string, string> = { test: "Test", document: "Doküman", simulation: "Simülasyon", video: "Video", game: "Oyun", news: "Haber" };
+  return labels[type] ?? "İçerik";
+}
+
+function categoryIcon(name: string) {
+  const normalized = name.toLocaleLowerCase("tr-TR");
+  if (normalized.includes("matematik")) return Target;
+  if (normalized.includes("türkçe") || normalized.includes("edebiyat")) return BookOpen;
+  if (normalized.includes("fen") || normalized.includes("bilim")) return Layers3;
+  if (normalized.includes("sınıf") || normalized.includes("ilkokul") || normalized.includes("ortaokul")) return GraduationCap;
+  return BrainCircuit;
+}
+
+function categoryLevelLabel(level: string) {
+  const labels: Record<string, string> = { "ana-grup": "Eğitim ana grubu", "school-level": "Okul seviyesi", class: "Sınıf ve ders akışı", subject: "Ders kaynakları", unit: "Ünite çalışmaları", outcome: "Kazanım odaklı çalışma" };
+  return labels[level] ?? "Eğitim içerikleri";
+}
+
+function categoryTone(id: number) {
+  return ["bg-[#e5f1eb]", "bg-[#e9e4f3]", "bg-[#fbefd3]", "bg-[#f4ddd8]", "bg-[#dce9f4]", "bg-[#e7e4d2]"][id % 6];
+}
+
+function categoryInk(id: number) {
+  return ["text-[#2b7062]", "text-[#625087]", "text-[#90661e]", "text-[#8a4d42]", "text-[#2b5c82]", "text-[#6b6b37]"][id % 6];
+}
+
+function PopularCategory({ icon: Icon, label, detail, tone, ink, active, onClick }: { icon: typeof FileText; label: string; detail: string; tone: string; ink: string; active: boolean; onClick: () => void }) {
+  return <button onClick={onClick} className={`group flex min-h-[132px] items-center gap-4 rounded-[22px] border p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_28px_rgba(16,46,73,.07)] ${active ? "border-[#6c9e93] bg-white shadow-[0_10px_24px_rgba(16,46,73,.06)]" : "border-[#e1e2da] bg-[#fbfaf6] hover:border-[#b6c9c0]"}`}><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${tone} ${ink}`}><Icon size={21} /></span><span className="min-w-0 flex-1"><span className="block text-lg font-bold tracking-[-.035em] text-[#17354d]">{label}</span><span className="mt-1 block text-sm leading-5 text-[#74848a]">{detail}</span></span><ArrowRight size={17} className="shrink-0 text-[#a3afb0] transition-transform group-hover:translate-x-1 group-hover:text-[#356f68]" /></button>;
 }
 
 function MiniTile({ icon: Icon, label, tone }: { icon: typeof FileText; label: string; tone: string }) {

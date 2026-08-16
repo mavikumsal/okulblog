@@ -32,5 +32,8 @@
 - [x] “Pekşen Yayınları” ibaresini ana sayfa ve panellerdeki tüm görünür alanlardan kaldırma
 - [x] Admin tarafından başlık, açıklama, görsel URL'si, bağlantı, sıralama ve aktif/pasif durumu yönetilebilen slider
 - [x] Admin slider kayıtlarının ana sayfa hero alanında gösterimini yeniden doğrulama
-- [ ] Slider altına popüler eğitim kategorilerini listeleyen responsive bölüm ekleme
-- [ ] Popüler kategori kartlarını kategori verileri ve yönlendirmelerle ilişkilendirme
+- [x] Slider altına popüler eğitim kategorilerini listeleyen responsive bölüm ekleme
+- [x] Popüler kategori kartlarını kategori verileri ve yönlendirmelerle ilişkilendirme
+- [x] Popüler kategori kartlarını platform.overview veya kategori API’sinden gerçek eğitim/kurum kategorileriyle dinamik besleme
+- [x] Popüler kategori kartlarına kategori kimliği/slug bazlı gerçek hedef bağlantıları veya filtreli içerik görünümü ekleme
+- [x] Popüler kategori bölümü için boş veri, yükleniyor ve hata durumlarını ele alma

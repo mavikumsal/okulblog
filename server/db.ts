@@ -238,6 +238,12 @@ export async function createNewsCategory(name: string) {
   await db.insert(newsCategories).values({ name, slug });
 }
 
+export async function listContentByCategory(categoryId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(contentItems).where(eq(contentItems.categoryId, categoryId)).orderBy(desc(contentItems.createdAt));
+}
+
 export async function listActiveHomeSlides() {
   const db = await getDb();
   if (!db) return [];
