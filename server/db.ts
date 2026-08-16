@@ -248,10 +248,13 @@ export async function listPopularEducationCategories() {
   return ids.map(id => byId.get(id)).filter((category): category is typeof categories[number] => Boolean(category && category.categoryType === "education" && category.isActive));
 }
 
+export function normalizePopularEducationCategoryIds(categoryIds: number[]) {
+  return Array.from(new Set(categoryIds.filter(id => Number.isInteger(id) && id > 0))).slice(0, 12);
+}
 export async function savePopularEducationCategoryIds(input: { categoryIds: number[]; updatedBy: number }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
-  const uniqueIds = Array.from(new Set(input.categoryIds)).slice(0, 12);
+  const uniqueIds = normalizePopularEducationCategoryIds(input.categoryIds);
   if (uniqueIds.length) {
     const valid = await db.select({ id: categoryNodes.id }).from(categoryNodes).where(inArray(categoryNodes.id, uniqueIds));
     if (valid.length !== uniqueIds.length) throw new Error("Yalnızca geçerli kategori kayıtları seçilebilir.");

@@ -56,7 +56,7 @@ export default function Home() {
   const popularEducationCategories = trpc.platform.popularEducationCategories.useQuery();
   const educationCategories = overview.data?.educationCategories ?? [];
   const configuredPopularCategories = popularEducationCategories.data ?? [];
-  const displayedEducationCategories = configuredPopularCategories.length ? configuredPopularCategories : educationCategories.slice(0, 6);
+  const displayedEducationCategories = configuredPopularCategories;
   const selectedCategory = educationCategories.find(category => category.id === selectedCategoryId);
   const filteredContent = trpc.platform.contentByCategory.useQuery(
     { categoryId: selectedCategoryId ?? 1 },

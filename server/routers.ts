@@ -37,6 +37,10 @@ import { generateQuestionDraft } from "./aiQuestionGenerator";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 
+export function canManagePopularEducationCategories(role: string | undefined) {
+  return role === "admin";
+}
+
 const categoryInput = z.object({
   name: z.string().trim().min(2).max(180),
   categoryType: z.enum(["education", "institution"]),
