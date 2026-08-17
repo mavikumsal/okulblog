@@ -345,16 +345,16 @@
 
 ## Zorunlu Eğitim/Kurum Kategorisi — Yeni Kapsam
 
-- [ ] Test oluşturma formunda kategori seçimini zorunlu yapmak ve “isteğe bağlı” metnini kaldırmak
-- [ ] Dokümanlar, Videolar, Simülasyonlar ve Oyunlar içerik formlarında Eğitim veya Kurum kategorisini zorunlu yapmak
-- [ ] Sorular ve Soru-Cevap kayıtlarında Eğitim veya Kurum kategorisini zorunlu yapmak
-- [ ] Tüm ilgili backend create/update prosedürlerinde kategori yoksa kaydı reddetmek
-- [ ] Kategori seçiminde kaynak türünü ve hiyerarşik kategori yolunu açıkça göstermek
-- [ ] Zorunlu kategori akışı için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+- [x] Test oluşturma formunda kategori seçimini zorunlu yapmak ve “isteğe bağlı” metnini kaldırmak
+- [x] Dokümanlar, Videolar, Simülasyonlar ve Oyunlar içerik formlarında Eğitim veya Kurum kategorisini zorunlu yapmak
+- [x] Sorular ve Soru-Cevap kayıtlarında Eğitim veya Kurum kategorisini zorunlu yapmak
+- [x] Tüm ilgili backend create/update prosedürlerinde kategori yoksa kaydı reddetmek
+- [x] Kategori seçiminde kaynak türünü ve hiyerarşik kategori yolunu açıkça göstermek
+- [x] Zorunlu kategori akışı için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
 
 ## Admin Formu ve Soru-Cevap Editörü Sadeleştirme Planı
 
-- [ ] Admin içerik oluşturma ekranını yalnızca Testler, Dökümanlar, Videolar, Simülasyonlar, Oyunlar, Sorular ve Soru-Cevap akışlarına göre yeniden düzenlemek
-- [ ] Medya bağlama alanlarını içerik formlarından kaldırıp yalnızca Medya Merkezi içindeki gelişmiş Admin işlemine taşımak
-- [ ] Üye Soru-Cevap rich text ve görsel editörünün tasarım, doğrulama, boyutlandırma ve moderasyon kurallarını uygulama sözleşmesine dönüştürmek
-- [ ] Sadeleştirme sonrası kullanıcı akışını ve editör kurallarını test/build/görsel doğrulama kriterleriyle belgelemek
+- [x] Admin içerik oluşturma ekranını yalnızca Testler, Dökümanlar, Videolar, Simülasyonlar, Oyunlar, Sorular ve Soru-Cevap akışlarına göre yeniden düzenlemek
+- [x] Medya bağlama alanlarını içerik formlarından kaldırıp yalnızca Medya Merkezi içindeki gelişmiş Admin işlemine taşımak
+- [x] Üye Soru-Cevap rich text ve görsel editörünün tasarım, doğrulama, boyutlandırma ve moderasyon kurallarını uygulama sözleşmesine dönüştürmek
+- [x] Sadeleştirme sonrası kullanıcı akışını ve editör kurallarını test/build/görsel doğrulama kriterleriyle belgelemek

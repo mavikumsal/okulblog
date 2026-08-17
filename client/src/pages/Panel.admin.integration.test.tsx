@@ -229,14 +229,12 @@ describe("Panel Admin modülleri component akışları", () => {
     expect(screen.getByText("Güvenlik kaydı")).toBeInTheDocument();
   });
 
-  it("İçerik medya link/unlink akışında provider etiketini ve bağlantı kimliğini doğrular", () => {
+  it("İçerik arşivinde yalnızca içerik kayıtlarını gösterir ve teknik medya bağlama alanını gizler", () => {
     panelState.route = "/panel/dokumanlar";
     render(<Panel />);
-    fireEvent.change(screen.getByPlaceholderText("İçerik ID"), { target: { value: "21" } });
-    expect(screen.getByText("kapak.pdf")).toBeInTheDocument();
-    expect(screen.getByText(/S3 · cover/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Bağlantıyı kaldır" }));
-    expect(panelState.unlinkMutate).toHaveBeenCalledWith({ id: 12 });
+    expect(screen.getByText("Bu modülün içerik arşivi")).toBeInTheDocument();
+    expect(screen.queryByText("Medya bağla")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("İçerik ID")).not.toBeInTheDocument();
   });
 
   it("Testler ekranında gerçek test metadata’sını listede gösterir", () => {

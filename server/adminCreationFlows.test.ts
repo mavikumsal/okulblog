@@ -17,9 +17,9 @@ const adminContext = (): TrpcContext => ({
 describe("Admin soru, test ve içerik oluşturma akışları", () => {
   it("soru, içerik ve test kayıtlarını doğru kullanıcıyla oluşturur", async () => {
     const caller = appRouter.createCaller(adminContext());
-    await expect(caller.questions.create({ questionType: "multiple-choice", prompt: "Birinci sınıf Türkçe kazanımı nedir?", options: ["A", "B"], answer: "A", difficulty: "easy", categoryId: null })).resolves.toEqual({ success: true });
-    await expect(caller.contents.create({ title: "Örnek doküman", contentType: "document", summary: "Kısa açıklama", categoryId: null })).resolves.toEqual({ success: true });
-    await expect(caller.tests.create({ title: "Türkçe denemesi", description: "Kısa test", categoryId: null, questionIds: [12] })).resolves.toEqual({ success: true });
+    await expect(caller.questions.create({ questionType: "multiple-choice", prompt: "Birinci sınıf Türkçe kazanımı nedir?", options: ["A", "B"], answer: "A", difficulty: "easy", categoryId: 1 })).resolves.toEqual({ success: true });
+    await expect(caller.contents.create({ title: "Örnek doküman", contentType: "document", summary: "Kısa açıklama", categoryId: 1 })).resolves.toEqual({ success: true });
+    await expect(caller.tests.create({ title: "Türkçe denemesi", description: "Kısa test", categoryId: 1, questionIds: [12] })).resolves.toEqual({ success: true });
     expect(createQuestion).toHaveBeenCalledWith(expect.objectContaining({ createdBy: 1, prompt: "Birinci sınıf Türkçe kazanımı nedir?" }));
     expect(createContentItem).toHaveBeenCalledWith(expect.objectContaining({ createdBy: 1, contentType: "document" }));
     expect(createTest).toHaveBeenCalledWith(expect.objectContaining({ createdBy: 1, questionIds: [12] }));

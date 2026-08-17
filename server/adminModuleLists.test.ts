@@ -47,7 +47,7 @@ describe("Admin modül listeleme ve test yenileme akışı", () => {
     moduleState.tests = [];
     const caller = appRouter.createCaller(adminContext());
 
-    await caller.tests.create({ title: "Türkçe kazanım testi", description: "İlk deneme", categoryId: null, questionIds: [11, 12, 13] });
+    await caller.tests.create({ title: "Türkçe kazanım testi", description: "İlk deneme", categoryId: 1, questionIds: [11, 12, 13] });
 
     await expect(caller.tests.list()).resolves.toEqual([{ id: 1, title: "Türkçe kazanım testi", description: "İlk deneme", questionCount: 3 }]);
   });
