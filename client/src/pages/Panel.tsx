@@ -304,6 +304,17 @@ function PanelContent() {
   const [contentTitle, setContentTitle] = useState("");
   const [contentSummary, setContentSummary] = useState("");
   const [contentCoverUrl, setContentCoverUrl] = useState("");
+  const documentUpload = trpc.admin.uploadMediaAsset.useMutation({
+    onSuccess: result => {
+      if (result.coverImageUrl) {
+        setContentCoverUrl(result.coverImageUrl);
+        toast.success("Dokümanın ilk sayfası otomatik kapak olarak eklendi.");
+      } else {
+        toast.info("Otomatik kapak yalnızca PDF dosyalarında oluşturulur.");
+      }
+    },
+    onError: () => toast.error("Doküman yüklenemedi veya kapak oluşturulamadı."),
+  });
   const [contentType, setContentType] = useState<
     "test" | "document" | "simulation" | "video" | "game" | "news"
   >("document");
@@ -1866,15 +1877,22 @@ function PanelContent() {
                   className="min-h-25 rounded-xl"
                 />
               </div>
+              {selectedContentType === "document" && <div className="space-y-2 rounded-xl border border-[#e4ebe4] bg-[#fbfdf9] p-3">
+                <Label htmlFor="documentCoverSource">PDF’den otomatik kapak oluştur</Label>
+                <p className="text-[11px] leading-5 text-[#71838b]">PDF’nin ilk sayfası 900×1200 WebP kapak görseline dönüştürülür ve S3’e kaydedilir.</p>
+                <input id="documentCoverSource" type="file" accept="application/pdf" disabled={documentUpload.isPending} onChange={event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const dataBase64 = String(reader.result).split(",")[1] ?? ""; documentUpload.mutate({ fileName: file.name, mimeType: "application/pdf", dataBase64, contentType: "document" }); }; reader.readAsDataURL(file); event.currentTarget.value = ""; }} className="block w-full rounded-xl border border-input bg-white p-2 text-xs" />
+                {documentUpload.isPending && <p className="text-xs text-[#4e7c6d]">Doküman yükleniyor, kapak hazırlanıyor...</p>}
+              </div>}
               <div className="space-y-2">
-                <Label htmlFor="contentCoverUrl">Kapak görseli URL’si</Label>
+                <Label htmlFor="contentCoverUrl">Kapak görseli URL’si <span className="font-normal">(manuel değiştirme)</span></Label>
                 <Input
                   id="contentCoverUrl"
                   value={contentCoverUrl}
                   onChange={event => setContentCoverUrl(event.target.value)}
-                  placeholder="https://... veya /manus-storage/..."
+                  placeholder="Otomatik veya https://... kapak URL’si"
                   className="h-11 rounded-xl"
                 />
+                {contentCoverUrl && <img src={contentCoverUrl} alt="Otomatik kapak ön izlemesi" className="h-40 w-32 rounded-xl border border-[#e6ebe5] object-cover" />}
               </div>
               <Button
                 disabled={

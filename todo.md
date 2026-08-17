@@ -393,3 +393,12 @@
 - [x] QA kategori alanı değişikliğinde mevcut 94 Vitest testi ve production build
 - [x] Admin genel bakış, Testler ve İçerik Yönetimi ekranlarının güncel responsive görsel kontrolü
 - [x] Son değişikliklerden sonra yeni checkpoint oluşturmak
+
+## Dokümandan Otomatik Kapak
+
+- [x] Yüklenen PDF/dokümanın ilk sayfasını kapak görseli olarak oluşturmak
+- [x] Otomatik kapağı S3’e WebP olarak yükleyip içerik kaydına bağlamak
+- [x] Doküman formuna otomatik kapak seçeneği, önizleme ve manuel kapakla değiştirme akışı eklemek
+- [x] PDF olmayan dokümanlarda desteklenen davranışı ve kullanıcı uyarısını göstermek
+- [x] Otomatik kapak akışı için Vitest, TypeScript, build ve responsive doğrulama yapmak
+- [ ] Otomatik kapak özelliği için yeni checkpoint oluşturmak

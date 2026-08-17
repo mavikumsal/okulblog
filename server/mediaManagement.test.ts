@@ -5,6 +5,7 @@ import { storagePut } from "./storage";
 import type { TrpcContext } from "./_core/context";
 
 vi.mock("./storage", () => ({ storagePut: vi.fn().mockResolvedValue({ key: "okulblog/media/1/deneme.pdf", url: "/manus-storage/okulblog/media/1/deneme.pdf" }) }));
+vi.mock("./documentCover", () => ({ renderPdfCover: vi.fn().mockResolvedValue(Buffer.from("webp-cover")) }));
 
 vi.mock("./db", async importOriginal => {
   const actual = await importOriginal<typeof import("./db")>();
@@ -12,6 +13,7 @@ vi.mock("./db", async importOriginal => {
     ...actual,
     listMediaAssets: vi.fn().mockResolvedValue([{ id: 1, provider: "s3", fileName: "deneme.pdf", contentType: "document", status: "active" }]),
     createMediaAsset: vi.fn().mockResolvedValue(undefined),
+    createStoredFile: vi.fn().mockResolvedValue(undefined),
     createMediaAssetLink: vi.fn().mockResolvedValue(undefined),
     listMediaAssetLinks: vi.fn().mockResolvedValue([{ id: 11, mediaAssetId: 1, targetType: "content", targetId: 4, role: "hero" }]),
     removeMediaAssetLink: vi.fn().mockResolvedValue(undefined),
@@ -37,7 +39,8 @@ describe("Admin medya merkezi backend akışları", () => {
 
     await expect(caller.admin.mediaAssets({ provider: "s3", contentType: "document" })).resolves.toHaveLength(1);
     await expect(caller.admin.createMediaAsset({ provider: "s3", fileName: "deneme.pdf", mimeType: "application/pdf", contentType: "document", publicUrl: "https://cdn.example.com/deneme.pdf", sizeBytes: 1200, providerAssetId: "s3-key" })).resolves.toEqual({ success: true });
-    await expect(caller.admin.uploadMediaAsset({ fileName: "deneme.pdf", mimeType: "application/pdf", dataBase64: Buffer.from("pdf-data").toString("base64"), contentType: "document" })).resolves.toEqual({ key: "okulblog/media/1/deneme.pdf", url: "/manus-storage/okulblog/media/1/deneme.pdf" });
+    await expect(caller.admin.uploadMediaAsset({ fileName: "deneme.pdf", mimeType: "application/pdf", dataBase64: Buffer.from("pdf-data").toString("base64"), contentType: "document" })).resolves.toMatchObject({ key: "okulblog/media/1/deneme.pdf", url: "/manus-storage/okulblog/media/1/deneme.pdf", coverGenerated: true, coverImageUrl: "/manus-storage/okulblog/media/1/deneme.pdf" });
+    await expect(caller.files.upload({ fileName: "ders.pdf", mimeType: "application/pdf", dataBase64: Buffer.from("pdf-data").toString("base64"), targetSection: "Dokümanlar" })).resolves.toMatchObject({ coverImageUrl: "/manus-storage/okulblog/media/1/deneme.pdf", coverGenerated: true });
     await expect(caller.admin.archiveMediaAsset({ id: 1 })).resolves.toEqual({ success: true });
     await expect(caller.admin.mediaTransferJobs()).resolves.toHaveLength(1);
     await expect(caller.admin.createMediaTransferJob({ mediaAssetId: 1, sourceProvider: "s3", targetProvider: "bunny-storage", operation: "copy" })).resolves.toEqual({ success: true });
