@@ -452,14 +452,14 @@
 
 ## Dinamik ChatGPT ve Gemini Model Kataloğu
 
-- [ ] OpenAI ve Gemini API anahtarlarıyla sağlayıcıların güncel model listelerini sunucu üzerinden çekmek
-- [ ] Anahtar girilmediğinde güvenli yerleşik model fallback listesini göstermek
-- [ ] Model listesini yenileme, yükleniyor, hata ve bağlantı kurulamadı durumlarını eklemek
-- [ ] Modelleri sağlayıcı, metin/görsel yeteneği, yapılandırılmış çıktı ve üretim uygunluğuna göre göstermek
-- [ ] Seçilen dinamik modeli AI soru ve test üretim payloadına bağlamak
-- [ ] API anahtarlarını istemciye döndürmeden Admin-only model katalog prosedürü eklemek
-- [ ] Dinamik model kataloğu için Vitest, TypeScript, production build ve responsive doğrulama yapmak
-- [ ] Dinamik model kataloğu için checkpoint oluşturmak
+- [x] OpenAI ve Gemini API anahtarlarıyla sağlayıcıların güncel model listelerini sunucu üzerinden çekmek
+- [x] Anahtar girilmediğinde güvenli yerleşik model fallback listesini göstermek
+- [x] Model listesini yenileme, yükleniyor, hata ve bağlantı kurulamadı durumlarını eklemek
+- [x] Modelleri sağlayıcı, metin/görsel yeteneği, yapılandırılmış çıktı ve üretim uygunluğuna göre göstermek
+- [x] Seçilen dinamik modeli AI soru ve test üretim payloadına bağlamak
+- [x] API anahtarlarını istemciye döndürmeden Admin-only model katalog prosedürü eklemek
+- [x] Dinamik model kataloğu için Vitest, TypeScript, production build ve responsive doğrulama yapmak
+- [x] Dinamik model kataloğu için checkpoint oluşturmak
 
 ## Dinamik ChatGPT ve Gemini Model Kataloğu
 
@@ -470,4 +470,4 @@
 - [x] Soru Havuzu QuestionEditor’da güncel model listesini ve Yenile kontrolünü göstermek
 - [x] Listeleme hatasında upstream hata detayını açığa çıkarmadan fallback’e dönmek
 - [x] Dinamik katalog için Vitest, TypeScript, production build ve responsive doğrulama yapmak
-- [ ] Dinamik model kataloğu için yeni geri alınabilir checkpoint oluşturmak
+- [x] Dinamik model kataloğu için yeni geri alınabilir checkpoint oluşturmak
