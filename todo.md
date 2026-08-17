@@ -236,3 +236,11 @@
 - [x] Soru ve cevap görsellerini otomatik kare kırpıp tam 250×250 px WebP olarak yükle
 - [x] Soru ve cevap görsellerinin backend alanlarını, güvenli doğrulamasını ve medya metadata akışını tamamla
 - [x] Editör, iki görsel alanı ve 250×250 boyut kuralı için Vitest ve görsel doğrulama ekle
+
+## AI Soru Üretimi ve Öğrenci Ön İzlemesi
+
+- [x] Tek tık AI soru üretimini soru, seçenekler, doğru cevap ve açıklama alanlarına bağla
+- [x] AI üretiminden sonra düzenlenebilir taslak ve hata durumlarını göster
+- [x] Kaydetmeden önce öğrenci görünümünü gösteren soru ön izleme modalı ekle
+- [x] Ön izlemede zengin soru/cevap HTML’i, görselleri, A–D seçenekleri ve doğru cevap seçimini göster
+- [x] AI ve ön izleme akışları için Vitest testleri, TypeScript, build ve görsel doğrulama yap

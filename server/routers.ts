@@ -233,7 +233,6 @@ export const appRouter = router({
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Soru Havuzu");
       const draft = await generateQuestionDraft(input);
-      await createQuestion({ ...draft, categoryId: input.categoryId ?? null, difficulty: input.difficulty, createdBy: ctx.user.id });
       return draft;
     }),
     generateTest: protectedProcedure.input(z.object({

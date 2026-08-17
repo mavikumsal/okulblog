@@ -19,10 +19,10 @@ const adminContext = (): TrpcContext => ({
 });
 
 describe("Admin AI soru oluşturucu", () => {
-  it("AI taslağını soru havuzuna kaydeder", async () => {
+  it("AI taslağını kaydetmeden editör akışına döndürür", async () => {
     const caller = appRouter.createCaller(adminContext());
     await expect(caller.ai.generateQuestion({ topic: "Heceleme", questionType: "multiple-choice", difficulty: "easy", categoryId: 4 })).resolves.toMatchObject({ questionType: "multiple-choice" });
     expect(generateQuestionDraft).toHaveBeenCalledWith({ topic: "Heceleme", questionType: "multiple-choice", difficulty: "easy", categoryId: 4 });
-    expect(createQuestion).toHaveBeenCalledWith(expect.objectContaining({ createdBy: 1, categoryId: 4, difficulty: "easy" }));
+    expect(createQuestion).not.toHaveBeenCalled();
   });
 });
