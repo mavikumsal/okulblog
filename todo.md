@@ -449,3 +449,25 @@
 - [x] Search Console action ve AI ön izleme akışlarını Vitest ile doğrulamak
 - [x] TypeScript, production build ve responsive görsel doğrulamayı tamamlamak
 - [x] Bu kapsam için yeni geri alınabilir checkpoint oluşturmak
+
+## Dinamik ChatGPT ve Gemini Model Kataloğu
+
+- [ ] OpenAI ve Gemini API anahtarlarıyla sağlayıcıların güncel model listelerini sunucu üzerinden çekmek
+- [ ] Anahtar girilmediğinde güvenli yerleşik model fallback listesini göstermek
+- [ ] Model listesini yenileme, yükleniyor, hata ve bağlantı kurulamadı durumlarını eklemek
+- [ ] Modelleri sağlayıcı, metin/görsel yeteneği, yapılandırılmış çıktı ve üretim uygunluğuna göre göstermek
+- [ ] Seçilen dinamik modeli AI soru ve test üretim payloadına bağlamak
+- [ ] API anahtarlarını istemciye döndürmeden Admin-only model katalog prosedürü eklemek
+- [ ] Dinamik model kataloğu için Vitest, TypeScript, production build ve responsive doğrulama yapmak
+- [ ] Dinamik model kataloğu için checkpoint oluşturmak
+
+## Dinamik ChatGPT ve Gemini Model Kataloğu
+
+- [x] OpenAI ve Gemini sağlayıcılarına API anahtarıyla dinamik model listeleme yardımcılarını eklemek
+- [x] Model adı, görünen ad, sağlayıcı ve üretim uyumluluğu metadata’sını güvenli normalize etmek
+- [x] API anahtarı yokken güvenli fallback modelleri göstermek
+- [x] Admin AI panelinde sağlayıcıya göre model listesini yenilemek ve seçilen modeli üretim payloadına bağlamak
+- [x] Soru Havuzu QuestionEditor’da güncel model listesini ve Yenile kontrolünü göstermek
+- [x] Listeleme hatasında upstream hata detayını açığa çıkarmadan fallback’e dönmek
+- [x] Dinamik katalog için Vitest, TypeScript, production build ve responsive doğrulama yapmak
+- [ ] Dinamik model kataloğu için yeni geri alınabilir checkpoint oluşturmak

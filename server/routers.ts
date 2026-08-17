@@ -67,6 +67,7 @@ import {
 } from "./db";
 import { generateQuestionDraft } from "./aiQuestionGenerator";
 import { getAiProviderConfig, maskSecret } from "./aiProviderConfig";
+import { listProviderModels } from "./aiProviderCatalog";
 import { invokeLLM, listLLMModels } from "./_core/llm";
 import { parsePdfQuestions } from "./pdfQuestionParser";
 import { storagePut } from "./storage";
@@ -407,6 +408,11 @@ export const appRouter = router({
         openai: { configured: config.openai.configured, maskedKey: maskSecret(config.openai.apiKey), models: catalog.data.filter(item => item.id.startsWith("gpt-")).map(item => item.id) },
         gemini: { configured: config.gemini.configured, maskedKey: maskSecret(config.gemini.apiKey), models: catalog.data.filter(item => item.id.startsWith("gemini-")).map(item => item.id) },
       };
+    }),
+    listAiProviderModels: adminProcedure.input(z.object({ provider: z.enum(["openai", "gemini"]) })).query(async ({ input }) => {
+      const apiKey = input.provider === "openai" ? process.env.OPENAI_API_KEY : process.env.GEMINI_API_KEY;
+      const result = await listProviderModels(input.provider, apiKey);
+      return { ...result, models: result.models.map(({ id, displayName, provider, description, inputTokenLimit, outputTokenLimit, supportsText, supportsVision, supportsStructuredOutput, generationCompatible, source }) => ({ id, displayName, provider, description, inputTokenLimit, outputTokenLimit, supportsText, supportsVision, supportsStructuredOutput, generationCompatible, source })) };
     }),
     testAiProviderConnection: adminProcedure.input(z.object({ provider: z.enum(["openai", "gemini"]), model: z.string().trim().max(120).optional() })).mutation(async ({ input }) => {
       const config = getAiProviderConfig({ OPENAI_API_KEY: process.env.OPENAI_API_KEY, GEMINI_API_KEY: process.env.GEMINI_API_KEY });

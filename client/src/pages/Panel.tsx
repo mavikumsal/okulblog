@@ -293,6 +293,9 @@ function PanelContent() {
   const [aiTopic, setAiTopic] = useState("");
   const [aiProvider, setAiProvider] = useState<"openai" | "gemini">("openai");
   const [aiModel, setAiModel] = useState("gpt-5-mini");
+  const dynamicAiModels = (trpc.admin as any).listAiProviderModels?.useQuery
+    ? (trpc.admin as any).listAiProviderModels.useQuery({ provider: aiProvider }, { enabled: isAdmin && section === "ai", staleTime: 60_000 })
+    : undefined;
   const [aiDraft, setAiDraft] = useState<{
     questionType: "multiple-choice" | "true-false" | "open-ended";
     prompt: string;
@@ -1814,9 +1817,13 @@ function PanelContent() {
                   </div>
                   <div className="space-y-2">
                     <Label>Model</Label>
-                    <select value={aiModel} onChange={event => setAiModel(event.target.value)} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm">
-                      {aiProvider === "openai" ? <><option value="gpt-5-nano">GPT-5 Nano · hızlı</option><option value="gpt-5-mini">GPT-5 Mini · dengeli</option><option value="gpt-5">GPT-5 · ileri</option></> : <><option value="gemini-3-flash-preview">Gemini 3 Flash · hızlı</option><option value="gemini-3.1-pro-preview">Gemini 3.1 Pro · ileri</option></>}
-                    </select>
+                    <div className="flex gap-2">
+                      <select value={aiModel} onChange={event => setAiModel(event.target.value)} className="h-11 min-w-0 flex-1 rounded-xl border border-input bg-background px-3 text-sm">
+                        {(dynamicAiModels?.data?.models?.length ? dynamicAiModels.data.models : (aiProvider === "openai" ? [{ id: "gpt-5-mini", displayName: "GPT-5 Mini · fallback", generationCompatible: true }, { id: "gpt-5", displayName: "GPT-5 · fallback", generationCompatible: true }] : [{ id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash · fallback", generationCompatible: true }, { id: "gemini-3.1-pro-preview", displayName: "Gemini 3.1 Pro · fallback", generationCompatible: true }])).map((model: { id: string; displayName?: string; generationCompatible?: boolean }) => <option key={model.id} value={model.id} disabled={model.generationCompatible === false}>{model.displayName ?? model.id}{model.generationCompatible === false ? " · üretim uyumsuz" : ""}</option>)}
+                      </select>
+                      <Button type="button" size="sm" variant="outline" onClick={() => void dynamicAiModels?.refetch?.()} disabled={dynamicAiModels?.isFetching} className="h-11 shrink-0 rounded-xl border-[#cfc4e8] text-[#68558e]">{dynamicAiModels?.isFetching ? "..." : "Yenile"}</Button>
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">{dynamicAiModels?.data?.source === "remote" ? "Sağlayıcıdan güncel liste" : "API anahtarı sonrası güncel liste alınır; şu an güvenli fallback gösteriliyor."}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
