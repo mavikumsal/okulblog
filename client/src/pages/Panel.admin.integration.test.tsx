@@ -23,7 +23,7 @@ vi.mock("@/lib/trpc", () => ({
     permissions: { forRole: hook([]), update: hook() },
     categories: { list: hook([]), create: hook(), setInstitutionStatus: hook(), update: hook(), setStatus: hook() },
     questions: { list: hook([]), create: hook() },
-    ai: { generateQuestion: hook() },
+    ai: { generateQuestion: hook(), generateTest: hook() },
     contents: { list: hook([]), create: hook(), archive: hook() },
     tests: { list: hook(() => panelState.testList), create: hook() },
     admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, searchConsoleStatus: hook({ configured: false, propertyUrl: null, verificationStatus: "not_configured", sitemapStatus: "not_configured", lastError: null }), testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: { useQuery: () => panelState.mediaAssetsState }, mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: { useMutation: () => ({ isPending: false, mutate: panelState.adsenseMutate }) }, newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
@@ -254,6 +254,9 @@ describe("Panel Admin modülleri component akışları", () => {
     expect(screen.getByLabelText("A seçeneği")).toBeInTheDocument();
     expect(screen.getByLabelText("D seçeneği")).toBeInTheDocument();
     expect(screen.getByLabelText("AI konu")).toBeInTheDocument();
+    expect(screen.getByLabelText("AI test başlığı")).toBeInTheDocument();
+    expect(screen.getByLabelText("AI soru sayısı")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Test üret" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Seçenek ekle/ })).toBeInTheDocument();
   });
   it("soru editöründe seçenek çoğaltma, silme ve çoklu forma geçişi çalışır", () => {

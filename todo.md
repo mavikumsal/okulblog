@@ -225,4 +225,4 @@
 - [x] AI ile üretilen soruyu editöre taslak ön izleme olarak aktarmak
 - [x] Soru editörü, görsel, cevap seçenekleri, çoklu giriş ve AI alanları için Vitest testleri yazmak
 - [x] Soru editörü değişikliklerini 94 test, TypeScript, build ve responsive görsel denetimle doğrulamak
-- [ ] AI ile çok sorulu test üretimini, onay sonrası test kaydı oluşturacak akışa genişletmek
+- [x] AI ile çok sorulu test üretimini, onay sonrası test kaydı oluşturacak akışa genişletmek

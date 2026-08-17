@@ -187,12 +187,13 @@ export async function createQuestion(input: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
-  await db.insert(questions).values({
+  const result = await db.insert(questions).values({
     ...input,
     options: input.options ?? [],
     categoryId: input.categoryId ?? null,
     status: input.status ?? "draft",
   });
+  return Number(result[0].insertId);
 }
 
 export async function createContentItem(input: {

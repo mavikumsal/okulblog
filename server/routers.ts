@@ -235,6 +235,25 @@ export const appRouter = router({
       await createQuestion({ ...draft, categoryId: input.categoryId ?? null, difficulty: input.difficulty, createdBy: ctx.user.id });
       return draft;
     }),
+    generateTest: protectedProcedure.input(z.object({
+      title: z.string().trim().min(3).max(220),
+      topic: z.string().trim().min(3).max(300),
+      count: z.number().int().min(2).max(20),
+      questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
+      difficulty: z.enum(["easy", "medium", "hard"]),
+      categoryId: z.number().int().positive().nullable().optional(),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Soru Havuzu");
+      await assertSectionAccess(ctx.user, "Testler");
+      const questionIds: number[] = [];
+      for (let index = 0; index < input.count; index += 1) {
+        const draft = await generateQuestionDraft(input);
+        const id = await createQuestion({ ...draft, categoryId: input.categoryId ?? null, difficulty: input.difficulty, createdBy: ctx.user.id });
+        questionIds.push(id);
+      }
+      await createTest({ title: input.title, description: `${input.topic} konusu için AI tarafından oluşturulan taslak test.`, categoryId: input.categoryId ?? null, questionIds, createdBy: ctx.user.id });
+      return { title: input.title, questionIds, questionCount: questionIds.length, status: "draft" as const };
+    }),
   }),
   files: router({
     upload: protectedProcedure.input(z.object({
