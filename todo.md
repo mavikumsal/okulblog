@@ -60,4 +60,29 @@
 - [x] Yükleme ekranını masaüstü ve mobil görünümde doğrulamak
 - [x] Yükleme ekranı için genel test ve TypeScript kontrolü çalıştırmak
 - [x] Yükleme ekranı için özellik bazlı görünürlük ve reduced-motion test kanıtı eklemek
-- [ ] 3D yükleme ekranı değişikliklerinden sonra yeni checkpoint kaydetmek
+- [x] 3D yükleme ekranı değişikliklerinden sonra yeni checkpoint kaydetmek
+
+## Ana Sayfa ve Admin Paneli Kapsam Genişletme
+
+- [ ] Ana sayfa için eksik bölümleri ve kullanıcı akışlarını envanterlemek
+- [ ] Ana sayfada Testler, Dokümanlar, Simülasyonlar, Videolar, Oyunlar ve Haberler için gerçek giriş kartları ve yönlendirmeler eklemek
+- [ ] Ana sayfada eğitim seviyesi, kurum sınavları, popüler kategoriler ve içerik merkezi akışlarını tamamlamak
+- [ ] Ana sayfa header, mobil menü, CTA ve oturum durumlarını uçtan uca doğrulamak
+- [ ] Admin paneli için eksik yönetim modüllerini ve gezinme yapısını envanterlemek
+- [ ] Admin panelinde eğitim ve kurum kategorisi CRUD akışlarını tam yönetilebilir hale getirmek
+- [ ] Admin panelinde slider ve popüler eğitim kategorileri yönetimini görünür bir ayarlar alanına taşımak
+- [ ] Admin panelinde soru havuzu, testler, içerikler ve AI oluşturucu akışlarını tamamlamak
+- [ ] Admin panelinde üye/rol/yetki yönetimini, güvenlik, SEO, reklam, istatistik ve site ayarlarını genişletmek
+- [ ] Admin paneli için eksik backend prosedürlerini, yükleme/boş/hata durumlarını ve rol kontrollerini tamamlamak
+- [x] Ana sayfa ve Admin panelini masaüstü/mobil viewport’larda görsel olarak doğrulamak
+- [ ] Genişletilmiş ana sayfa ve Admin paneli için özellik testleri eklemek ve checkpoint oluşturmak
+- [x] Admin sidebar’ında Kurum Kategorisi, Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar, Haberler ve Ana Sayfa Yönetimi için doğrudan menü girişleri eklemek
+- [x] Admin modül rotalarını Panel içindeki gerçek yönetim görünümleriyle eşlemek
+- [x] Ana sayfadaki içerik alanı kartlarını ilgili içerik modülü veya giriş akışına bağlamak
+- [x] Admin panelinde Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar ve Haberler için rota bazlı filtrelenmiş gerçek yönetim görünümleri oluşturmak
+- [x] Panel rota eşlemesini her modül için ilgili veri, boş durum, hata durumu ve başlıkla tamamlamak
+- [x] Admin içerik modülü rota eşlemesini paylaşılabilir yardımcı ve özellik testiyle güvenceye almak
+- [x] Admin panelinde içerik türüne göre listeleme sorgusu eklemek
+- [x] Her içerik modülünde yükleniyor, hata ve boş liste durumlarını göstermek
+- [x] Ortak içerik formunu modül bazlı kayıt listesiyle tamamlamak
+- [x] İçerik arşivinde geri alınabilir durum değişikliği ve arşivleme aksiyonu eklemek

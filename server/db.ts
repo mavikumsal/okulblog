@@ -137,6 +137,18 @@ export async function getContentOverview() {
   return db.select().from(contentItems).orderBy(asc(contentItems.contentType));
 }
 
+export async function listContentByType(contentType: "test" | "document" | "simulation" | "video" | "game" | "news") {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(contentItems).where(eq(contentItems.contentType, contentType)).orderBy(desc(contentItems.createdAt));
+}
+
+export async function updateContentStatus(input: { id: number; status: "draft" | "pending" | "published" | "archived" }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.update(contentItems).set({ status: input.status }).where(eq(contentItems.id, input.id));
+}
+
 export async function listQuestions() {
   const db = await getDb();
   if (!db) return [];

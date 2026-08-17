@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users } from "lucide-react";
+import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -31,13 +31,21 @@ import { trpc } from "@/lib/trpc";
 const menuItems = [
   { icon: LayoutDashboard, label: "Genel Bakış", path: "/panel" },
   { icon: FolderTree, label: "Kategoriler", path: "/panel/kategoriler" },
+  { icon: Building2, label: "Kurum Kategorisi", path: "/panel/kurum-kategorisi", adminOnly: true },
   { icon: Target, label: "Soru Havuzu", path: "/panel/soru-havuzu" },
-  { icon: FileText, label: "İçerikler", path: "/panel/icerikler" },
+  { icon: ClipboardList, label: "Testler", path: "/panel/testler", adminOnly: true },
+  { icon: FileText, label: "Dokümanlar", path: "/panel/dokumanlar", adminOnly: true },
+  { icon: Video, label: "Videolar", path: "/panel/videolar", adminOnly: true },
+  { icon: SlidersHorizontal, label: "Simülasyonlar", path: "/panel/simulasyonlar", adminOnly: true },
+  { icon: Gamepad2, label: "Oyunlar", path: "/panel/oyunlar", adminOnly: true },
+  { icon: Newspaper, label: "Haberler", path: "/panel/haberler", adminOnly: true },
+  { icon: FileText, label: "İçerik Yönetimi", path: "/panel/icerikler" },
   { icon: Sparkles, label: "AI Oluşturucu", path: "/panel/ai" },
-  { icon: Users, label: "Üye Yönetimi", path: "/panel/uyeler" },
-  { icon: BarChart3, label: "İstatistikler", path: "/panel/istatistikler" },
-  { icon: ShieldCheck, label: "Güvenlik", path: "/panel/guvenlik" },
-  { icon: Settings, label: "Site Ayarları", path: "/panel/ayarlar" },
+  { icon: Users, label: "Üye Yönetimi", path: "/panel/uyeler", adminOnly: true },
+  { icon: BarChart3, label: "İstatistikler", path: "/panel/istatistikler", adminOnly: true },
+  { icon: ShieldCheck, label: "Güvenlik", path: "/panel/guvenlik", adminOnly: true },
+  { icon: Settings, label: "Site Ayarları", path: "/panel/ayarlar", adminOnly: true },
+  { icon: SlidersHorizontal, label: "Ana Sayfa Yönetimi", path: "/panel/ana-sayfa-yonetimi", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -122,6 +130,7 @@ function DashboardLayoutContent({
   const isMobile = useIsMobile();
   const accessibleSections = trpc.panel.accessibleSections.useQuery(undefined, { enabled: Boolean(user) });
   const visibleMenuItems = menuItems.filter(item => {
+    if (item.adminOnly) return user?.role === "admin";
     if (user?.role === "admin") return true;
     const visible = accessibleSections.data ?? [];
     if (item.label === "Genel Bakış") return true;

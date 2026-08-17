@@ -14,6 +14,8 @@ import {
   createStoredFile,
   createTest,
   getContentOverview,
+  listContentByType,
+  updateContentStatus,
   getRolePermissions,
   listActiveHomeSlides,
   listSecurityEvents,
@@ -154,6 +156,17 @@ export const appRouter = router({
     }),
   }),
   contents: router({
+    list: protectedProcedure.input(z.object({ contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).query(async ({ ctx, input }) => {
+      const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;
+      await assertSectionAccess(ctx.user, sectionMap[input.contentType]);
+      return listContentByType(input.contentType);
+    }),
+    archive: protectedProcedure.input(z.object({ id: z.number().int().positive(), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(async ({ ctx, input }) => {
+      const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;
+      await assertSectionAccess(ctx.user, sectionMap[input.contentType]);
+      await updateContentStatus({ id: input.id, status: "archived" });
+      return { success: true };
+    }),
     create: protectedProcedure.input(z.object({
       title: z.string().trim().min(3).max(220),
       contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]),
