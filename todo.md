@@ -226,3 +226,13 @@
 - [x] Soru editörü, görsel, cevap seçenekleri, çoklu giriş ve AI alanları için Vitest testleri yazmak
 - [x] Soru editörü değişikliklerini 94 test, TypeScript, build ve responsive görsel denetimle doğrulamak
 - [x] AI ile çok sorulu test üretimini, onay sonrası test kaydı oluşturacak akışa genişletmek
+
+## Soru ve Cevap Gelişmiş Editörü Revizyonu
+
+- [x] Soru metni alanını gerçek gelişmiş metin editörü toolbarı ve içerik biçimlendirme desteğiyle yenile
+- [x] Cevap açıklaması/metin alanını ayrı gelişmiş metin editörü olarak yenile
+- [x] Soru metnine ayrı görsel yükleme ve ön izleme alanı ekle
+- [x] Cevap metnine ayrı görsel yükleme ve ön izleme alanı ekle
+- [x] Soru ve cevap görsellerini otomatik kare kırpıp tam 250×250 px WebP olarak yükle
+- [x] Soru ve cevap görsellerinin backend alanlarını, güvenli doğrulamasını ve medya metadata akışını tamamla
+- [x] Editör, iki görsel alanı ve 250×250 boyut kuralı için Vitest ve görsel doğrulama ekle

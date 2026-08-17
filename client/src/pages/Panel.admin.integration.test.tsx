@@ -250,7 +250,9 @@ describe("Panel Admin modülleri component akışları", () => {
     panelState.route = "/panel/soru-havuzu";
     render(<Panel />);
     expect(screen.getByTestId("question-rich-editor")).toBeInTheDocument();
-    expect(screen.getByLabelText("Soru görseli")).toBeInTheDocument();
+    expect(screen.getByTestId("answer-rich-editor")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Soru görseli/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Cevap görseli/)).toBeInTheDocument();
     expect(screen.getByLabelText("A seçeneği")).toBeInTheDocument();
     expect(screen.getByLabelText("D seçeneği")).toBeInTheDocument();
     expect(screen.getByLabelText("AI konu")).toBeInTheDocument();

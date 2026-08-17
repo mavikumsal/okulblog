@@ -1,0 +1,1 @@
+ALTER TABLE `questions` ADD `explanationImageUrl` varchar(700);
