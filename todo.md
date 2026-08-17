@@ -118,3 +118,44 @@
 - [x] Admin güvenlik, SEO, reklam, istatistik ve site ayarları bölümleri için görünür UI + mutation/query kanıtını ayrı testlerle tamamlamak
 - [x] Soru havuzu, testler, içerikler ve AI modülleri için loading/error/empty/success durumlarını kapsayan Panel entegrasyon testleri eklemek
 - [x] Test oluşturma mutation’ından sonra `tests.list` yenilenmesini ve yeni kaydın UI listesinde görünmesini doğrulayan test eklemek
+
+## Dosya ve Medya Yönetimi
+
+- [x] Admin sidebar’ına S3, Google Drive ve Bunny.net sağlayıcılarını kullanan Medya Merkezi bölümü eklemek
+- [ ] Medya varlıkları için sağlayıcı, dış dosya kimliği, URL, MIME türü, boyut, klasör ve sahiplik metadata modelini oluşturmak
+- [ ] S3 yükleme/listeleme akışını Medya Merkezi UI’sına bağlamak
+- [ ] Google Drive OAuth ve resumable upload sağlayıcısını güvenli sunucu akışıyla eklemek
+- [ ] Bunny.net Storage/CDN ve video için gerektiğinde Bunny Stream sağlayıcı akışını eklemek
+- [ ] Medya varlıklarını Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar ve Haberler modüllerine bağlamak
+- [ ] Medya sağlayıcı sırlarını sunucu ortamında yapılandırmak ve yönetici yetkisiyle sınırlamak
+- [ ] Medya Merkezi için arama, filtre, klasör, önizleme, sağlayıcı rozeti ve güvenli arşivleme UI’sı eklemek
+- [x] Medya sağlayıcıları için yetki, hata/boş/yükleme durumu, responsive UI ve entegrasyon testleri eklemek
+- [ ] Google Drive kişisel hesap bağlantısı ve OAuth izin akışını desteklemek
+- [ ] Google Workspace ortak Drive bağlantısı, klasör seçimi ve OAuth/servis hesabı modelini desteklemek
+- [ ] Bunny.net DNS Zone, Storage Zone/CDN ve Stream yönetim bağlantılarını sağlayıcı ayarlarına eklemek
+- [ ] Tüm sağlayıcıları içerik modüllerindeki medya alanlarıyla ortak metadata üzerinden ilişkilendirmek
+- [ ] Sağlayıcılar arasında isteğe bağlı kopyalama ve taşıma işi oluşturmak
+- [ ] Kopyalama/taşıma işlerinde ilerleme, başarı, hata, yeniden deneme ve iptal durumlarını göstermek
+- [ ] Taşıma sonrası kaynak silme, URL güncelleme ve içerik referanslarını güvenli biçimde yönetmek
+- [ ] Sağlayıcılar arası aktarım yetkisini yalnızca Admin’e açmak ve işlemleri audit log’a kaydetmek
+- [ ] Google AdSense için yayıncı kimliği, reklam birimi/slot kimliği, format, konum ve aktiflik ayarlarını yönetmek
+- [ ] Özel firmalar için reklamveren, kampanya, görsel/video medya varlığı, hedef URL, tarih aralığı ve gösterim konumu alanlarını yönetmek
+- [ ] Reklam alanlarını ana sayfa, içerik detayları, test sonuçları ve panel dışı uygun yerleşimlere bağlamak
+- [ ] AdSense ve özel firma reklamları için önizleme, sıralama, mobil/masaüstü görünürlük ve aktif/pasif kontrolleri eklemek
+- [ ] Reklam kodu/script güvenlik politikasını, Admin-only düzenlemeyi ve reklam değişiklikleri audit log’unu uygulamak
+- [ ] Reklam ayarları ve kampanya yönetimi için UI, yetki, boş/hata ve responsive testleri eklemek
+- [ ] Google Search Console bağlantı ve mülk doğrulama durumunu Admin SEO alanında göstermek
+- [ ] Search Console’dan sitemap gönderme/güncelleme ve URL indeksleme talebi akışlarını eklemek
+- [ ] Search Console performans, indeksleme kapsamı, hata ve bağlantı verilerini Admin’de göstermek
+- [ ] Search Console OAuth/API token güvenliğini ve Admin-only yetkisini uygulamak
+- [ ] Search Console bağlantı, sitemap, URL denetimi ve hata durumları için testler eklemek
+- [ ] AdSense Türkiye yönetim bağlantısını Admin reklam ayarlarına eklemek: https://adsense.google.com/intl/tr_tr/start/
+- [ ] AdSense bağlantı durumu, yayıncı kimliği, reklam slotu ve reklam kodu doğrulama testlerini eklemek
+- [ ] AdSense reklam alanının gerçek sitede görünürlük, aktif/pasif ve mobil/masaüstü testlerini eklemek
+- [ ] Gerçek Google/Bunny/AdSense/Search Console kimlik bilgilerini hosting sonrası güvenli ortam değişkenleri veya Admin bağlantı ekranından eklemek
+- [x] Kimlik bilgileri girilmeden tüm sağlayıcılarda “bağlı değil / yapılandırılmadı” durumunu ve test bağlantısını göstermek
+- [ ] Hosting sonrası sağlayıcı bağlantılarını etkinleştirip gerçek bağlantı testlerini çalıştırmak
+- [x] Medya Merkezi için gerçek loading/error/empty states eklemek ve component/integration testleriyle doğrulamak
+- [x] Medya sağlayıcıları için veri kaynağı/query sözleşmesi kurup admin/non-admin yetki, yapılandırılmadı, loading ve error senaryolarını ayrı ayrı test etmek
+- [x] Bulut Depolama, Reklam ve Search Console rotalarında non-admin kullanıcıda RestrictedNotice/erişim kısıtı davranışını ayrı component testleriyle doğrulamak
+- [x] Medya sağlayıcı ekranları için admin ve non-admin yetki senaryolarını ayrı test adları ve assertions ile belgelemek

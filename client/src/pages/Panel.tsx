@@ -213,6 +213,9 @@ function PanelContent() {
     simulasyonlar: { eyebrow: "Simülasyon yönetimi", title: "Etkileşimli öğrenme alanları oluşturun.", text: "Simülasyon taslaklarını içerik merkezinden yönetin." },
     oyunlar: { eyebrow: "Oyun yönetimi", title: "Eğitsel oyunları düzenleyin.", text: "Oyun içeriklerini sınıf, ders ve kurum bağlamına bağlayın." },
     haberler: { eyebrow: "Haber yönetimi", title: "Eğitim gündemini yönetin.", text: "Haberleri bağımsız haber kategorileri altında taslak olarak hazırlayın." },
+    "bulut-depolama": { eyebrow: "Bulut depolama", title: "Dosyalarınızı sağlayıcılar arasında yönetin.", text: "S3, Google Drive kişisel/Workspace ve Bunny.net bağlantıları hosting sonrası etkinleştirilebilir." },
+    reklam: { eyebrow: "Reklam alanı", title: "AdSense ve özel firma reklamlarını yönetin.", text: "AdSense Türkiye bağlantısı, reklam slotları ve özel kampanyalar tek merkezden hazırlanır." },
+    "search-console": { eyebrow: "SEO ve Search Console", title: "Arama görünürlüğünüzü izleyin.", text: "Google Search Console mülkü, sitemap ve URL denetimi bağlantıları hosting sonrası etkinleştirilebilir." },
   };
   const page = titleMap[requestedSection] ?? titleMap[section] ?? { eyebrow: "OkulBlog paneli", title: "Bu alan yapılandırılıyor.", text: "Rolünüze uygun modül ve izin ayarları burada görünür." };
 
@@ -224,6 +227,10 @@ function PanelContent() {
       </div>
 
       {section === "restricted-settings" && <RestrictedNotice />}
+
+      {section === "bulut-depolama" && <AdminOnlyIntegrationSection title="Bulut Depolama" description="Gerçek sağlayıcı anahtarları hosting sonrası eklenecek. Bu ekranda bağlantı sözleşmeleri ve test durumları hazırdır." providers={["S3 · Dahili güvenli depolama", "Google Drive · Kişisel hesap", "Google Drive · Workspace / Ortak Drive", "Bunny Storage + CDN", "Bunny Stream · Video", "Bunny DNS Zone"]} isAdmin={isAdmin} settings={adminSettings} />}
+      {section === "reklam" && <AdminOnlyIntegrationSection title="Reklam Alanı" description="AdSense Türkiye ve özel firma reklamları için slot, kampanya ve medya bağlantısı hazırlığı." providers={["Google AdSense · Yayıncı ve slot ayarları", "Özel firma · Banner/video kampanyaları", "Ana sayfa · İçerik · Test sonuçları yerleşimleri"]} isAdmin={isAdmin} settings={adminSettings} />}
+      {section === "search-console" && <AdminOnlyIntegrationSection title="Google Search Console" description="Mülk doğrulama, sitemap, URL denetimi ve performans verileri hosting sonrası Google OAuth ile bağlanacak." providers={["Mülk bağlantısı ve doğrulama", "Sitemap gönderme ve durum takibi", "URL Inspection ve indeksleme görünümü", "Search Analytics performans raporu"]} isAdmin={isAdmin} settings={adminSettings} />}
 
       {section === "genel" && <>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -285,6 +292,16 @@ function StatCard({ label, value, icon: Icon, tone }: { label: string; value: st
 
 function RestrictedNotice() {
   return <div className="mt-6 rounded-xl bg-[#f8f7f2] p-4 text-sm leading-6 text-[#6f8085]">Bu modül size açık değil. Admin, panel izinleri bölümünden erişimi açabilir.</div>;
+}
+
+function AdminOnlyIntegrationSection({ title, description, providers, isAdmin, settings }: { title: string; description: string; providers: string[]; isAdmin: boolean; settings: { data?: Array<{ settingKey: string; settingValue: string | null }>; isLoading: boolean; isError: boolean } }) {
+  if (!isAdmin) return <RestrictedNotice />;
+  if (settings.isLoading) return <section className="rounded-[24px] border border-[#e6e5dc] bg-white p-6"><div className="h-5 w-40 animate-pulse rounded bg-[#e8eee9]" /><div className="mt-4 h-4 w-3/4 animate-pulse rounded bg-[#eef2ed]" /><div className="mt-6 grid gap-3 md:grid-cols-2">{providers.slice(0, 4).map(provider => <div key={provider} className="h-20 animate-pulse rounded-2xl bg-[#f1f4ef]" />)}</div></section>;
+  if (settings.isError) return <section className="rounded-[24px] border border-[#ecd7d0] bg-[#fff8f5] p-6"><h2 className="text-lg font-bold text-[#7d4f45]">Bağlantı ayarları yüklenemedi.</h2><p className="mt-2 text-sm leading-6 text-[#8d6a63]">Admin ayarları okunamadı. Hosting kimlik bilgileri eklenmeden önce yeniden deneyin.</p></section>;
+  const configuredKeys = new Set((settings.data ?? []).filter(item => item.settingValue?.trim()).map(item => item.settingKey));
+  const providerIsConfigured = (provider: string) => provider.includes("Google AdSense") ? configuredKeys.has("adsense_publisher_id") : provider.includes("Search") || provider.includes("Sitemap") || provider.includes("URL") || provider.includes("Analytics") ? configuredKeys.has("google_search_console_site") : false;
+  const configuredCount = providers.filter(providerIsConfigured).length;
+  return <section className="space-y-5"><div className="rounded-[24px] border border-[#e6e5dc] bg-white p-6"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-bold tracking-[.16em] text-[#668278] uppercase">Bağlantı merkezi</p><h2 className="mt-2 text-xl font-bold text-[#29465a]">{title}</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#71838b]">{description}</p></div><Badge className={`w-fit border-0 ${configuredCount ? "bg-[#e3f2e9] text-[#4f806d] hover:bg-[#e3f2e9]" : "bg-[#fff3d8] text-[#9a742d] hover:bg-[#fff3d8]"}`}>{configuredCount ? `${configuredCount}/${providers.length} hazır` : "Yapılandırılmadı"}</Badge></div><div className="mt-6 grid gap-3 md:grid-cols-2">{providers.map(provider => { const configured = providerIsConfigured(provider); return <div key={provider} className="flex items-center justify-between gap-4 rounded-2xl border border-[#edf0eb] bg-[#fbfcf8] px-4 py-4"><div><p className="text-sm font-semibold text-[#365368]">{provider}</p><p className="mt-1 text-xs text-[#829096]">{configured ? "Ayar kaydı bulundu." : "Kimlik bilgileri hosting sonrası eklenecek."}</p></div><Button variant="outline" size="sm" disabled={!configured} className="shrink-0 rounded-xl">Bağlantıyı test et</Button></div>; })}</div></div><div className="rounded-[24px] bg-[#18344f] p-6 text-white"><p className="text-xs font-bold tracking-[.16em] text-[#a5cac0] uppercase">Güvenli hazırlık</p><h3 className="mt-3 text-xl font-semibold">Anahtarlar kod içine yazılmayacak.</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-[#c8d4d6]">Google OAuth, Bunny.net ve diğer sağlayıcı bilgileri hosting ortam değişkenleri veya güvenli bağlantı ayarları üzerinden girilecek. Bağlantı kurulmadan hiçbir taşıma veya canlı reklam çağrısı çalıştırılmayacak.</p></div></section>;
 }
 
 export default function Panel() {
