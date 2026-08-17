@@ -58,9 +58,21 @@ describe("Admin ayar ve güvenlik yönetimi", () => {
       provider: "google-drive-personal",
       configured: false,
       status: "not_configured",
-      missingKeys: ["google_client_id", "google_client_secret"],
+      missingKeys: ["clientId", "clientSecret"],
     });
     await expect(caller.admin.testProviderConnection({ provider: "s3" })).resolves.toMatchObject({ provider: "s3", configured: true, status: "ready" });
+  });
+
+  it("geçici Bunny Storage config alanlarını doğrular ve secret döndürmez", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.admin.testProviderConnection({ provider: "bunny-storage", config: { apiKey: "bunny-secret", storageZone: "okulblog-media" } })).resolves.toMatchObject({ provider: "bunny-storage", configured: true, status: "ready", missingKeys: [] });
+    const result = await caller.admin.testProviderConnection({ provider: "bunny-storage", config: { apiKey: "bunny-secret", storageZone: "okulblog-media" } });
+    expect(JSON.stringify(result)).not.toContain("bunny-secret");
+  });
+
+  it("Bunny Storage için API key veya zone eksikse alanları raporlar", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.admin.testProviderConnection({ provider: "bunny-storage", config: { apiKey: "bunny-secret" } })).resolves.toMatchObject({ configured: false, status: "not_configured", missingKeys: ["storageZone"] });
   });
 
   it("üye rolü Admin ayarlarını değiştiremez veya güvenlik olaylarını listeleyemez", async () => {

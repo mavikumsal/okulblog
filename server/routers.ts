@@ -289,8 +289,27 @@ export const appRouter = router({
         lastError: values.search_console_last_error || null,
       };
     }),
-    testProviderConnection: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "adsense", "search-console"]) })).mutation(async ({ input }) => {
+    testProviderConnection: adminProcedure.input(z.object({
+      provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "adsense", "search-console"]),
+      config: z.object({
+        apiKey: z.string().trim().max(500).optional(),
+        apiSecret: z.string().trim().max(500).optional(),
+        accessKeyId: z.string().trim().max(500).optional(),
+        secretAccessKey: z.string().trim().max(500).optional(),
+        bucketName: z.string().trim().max(255).optional(),
+        storageZone: z.string().trim().max(255).optional(),
+        streamLibraryId: z.string().trim().max(255).optional(),
+        dnsZoneId: z.string().trim().max(255).optional(),
+        region: z.string().trim().max(120).optional(),
+        endpoint: z.string().trim().url().max(900).optional(),
+        clientId: z.string().trim().max(500).optional(),
+        clientSecret: z.string().trim().max(500).optional(),
+        sharedDriveId: z.string().trim().max(255).optional(),
+      }).optional(),
+    })).mutation(async ({ input }) => {
       const settings = await listSiteSettings();
+      const config = input.config ?? {};
+      const has = (...values: Array<string | undefined>) => values.some(value => Boolean(value?.trim()));
       const requiredKeys: Record<string, string[]> = {
         s3: [],
         "google-drive-personal": ["google_client_id", "google_client_secret"],
@@ -302,8 +321,44 @@ export const appRouter = router({
         "search-console": ["google_client_id", "google_client_secret", "search_console_property"],
       };
       const configuredKeys = new Set(settings.filter(item => typeof item.settingValue === "string" && item.settingValue.trim().length > 0).map(item => item.settingKey));
-      const missing = requiredKeys[input.provider].filter(key => !configuredKeys.has(key));
-      return { provider: input.provider, configured: missing.length === 0, status: missing.length === 0 ? "ready" : "not_configured", missingKeys: missing, message: missing.length === 0 ? "Bağlantı yapılandırması hazır." : "Hosting sonrası gerekli bağlantı bilgilerini ekleyin." };
+      const hasSettingOrInput = (settingKey: string, ...inputValues: Array<string | undefined>) => configuredKeys.has(settingKey) || has(...inputValues);
+      const missing = input.provider === "s3"
+        ? []
+        : input.provider === "google-drive-personal"
+          ? [
+              ...(hasSettingOrInput("google_client_id", config.clientId) ? [] : ["clientId"]),
+              ...(hasSettingOrInput("google_client_secret", config.clientSecret) ? [] : ["clientSecret"]),
+            ]
+          : input.provider === "google-drive-workspace"
+            ? [
+                ...(hasSettingOrInput("google_client_id", config.clientId) ? [] : ["clientId"]),
+                ...(hasSettingOrInput("google_client_secret", config.clientSecret) ? [] : ["clientSecret"]),
+                ...(hasSettingOrInput("google_drive_shared_id", config.sharedDriveId) ? [] : ["sharedDriveId"]),
+              ]
+            : input.provider === "bunny-storage"
+              ? [
+                  ...(hasSettingOrInput("bunny_api_key", config.apiKey) ? [] : ["apiKey"]),
+                  ...(hasSettingOrInput("bunny_storage_zone", config.storageZone) ? [] : ["storageZone"]),
+                ]
+              : input.provider === "bunny-stream"
+                ? [
+                    ...(hasSettingOrInput("bunny_api_key", config.apiKey) ? [] : ["apiKey"]),
+                    ...(hasSettingOrInput("bunny_stream_library_id", config.streamLibraryId) ? [] : ["streamLibraryId"]),
+                  ]
+                : input.provider === "bunny-dns"
+                  ? [
+                      ...(hasSettingOrInput("bunny_api_key", config.apiKey) ? [] : ["apiKey"]),
+                      ...(hasSettingOrInput("bunny_dns_zone_id", config.dnsZoneId) ? [] : ["dnsZoneId"]),
+                    ]
+                  : requiredKeys[input.provider].filter(key => !configuredKeys.has(key));
+      return {
+        provider: input.provider,
+        configured: missing.length === 0,
+        status: missing.length === 0 ? "ready" : "not_configured",
+        missingKeys: missing,
+        credentialSource: Object.keys(config).length ? "temporary_form" : (missing.length === 0 ? "server_settings" : "missing"),
+        message: missing.length === 0 ? "Alanlar doğrulandı. Secret değerleri sunucu yanıtında gösterilmez." : "Eksik alanları doldurun veya hosting sonrası sunucu ayarlarını yapılandırın.",
+      };
     }),
     mediaAssets: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]).optional(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).optional() }).optional()).query(({ input }) => listMediaAssets(input)),
     createMediaAsset: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), providerAssetId: z.string().trim().max(500).optional().nullable(), fileName: z.string().trim().min(1).max(255), publicUrl: z.string().trim().url().max(900).optional().nullable(), mimeType: z.string().trim().min(1).max(120), sizeBytes: z.number().int().nonnegative().optional().nullable(), folderPath: z.string().trim().max(500).optional().nullable(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).default("general"), metadata: z.record(z.string(), z.unknown()).optional() })).mutation(async ({ ctx, input }) => { await createMediaAsset({ ...input, uploadedBy: ctx.user.id }); return { success: true }; }),

@@ -193,3 +193,7 @@
 - [x] Search Console için sitemap submit, URL inspection ve indeksleme talebi mutation sözleşmelerini eklemek
 - [x] Search Console performans, coverage, hata, bağlantı ve indeksleme veri kartları için backend/UI sözleşmesi eklemek
 - [x] Search Console token lifecycle için güvenli saklama, yenileme ve Admin-only testleri eklemek
+- [x] Bulut Depolama ekranına sağlayıcı bazlı API key, secret/token, bucket/storage zone, region, endpoint ve DNS/Stream alanlarını eklemek
+- [x] Sağlayıcı yapılandırmalarını secret sızıntısı olmadan Admin-only sunucu ayar sözleşmesine bağlamak
+- [x] S3, Google Drive kişisel/Workspace ve Bunny Storage/Stream/DNS için form doğrulaması ve gerçek test bağlantısı akışını tamamlamak
+- [x] Bulut Depolama yapılandırma formunun loading/error/success/empty, yetki ve responsive testlerini eklemek

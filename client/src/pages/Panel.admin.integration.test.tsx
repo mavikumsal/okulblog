@@ -52,7 +52,17 @@ describe("Panel Admin modülleri component akışları", () => {
     expect(panelState.providerMutate).toHaveBeenCalledWith({ provider: "adsense" });
   });
 
-  it("Bulut Depolama, Reklam Alanı ve Search Console route’larında yapılandırılmadı durumunu gösterir", () => {
+  it("Bulut Depolama formunda Bunny API key ve Storage Zone alanlarını test mutationına gönderir", () => {
+    panelState.route = "/panel/bulut-depolama";
+    render(<Panel />);
+    fireEvent.change(screen.getByRole("combobox", { name: "Depolama sağlayıcısı" }), { target: { value: "bunny-storage" } });
+    fireEvent.change(screen.getByLabelText("Bunny API Key"), { target: { value: "bunny-secret" } });
+    fireEvent.change(screen.getByLabelText("Storage Zone adı"), { target: { value: "okulblog-media" } });
+    fireEvent.click(screen.getByRole("button", { name: "Alanları test et" }));
+    expect(panelState.providerMutate).toHaveBeenCalledWith(expect.objectContaining({ provider: "bunny-storage", config: expect.objectContaining({ apiKey: "bunny-secret", storageZone: "okulblog-media" }) }));
+  });
+
+  it("Bulut Depolama, Reklam Alanı ve Search Console route’larında yapılandırma durumunu gösterir", () => {
     const cases = [
       { route: "/panel/bulut-depolama", title: "Bulut Depolama", provider: "Google Drive · Kişisel hesap" },
       { route: "/panel/reklam", title: "Reklam Alanı", provider: "Google AdSense · Yayıncı ve slot ayarları" },
@@ -62,7 +72,7 @@ describe("Panel Admin modülleri component akışları", () => {
       panelState.route = item.route;
       const { unmount } = render(<Panel />);
       expect(screen.getByText(item.title)).toBeInTheDocument();
-      expect(screen.getByText("Yapılandırılmadı")).toBeInTheDocument();
+      expect(screen.getByText(item.route === "/panel/bulut-depolama" ? "1/6 hazır" : "Yapılandırılmadı")).toBeInTheDocument();
       expect(screen.getByText(item.provider)).toBeInTheDocument();
       expect(screen.getAllByRole("button", { name: "Bağlantıyı test et" }).length).toBeGreaterThan(0);
       unmount();
