@@ -163,3 +163,5 @@
 - [x] createMediaTransferJob akışında mediaAssetId varlığını doğrulamak ve geçersiz kayıt için hata testi eklemek
 - [x] Medya Merkezi’nde sağlayıcı ve içerik türü seçerek URL/MIME metadata kaydı oluşturma formu eklemek ve test etmek
 - [x] Dahili S3 için Admin-only gerçek dosya yükleme prosedürünü medya varlığı metadata kaydıyla birleştirmek ve MIME/boyut testlerini eklemek
+
+- [x] Medya Merkezi kütüphanesine dosya adı araması, sağlayıcı filtresi, içerik modülü filtresi ve filtrelenmiş kayıt sayacı eklemek ve test etmek
