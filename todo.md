@@ -212,4 +212,4 @@
 - [x] Videolar içerik yönetimine YouTube ve video kaynak bağlantı merkezi ekle
 - [x] Analytics, YouTube ve video kaynak link/unlink medya akışını doğrula
 - [x] Final görsel denetim ve 90+ testlik tam paket doğrulaması
-- [ ] Hosting sonrası yapılacak gerçek API/OAuth kimlik bilgilerini açıkça işaretle
+- [x] Hosting sonrası yapılacak gerçek API/OAuth kimlik bilgilerini TODO’da açıkça işaretle; gerçek giriş hosting sonrasında yapılacak
