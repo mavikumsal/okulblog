@@ -270,8 +270,11 @@ describe("Panel Admin modülleri component akışları", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Sil" })[4]);
     expect(screen.queryByLabelText("E seçeneği")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Çoklu soru" }));
-    expect(screen.getByRole("textbox", { name: "Toplu soru 1" })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Toplu soru 2" })).toBeInTheDocument();
+    expect(screen.getByTestId("bulk-question-editor-0")).toBeInTheDocument();
+    expect(screen.getByTestId("bulk-question-editor-1")).toBeInTheDocument();
+    expect(screen.getByTestId("bulk-answer-editor-0")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /AI doldur/ })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /Ön izle/ })).toHaveLength(2);
     expect(screen.getByRole("button", { name: /Çoklu soruları taslak ekle/ })).toBeInTheDocument();
   });
 });

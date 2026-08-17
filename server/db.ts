@@ -167,10 +167,15 @@ export async function updateContentStatus(input: { id: number; status: "draft" |
   await db.update(contentItems).set({ status: input.status }).where(eq(contentItems.id, input.id));
 }
 
-export async function listQuestions() {
+export async function listQuestions(filters?: { topicTag?: string; gradeLevel?: string; difficulty?: "easy" | "medium" | "hard" }) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(questions).orderBy(asc(questions.createdAt));
+  const conditions = [
+    filters?.topicTag ? eq(questions.topicTag, filters.topicTag) : undefined,
+    filters?.gradeLevel ? eq(questions.gradeLevel, filters.gradeLevel) : undefined,
+    filters?.difficulty ? eq(questions.difficulty, filters.difficulty) : undefined,
+  ].filter((condition): condition is NonNullable<typeof condition> => Boolean(condition));
+  return db.select().from(questions).where(conditions.length ? and(...conditions) : undefined).orderBy(asc(questions.createdAt));
 }
 
 export async function createQuestion(input: {
@@ -181,6 +186,8 @@ export async function createQuestion(input: {
   options?: string[];
   answer?: string;
   explanation?: string;
+  topicTag?: string | null;
+  gradeLevel?: string | null;
   categoryId?: number | null;
   difficulty: "easy" | "medium" | "hard";
   status?: "draft" | "approved" | "archived";

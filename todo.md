@@ -244,3 +244,21 @@
 - [x] Kaydetmeden önce öğrenci görünümünü gösteren soru ön izleme modalı ekle
 - [x] Ön izlemede zengin soru/cevap HTML’i, görselleri, A–D seçenekleri ve doğru cevap seçimini göster
 - [x] AI ve ön izleme akışları için Vitest testleri, TypeScript, build ve görsel doğrulama yap
+
+## AI Parametreleri ve Soru Etiketleme
+
+- [ ] AI soru üretim ayar paneline konu, sınıf seviyesi ve zorluk seçimini ekle
+- [ ] AI soru ve test üretim sözleşmesine sınıf seviyesi ile konu parametrelerini bağla
+- [ ] Sorularda konu, sınıf seviyesi ve zorluk etiketlerini sakla ve göster
+- [ ] Soru Havuzu’na konu, sınıf seviyesi ve zorluk filtrelerini ekle
+- [ ] Filtrelenmiş soru sayısını, boş durumunu ve temizle akışını göster
+- [ ] AI parametreleri ve soru filtreleme için Vitest, TypeScript, build ve görsel doğrulama yap
+
+## Çoklu Soru Gelişmiş Editör Uyarlaması
+
+- [x] Çoklu soru kartlarını gelişmiş soru metin editörü ile değiştirmek
+- [x] Her çoklu soru kartına ayrı gelişmiş cevap/açıklama editörü eklemek
+- [x] Her karta ayrı soru ve cevap görseli yükleme, ön izleme ve 250×250 dönüşümü eklemek
+- [x] Her kartta A–D seçenek ekleme/silme/çoğaltma ve doğru cevap seçimini desteklemek
+- [x] Çoklu kartlarda AI taslak üretimi ve öğrenci görünümü ön izlemesini desteklemek
+- [x] Çoklu soru akışını filtre parametreleri, test kaydı, Vitest, TypeScript, build ve responsive görsel denetimle doğrulamak

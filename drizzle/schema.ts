@@ -47,6 +47,8 @@ export const questions = mysqlTable("questions", {
   options: json("options"),
   answer: text("answer"),
   explanation: text("explanation"),
+  topicTag: varchar("topicTag", { length: 180 }),
+  gradeLevel: varchar("gradeLevel", { length: 80 }),
   categoryId: int("categoryId"),
   difficulty: mysqlEnum("difficulty", ["easy", "medium", "hard"]).default("medium").notNull(),
   status: mysqlEnum("status", ["draft", "approved", "archived"]).default("draft").notNull(),

@@ -163,9 +163,9 @@ export const appRouter = router({
     }),
   }),
   questions: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
+    list: protectedProcedure.input(z.object({ topicTag: z.string().trim().max(180).optional(), gradeLevel: z.string().trim().max(80).optional(), difficulty: z.enum(["easy", "medium", "hard"]).optional() }).optional()).query(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Soru Havuzu");
-      return listQuestions();
+      return listQuestions(input);
     }),
     create: protectedProcedure.input(z.object({
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
@@ -175,6 +175,8 @@ export const appRouter = router({
       options: z.array(z.string().trim().min(1).max(300)).max(5).optional(),
       answer: z.string().trim().max(800).optional(),
       explanation: z.string().trim().max(1200).optional(),
+      topicTag: z.string().trim().max(180).nullable().optional(),
+      gradeLevel: z.string().trim().max(80).nullable().optional(),
       categoryId: z.number().int().positive().nullable().optional(),
       difficulty: z.enum(["easy", "medium", "hard"]),
     })).mutation(async ({ ctx, input }) => {
@@ -229,6 +231,7 @@ export const appRouter = router({
       topic: z.string().trim().min(3).max(300),
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
       difficulty: z.enum(["easy", "medium", "hard"]),
+      gradeLevel: z.string().trim().max(80).optional(),
       categoryId: z.number().int().positive().nullable().optional(),
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Soru Havuzu");
@@ -241,6 +244,7 @@ export const appRouter = router({
       count: z.number().int().min(2).max(20),
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
       difficulty: z.enum(["easy", "medium", "hard"]),
+      gradeLevel: z.string().trim().max(80).optional(),
       categoryId: z.number().int().positive().nullable().optional(),
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Soru Havuzu");
@@ -248,7 +252,7 @@ export const appRouter = router({
       const questionIds: number[] = [];
       for (let index = 0; index < input.count; index += 1) {
         const draft = await generateQuestionDraft(input);
-        const id = await createQuestion({ ...draft, categoryId: input.categoryId ?? null, difficulty: input.difficulty, createdBy: ctx.user.id });
+        const id = await createQuestion({ ...draft, topicTag: input.topic, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null, difficulty: input.difficulty, createdBy: ctx.user.id });
         questionIds.push(id);
       }
       await createTest({ title: input.title, description: `${input.topic} konusu için AI tarafından oluşturulan taslak test.`, categoryId: input.categoryId ?? null, questionIds, createdBy: ctx.user.id });

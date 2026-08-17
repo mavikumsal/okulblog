@@ -15,6 +15,7 @@ export async function generateQuestionDraft(input: {
   topic: string;
   questionType: "multiple-choice" | "true-false" | "open-ended";
   difficulty: "easy" | "medium" | "hard";
+  gradeLevel?: string;
 }) {
   const catalog = await listLLMModels();
   const model = catalog.data.find(item => item.id === "gpt-5-mini")?.id ?? catalog.data[0]?.id;
@@ -28,7 +29,7 @@ export async function generateQuestionDraft(input: {
       },
       {
         role: "user",
-        content: `Konu: ${input.topic}\nSoru türü: ${input.questionType}\nZorluk: ${input.difficulty}\nSoruyu Türkçe üret.`,
+        content: `Konu: ${input.topic}\nSınıf seviyesi: ${input.gradeLevel ?? "genel"}\nSoru türü: ${input.questionType}\nZorluk: ${input.difficulty}\nSoruyu Türkçe üret.`,
       },
     ],
     outputSchema: {

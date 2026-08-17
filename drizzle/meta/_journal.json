@@ -71,6 +71,13 @@
       "when": 1786972959265,
       "tag": "0009_tricky_power_pack",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1786975757866,
+      "tag": "0010_chemical_james_howlett",
+      "breakpoints": true
     }
   ]
 }
