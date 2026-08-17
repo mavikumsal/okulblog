@@ -415,4 +415,4 @@
 - [x] Eğitim/Kurum kategorisi, sınıf, konu ve zorluk parametrelerini AI payloadına korumak
 - [x] AI sağlayıcı hataları, boş çıktı, şema hatası ve kota durumları için kullanıcı dostu hata mesajları eklemek
 - [x] AI entegrasyonu için Vitest, TypeScript, production build ve responsive doğrulama yapmak
-- [ ] AI entegrasyonu için yeni checkpoint oluşturmak
+- [x] AI entegrasyonu için yeni checkpoint oluşturmak
