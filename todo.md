@@ -273,3 +273,14 @@
 - [x] PDF sorularını toplu ön izleme, düzenleme, seçerek aktarma ve soru havuzuna kaydetme akışını eklemek
 - [x] Örnek PDF formatı için ayrıştırma, AI onay penceresi ve toplu aktarım testleri yazmak
 - [x] Tam test, TypeScript, build, güvenlik ve responsive görsel doğrulaması yapmak
+
+## PDF Seçimli Aktarım, Güven Skoru ve Görseller
+
+- [x] PDF içe aktarım sonuçlarını soru bazlı seçim kutuları ve seçili soru sayacıyla göstermek
+- [x] Her ayrıştırılmış soru için güven skoru, güven seviyesi ve düşük güvenli uyarısı göstermek
+- [x] Cevap anahtarlı PDF formatını ayrıştırıp soru numarasıyla otomatik cevap eşleştirmek
+- [x] Cevap eşleştirme sonucu, eşleşmeyen cevaplar ve manuel düzeltme durumlarını göstermek
+- [x] PDF içindeki görselleri algılayıp soru veya cevap görseli olarak sınıflandırmak
+- [ ] PDF görsellerini soru/cevap alanına aktarırken 250×250 px WebP standardına dönüştürmek
+- [x] Seçilen PDF sorularını görsel ve cevap bilgileriyle çoklu editöre aktarmak
+- [ ] Seçim, güven skoru, cevap anahtarı ve PDF görsel akışları için test, build ve görsel doğrulama yapmak

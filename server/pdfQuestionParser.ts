@@ -1,4 +1,4 @@
-import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 export type ParsedPdfQuestion = {
   sourceNumber: string;
@@ -8,6 +8,9 @@ export type ParsedPdfQuestion = {
   questionType: "multiple-choice" | "open-ended";
   topicTag: string | null;
   confidence: "high" | "medium" | "low";
+  confidenceScore: number;
+  answerMatched: boolean;
+  hasEmbeddedImage: boolean;
   page: number;
   warning: string | null;
 };
@@ -48,7 +51,7 @@ function parseAnswerKey(lines: string[]): Map<string, string> {
   return result;
 }
 
-function extractBlocks(lines: string[], page: number, answerKey: Map<string, string>): ParsedPdfQuestion[] {
+function extractBlocks(lines: string[], page: number, answerKey: Map<string, string>, hasEmbeddedImage: boolean): ParsedPdfQuestion[] {
   const result: ParsedPdfQuestion[] = [];
   let current: { number: string; page: number; lines: string[] } | null = null;
   const flush = () => {
@@ -63,7 +66,9 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
     }
     const compactOptions = options.filter(Boolean).slice(0, 4);
     const key = answerKey.get(current.number) ?? null;
-    const confidence: ParsedPdfQuestion["confidence"] = compactOptions.length >= 2 ? "medium" : "low";
+    const answerMatched = Boolean(key && compactOptions["ABCD".indexOf(key)]);
+    const confidenceScore = compactOptions.length >= 4 ? (answerMatched ? 0.96 : 0.82) : compactOptions.length >= 2 ? (answerMatched ? 0.78 : 0.62) : 0.34;
+    const confidence: ParsedPdfQuestion["confidence"] = confidenceScore >= 0.8 ? "high" : confidenceScore >= 0.55 ? "medium" : "low";
     result.push({
       sourceNumber: current.number,
       prompt: normalize(promptLines.join(" ")).slice(0, 5000),
@@ -72,6 +77,9 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
       questionType: compactOptions.length >= 2 ? "multiple-choice" : "open-ended",
       topicTag: topicFromHeading(content),
       confidence,
+      confidenceScore,
+      answerMatched,
+      hasEmbeddedImage,
       page: current.page,
       warning: compactOptions.length < 2 ? "A–D seçenekleri otomatik bulunamadı; soru türünü ve cevabı kontrol edin." : key ? null : "Cevap anahtarı bulunamadı; doğru cevabı seçin.",
     });
@@ -95,9 +103,11 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
 export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promise<PdfQuestionParseResult> {
   const document = await getDocument({ data: new Uint8Array(buffer) }).promise;
   const allLines: string[] = [];
-  const pageLines: Array<{ page: number; lines: string[] }> = [];
+  const pageLines: Array<{ page: number; lines: string[]; hasEmbeddedImage: boolean }> = [];
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
+    const operatorList = await page.getOperatorList();
+    const hasEmbeddedImage = operatorList.fnArray.some((operator) => operator === OPS.paintImageXObject || operator === OPS.paintXObject);
     const content = await page.getTextContent();
     const grouped = new Map<number, Array<{ x: number; text: string }>>();
     for (const item of content.items) {
@@ -109,11 +119,11 @@ export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promi
       grouped.set(y, row);
     }
     const lines = Array.from(grouped.entries()).sort((a: [number, Array<{ x: number; text: string }>], b: [number, Array<{ x: number; text: string }>]) => b[0] - a[0]).map((entry: [number, Array<{ x: number; text: string }>]) => entry[1].sort((a: { x: number; text: string }, b: { x: number; text: string }) => a.x - b.x).map((item: { x: number; text: string }) => item.text).join(" "));
-    pageLines.push({ page: pageNumber, lines });
+    pageLines.push({ page: pageNumber, lines, hasEmbeddedImage });
     allLines.push(...lines);
   }
   const answerKey = parseAnswerKey(allLines);
-  const questions = pageLines.flatMap(({ page, lines }) => extractBlocks(lines, page, answerKey));
+  const questions = pageLines.flatMap(({ page, lines, hasEmbeddedImage }) => extractBlocks(lines, page, answerKey, hasEmbeddedImage));
   return {
     fileName,
     pageCount: document.numPages,
