@@ -133,6 +133,16 @@ export const mediaAssets = mysqlTable("media_assets", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const mediaAssetLinks = mysqlTable("media_asset_links", {
+  id: int("id").autoincrement().primaryKey(),
+  mediaAssetId: int("mediaAssetId").notNull(),
+  targetType: mysqlEnum("targetType", ["content", "test"]).notNull(),
+  targetId: int("targetId").notNull(),
+  role: varchar("role", { length: 80 }).default("attachment").notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const mediaTransferJobs = mysqlTable("media_transfer_jobs", {
   id: int("id").autoincrement().primaryKey(),
   mediaAssetId: int("mediaAssetId").notNull(),

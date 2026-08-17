@@ -1,6 +1,6 @@
-import { eq, asc, desc, inArray } from "drizzle-orm";
+import { and, eq, asc, desc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, homeSlides, InsertUser, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, homeSlides, InsertUser, mediaAssetLinks, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -247,6 +247,24 @@ export async function createMediaAsset(input: {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   await db.insert(mediaAssets).values({ ...input, contentType: input.contentType ?? "general", providerAssetId: input.providerAssetId ?? null, publicUrl: input.publicUrl ?? null, sizeBytes: input.sizeBytes ?? null, folderPath: input.folderPath ?? null, metadata: input.metadata ?? {} });
+}
+
+export async function createMediaAssetLink(input: { mediaAssetId: number; targetType: "content" | "test"; targetId: number; role?: string; createdBy: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.insert(mediaAssetLinks).values({ ...input, role: input.role ?? "attachment" });
+}
+
+export async function listMediaAssetLinks(input: { targetType: "content" | "test"; targetId: number }) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(mediaAssetLinks).where(and(eq(mediaAssetLinks.targetType, input.targetType), eq(mediaAssetLinks.targetId, input.targetId)));
+}
+
+export async function removeMediaAssetLink(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.delete(mediaAssetLinks).where(eq(mediaAssetLinks.id, id));
 }
 
 export async function archiveMediaAsset(id: number) {

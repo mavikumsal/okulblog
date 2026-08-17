@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
-import { archiveMediaAsset, createMediaAsset, createMediaTransferJob, listMediaAssets, listMediaTransferJobs } from "./db";
+import { archiveMediaAsset, createMediaAsset, createMediaAssetLink, createMediaTransferJob, listMediaAssetLinks, listMediaAssets, listMediaTransferJobs, removeMediaAssetLink } from "./db";
 import { storagePut } from "./storage";
 import type { TrpcContext } from "./_core/context";
 
@@ -12,6 +12,9 @@ vi.mock("./db", async importOriginal => {
     ...actual,
     listMediaAssets: vi.fn().mockResolvedValue([{ id: 1, provider: "s3", fileName: "deneme.pdf", contentType: "document", status: "active" }]),
     createMediaAsset: vi.fn().mockResolvedValue(undefined),
+    createMediaAssetLink: vi.fn().mockResolvedValue(undefined),
+    listMediaAssetLinks: vi.fn().mockResolvedValue([{ id: 11, mediaAssetId: 1, targetType: "content", targetId: 4, role: "hero" }]),
+    removeMediaAssetLink: vi.fn().mockResolvedValue(undefined),
     getMediaAsset: vi.fn().mockImplementation(async (id: number) => id === 1 ? { id: 1, provider: "s3", status: "active" } : undefined),
     archiveMediaAsset: vi.fn().mockResolvedValue(undefined),
     listMediaTransferJobs: vi.fn().mockResolvedValue([{ id: 7, status: "queued", operation: "copy" }]),
@@ -40,6 +43,22 @@ describe("Admin medya merkezi backend akışları", () => {
     expect(storagePut).toHaveBeenCalledWith(expect.stringContaining("okulblog/media/1/deneme.pdf"), expect.any(Buffer), "application/pdf");
     expect(archiveMediaAsset).toHaveBeenCalledWith(1);
     expect(createMediaTransferJob).toHaveBeenCalledWith({ mediaAssetId: 1, sourceProvider: "s3", targetProvider: "bunny-storage", operation: "copy", requestedBy: 1 });
+  });
+
+  it("medya varlığını içerik kaydına bağlar, bağlantıları listeler ve ayırır", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.admin.linkMediaAsset({ mediaAssetId: 1, targetType: "content", targetId: 4, role: "hero" })).resolves.toEqual({ success: true });
+    await expect(caller.admin.mediaAssetLinks({ targetType: "content", targetId: 4 })).resolves.toHaveLength(1);
+    await expect(caller.admin.unlinkMediaAsset({ id: 11 })).resolves.toEqual({ success: true });
+    expect(createMediaAssetLink).toHaveBeenCalledWith({ mediaAssetId: 1, targetType: "content", targetId: 4, role: "hero", createdBy: 1 });
+    expect(listMediaAssetLinks).toHaveBeenCalledWith({ targetType: "content", targetId: 4 });
+    expect(removeMediaAssetLink).toHaveBeenCalledWith(11);
+  });
+
+  it("arşivlenmiş medya varlığını içerik kaydına bağlamaz", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    vi.mocked((await import("./db")).getMediaAsset).mockResolvedValueOnce({ id: 1, provider: "s3", status: "archived" } as never);
+    await expect(caller.admin.linkMediaAsset({ mediaAssetId: 1, targetType: "test", targetId: 3, role: "attachment" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("izin verilmeyen S3 MIME türünü reddeder", async () => {

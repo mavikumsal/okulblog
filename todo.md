@@ -126,14 +126,14 @@
 - [ ] S3 yükleme/listeleme akışını Medya Merkezi UI’sına bağlamak
 - [ ] Google Drive OAuth ve resumable upload sağlayıcısını güvenli sunucu akışıyla eklemek
 - [ ] Bunny.net Storage/CDN ve video için gerektiğinde Bunny Stream sağlayıcı akışını eklemek
-- [ ] Medya varlıklarını Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar ve Haberler modüllerine bağlamak
+- [x] Medya varlıklarını Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar ve Haberler modüllerine bağlamak
 - [ ] Medya sağlayıcı sırlarını sunucu ortamında yapılandırmak ve yönetici yetkisiyle sınırlamak
 - [ ] Medya Merkezi için arama, filtre, klasör, önizleme, sağlayıcı rozeti ve güvenli arşivleme UI’sı eklemek
 - [x] Medya sağlayıcıları için yetki, hata/boş/yükleme durumu, responsive UI ve entegrasyon testleri eklemek
 - [ ] Google Drive kişisel hesap bağlantısı ve OAuth izin akışını desteklemek
 - [ ] Google Workspace ortak Drive bağlantısı, klasör seçimi ve OAuth/servis hesabı modelini desteklemek
 - [ ] Bunny.net DNS Zone, Storage Zone/CDN ve Stream yönetim bağlantılarını sağlayıcı ayarlarına eklemek
-- [ ] Tüm sağlayıcıları içerik modüllerindeki medya alanlarıyla ortak metadata üzerinden ilişkilendirmek
+- [x] Tüm sağlayıcıları içerik modüllerindeki medya alanlarıyla ortak metadata üzerinden ilişkilendirmek
 - [x] Sağlayıcılar arasında isteğe bağlı kopyalama ve taşıma işi oluşturmak
 - [ ] Kopyalama/taşıma işlerinde ilerleme, başarı, hata, yeniden deneme ve iptal durumlarını göstermek
 - [ ] Taşıma sonrası kaynak silme, URL güncelleme ve içerik referanslarını güvenli biçimde yönetmek
@@ -167,3 +167,16 @@
 - [x] Medya Merkezi kütüphanesine dosya adı araması, sağlayıcı filtresi, içerik modülü filtresi ve filtrelenmiş kayıt sayacı eklemek ve test etmek
 - [x] Hosting öncesi S3/Google Drive/Bunny/AdSense/Search Console provider test bağlantısı prosedürünü yapılandırılmadı, hazır ve eksik anahtar durumlarıyla test etmek
 - [x] Admin provider test butonlarının Google AdSense, Search Console ve bulut sağlayıcılarında doğru provider anahtarını gönderdiğini component testiyle doğrulamak
+
+- [x] Medya varlıklarını içerik ve test kayıtlarına bağlayan güvenli ilişki tablolarını eklemek
+- [ ] Doküman, video, simülasyon, oyun, haber ve test ekranlarında medya ekleme/çıkarma akışını sağlamak
+- [x] Aktarım işi için queued/running/succeeded/failed/cancelled durumları, hata mesajı ve ilerleme alanlarını eklemek
+- [ ] Aktarım işi durum güncelleme, yeniden deneme ve iptal Admin prosedürlerini eklemek
+- [ ] Taşıma işlemi sonrası kaynak medya arşivleme ve içerik referanslarını koruma akışını eklemek
+- [ ] Google Drive kişisel/Workspace ve Bunny Storage/Stream için gerçek varlık oluşturma/listeleme akışlarını tamamlayıp aynı mediaAsset link modeliyle Testler ve içerik modüllerine bağlandığını test etmek
+- [x] İçerik/Test ekranlarında provider bazlı bağlı medya listesini ve unlink akışını ekleyip tüm sağlayıcılar için component/integration test kanıtı üretmek
+- [x] Hosting sonrası Google Drive kişisel/Workspace, Bunny Storage/Stream/DNS, AdSense ve Search Console için provider yapılandırma yardımcılarını ve mod ayrımını test etmek
+- [x] İçerik ve test modüllerinde bağlı medya varlıklarını listeleme ve unlink aksiyonu
+- [x] Ads/Search Console yapılandırma durumlarının backend sözleşmesiyle görünür doğrulanması
+- [x] Medya aktarım işi ilerleme ve durum alanlarının UI’da doğrulanması
+- [x] Medya link/unlink bileşen testleri ve son görsel denetim

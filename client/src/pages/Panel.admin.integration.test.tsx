@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { panelState, hook } = vi.hoisted(() => {
-  const state = { route: "/panel/ayarlar", userRole: "admin", testList: [] as unknown[], providerMutate: vi.fn(), settingsState: { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false } };
+  const state = { route: "/panel/ayarlar", userRole: "admin", testList: [] as unknown[], mediaLinks: [{ id: 12, mediaAssetId: 4, targetType: "content", targetId: 21, role: "cover" }], providerMutate: vi.fn(), unlinkMutate: vi.fn(), settingsState: { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false } };
   const makeQuery = (data: unknown, extra: Record<string, unknown> = {}) => ({ data, isLoading: false, isError: false, ...extra });
   const makeHook = (data: unknown = []) => ({ useQuery: () => makeQuery(typeof data === "function" ? data() : data), useMutation: () => ({ isPending: false, mutate: vi.fn() }) });
   return { panelState: state, hook: makeHook };
@@ -26,7 +26,7 @@ vi.mock("@/lib/trpc", () => ({
     ai: { generateQuestion: hook() },
     contents: { list: hook([]), create: hook(), archive: hook() },
     tests: { list: hook(() => panelState.testList), create: hook() },
-    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: hook([]), mediaTransferJobs: hook([]), createMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
+    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: hook([{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active" }]), mediaTransferJobs: hook([]), createMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   },
 }));
@@ -34,7 +34,7 @@ vi.mock("@/lib/trpc", () => ({
 import Panel from "./Panel";
 
 describe("Panel Admin modülleri component akışları", () => {
-  afterEach(() => { cleanup(); panelState.userRole = "admin"; panelState.route = "/panel/ayarlar"; panelState.providerMutate.mockReset(); panelState.settingsState = { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false }; });
+  afterEach(() => { cleanup(); panelState.userRole = "admin"; panelState.route = "/panel/ayarlar"; panelState.providerMutate.mockReset(); panelState.unlinkMutate.mockReset(); panelState.settingsState = { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false }; });
 
   it("ayarlar görünümünde izin, SEO, Search Console, reklam ve site haritası alanlarını gösterir", () => {
     panelState.route = "/panel/ayarlar";
@@ -114,6 +114,16 @@ describe("Panel Admin modülleri component akışları", () => {
     render(<Panel />);
     expect(screen.getByText("Kayıtlı üye")).toBeInTheDocument();
     expect(screen.getByText("Güvenlik kaydı")).toBeInTheDocument();
+  });
+
+  it("İçerik medya link/unlink akışında provider etiketini ve bağlantı kimliğini doğrular", () => {
+    panelState.route = "/panel/dokumanlar";
+    render(<Panel />);
+    fireEvent.change(screen.getByPlaceholderText("İçerik ID"), { target: { value: "21" } });
+    expect(screen.getByText("kapak.pdf")).toBeInTheDocument();
+    expect(screen.getByText(/S3 · cover/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Bağlantıyı kaldır" }));
+    expect(panelState.unlinkMutate).toHaveBeenCalledWith({ id: 12 });
   });
 
   it("Testler ekranında gerçek test metadata’sını listede gösterir", () => {
