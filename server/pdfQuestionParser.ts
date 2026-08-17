@@ -1,3 +1,5 @@
+import { createCanvas } from "@napi-rs/canvas";
+import sharp from "sharp";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 export type ParsedPdfQuestion = {
@@ -11,6 +13,9 @@ export type ParsedPdfQuestion = {
   confidenceScore: number;
   answerMatched: boolean;
   hasEmbeddedImage: boolean;
+  embeddedImageDataBase64: string | null;
+  embeddedImageUrl: string | null;
+  embeddedImageRole: "question" | "answer" | null;
   page: number;
   warning: string | null;
 };
@@ -51,7 +56,7 @@ function parseAnswerKey(lines: string[]): Map<string, string> {
   return result;
 }
 
-function extractBlocks(lines: string[], page: number, answerKey: Map<string, string>, hasEmbeddedImage: boolean): ParsedPdfQuestion[] {
+function extractBlocks(lines: string[], page: number, answerKey: Map<string, string>, hasEmbeddedImage: boolean, embeddedImageDataBase64: string | null, embeddedImageRole: "question" | "answer" | null): ParsedPdfQuestion[] {
   const result: ParsedPdfQuestion[] = [];
   let current: { number: string; page: number; lines: string[] } | null = null;
   const flush = () => {
@@ -80,6 +85,9 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
       confidenceScore,
       answerMatched,
       hasEmbeddedImage,
+      embeddedImageDataBase64,
+      embeddedImageUrl: null,
+      embeddedImageRole,
       page: current.page,
       warning: compactOptions.length < 2 ? "A–D seçenekleri otomatik bulunamadı; soru türünü ve cevabı kontrol edin." : key ? null : "Cevap anahtarı bulunamadı; doğru cevabı seçin.",
     });
@@ -103,7 +111,7 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
 export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promise<PdfQuestionParseResult> {
   const document = await getDocument({ data: new Uint8Array(buffer) }).promise;
   const allLines: string[] = [];
-  const pageLines: Array<{ page: number; lines: string[]; hasEmbeddedImage: boolean }> = [];
+  const pageLines: Array<{ page: number; lines: string[]; hasEmbeddedImage: boolean; embeddedImageDataBase64: string | null; embeddedImageRole: "question" | "answer" | null }> = [];
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
     const operatorList = await page.getOperatorList();
@@ -119,11 +127,21 @@ export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promi
       grouped.set(y, row);
     }
     const lines = Array.from(grouped.entries()).sort((a: [number, Array<{ x: number; text: string }>], b: [number, Array<{ x: number; text: string }>]) => b[0] - a[0]).map((entry: [number, Array<{ x: number; text: string }>]) => entry[1].sort((a: { x: number; text: string }, b: { x: number; text: string }) => a.x - b.x).map((item: { x: number; text: string }) => item.text).join(" "));
-    pageLines.push({ page: pageNumber, lines, hasEmbeddedImage });
+    let embeddedImageDataBase64: string | null = null;
+    let embeddedImageRole: "question" | "answer" | null = null;
+    if (hasEmbeddedImage) {
+      const viewport = page.getViewport({ scale: 0.5 });
+      const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+      await page.render({ canvas: canvas as never, canvasContext: canvas.getContext("2d") as never, viewport }).promise;
+      const normalized = await sharp(canvas.toBuffer("image/png")).resize(250, 250, { fit: "cover", position: "centre" }).webp({ quality: 82 }).toBuffer();
+      embeddedImageDataBase64 = normalized.toString("base64");
+      embeddedImageRole = lines.some((line) => ANSWER_KEY.test(line)) ? "answer" : "question";
+    }
+    pageLines.push({ page: pageNumber, lines, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole });
     allLines.push(...lines);
   }
   const answerKey = parseAnswerKey(allLines);
-  const questions = pageLines.flatMap(({ page, lines, hasEmbeddedImage }) => extractBlocks(lines, page, answerKey, hasEmbeddedImage));
+  const questions = pageLines.flatMap(({ page, lines, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole }) => extractBlocks(lines, page, answerKey, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole));
   return {
     fileName,
     pageCount: document.numPages,

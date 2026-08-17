@@ -281,6 +281,6 @@
 - [x] Cevap anahtarlı PDF formatını ayrıştırıp soru numarasıyla otomatik cevap eşleştirmek
 - [x] Cevap eşleştirme sonucu, eşleşmeyen cevaplar ve manuel düzeltme durumlarını göstermek
 - [x] PDF içindeki görselleri algılayıp soru veya cevap görseli olarak sınıflandırmak
-- [ ] PDF görsellerini soru/cevap alanına aktarırken 250×250 px WebP standardına dönüştürmek
+- [x] PDF görsellerini soru/cevap alanına aktarırken 250×250 px WebP standardına dönüştürmek
 - [x] Seçilen PDF sorularını görsel ve cevap bilgileriyle çoklu editöre aktarmak
-- [ ] Seçim, güven skoru, cevap anahtarı ve PDF görsel akışları için test, build ve görsel doğrulama yapmak
+- [x] Seçim, güven skoru, cevap anahtarı ve PDF görsel akışları için test, build ve görsel doğrulama yapmak

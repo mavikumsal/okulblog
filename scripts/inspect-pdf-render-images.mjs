@@ -1,0 +1,13 @@
+import fs from "node:fs";
+import { createCanvas } from "@napi-rs/canvas";
+import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
+const file = process.argv[2];
+const doc = await getDocument({ data: new Uint8Array(fs.readFileSync(file)) }).promise;
+const page = await doc.getPage(1);
+const viewport = page.getViewport({ scale: 0.25 });
+const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+const ops = await page.getOperatorList();
+const ids = [...new Set(ops.argsArray.flatMap((args, index) => (ops.fnArray[index] === OPS.paintImageXObject ? [args?.[0]] : [])))].filter(Boolean);
+console.log(JSON.stringify({ ids, objects: ids.map((id) => { const object = page.objs.get(id); return { id, width: object?.width, height: object?.height, kind: object?.kind, dataLength: object?.data?.length, dataType: object?.data?.constructor?.name }; }) }, null, 2));
+fs.writeFileSync("/tmp/pdf-page.png", canvas.toBuffer("image/png"));
