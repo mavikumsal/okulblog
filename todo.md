@@ -474,16 +474,16 @@
 
 ## AI Filtreleri, Taslak İnceleme ve Dışa Aktarma
 
-- [ ] AI soru üretiminde konu başlığı, zorluk derecesi ve soru tipini gelişmiş filtrelerle seçmek
-- [ ] AI üretim payloadında filtreleri ve seçilen modeli korumak
-- [ ] Üretilen soruları kaydetmeden önce tek tek düzenlenebilir alanlarla göstermek
-- [ ] Taslak soruları tek tek silme ve seçerek veritabanına kaydetme akışı eklemek
-- [ ] Hazırlanan testleri PDF formatında dışa aktarmak
-- [ ] Soru havuzunu PDF formatında dışa aktarmak
-- [ ] Hazırlanan testleri ve soru havuzunu Word formatında dışa aktarmak
-- [ ] Export yetkisi, boş veri, hata, dosya adı ve responsive indirme akışlarını test etmek
-- [ ] AI filtreleri ve export kapsamı için Vitest, TypeScript, production build ve responsive doğrulama yapmak
-- [ ] AI filtreleri ve export kapsamı için yeni geri alınabilir checkpoint oluşturmak
+- [x] AI soru üretiminde konu başlığı, zorluk derecesi ve soru tipini gelişmiş filtrelerle seçmek
+- [x] AI üretim payloadında filtreleri ve seçilen modeli korumak
+- [x] Üretilen soruları kaydetmeden önce tek tek düzenlenebilir alanlarla göstermek
+- [x] Taslak soruları tek tek silme ve seçerek veritabanına kaydetme akışı eklemek
+- [x] Hazırlanan testleri PDF formatında dışa aktarmak
+- [x] Soru havuzunu PDF formatında dışa aktarmak
+- [x] Hazırlanan testleri ve soru havuzunu Word formatında dışa aktarmak
+- [x] Export yetkisi, boş veri, hata, dosya adı ve responsive indirme akışlarını test etmek
+- [x] AI filtreleri ve export kapsamı için Vitest, TypeScript, production build ve responsive doğrulama yapmak
+- [x] AI filtreleri ve export kapsamı için yeni geri alınabilir checkpoint oluşturmak
 
 ## AI Filtreleri, Taslak Yönetimi ve Dışa Aktarma
 
@@ -493,4 +493,4 @@
 - [x] Soru havuzu kayıtlarını PDF ve Word formatında dışa aktarmak
 - [x] Export dosyalarını sunucu tarafında üretmek ve güvenli indirme yanıtı döndürmek
 - [x] Vitest, TypeScript, production build ve responsive görsel doğrulama yapmak
-- [ ] Bu kapsam için yeni geri alınabilir checkpoint oluşturmak
+- [x] Bu kapsam için yeni geri alınabilir checkpoint oluşturmak
