@@ -28,6 +28,11 @@ import {
   listPopularEducationCategories,
   getPopularEducationCategoryIds,
   savePopularEducationCategoryIds,
+  toggleFavorite,
+  listFavorites,
+  markContentProgress,
+  getMemberDashboard,
+  createTestAttempt,
   listHomeSlidesForAdmin,
   listMediaAssets,
   getMediaAsset,
@@ -206,6 +211,7 @@ export const appRouter = router({
       contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]),
       summary: z.string().trim().max(1000).optional(),
       body: z.string().trim().max(10000).optional(),
+      coverImageUrl: z.string().url().max(700).nullable().optional(),
       categoryId: z.number().int().positive().nullable().optional(),
     })).mutation(async ({ ctx, input }) => {
       const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;
@@ -213,6 +219,13 @@ export const appRouter = router({
       await createContentItem({ ...input, createdBy: ctx.user.id });
       return { success: true };
     }),
+  }),
+  member: router({
+    dashboard: protectedProcedure.query(({ ctx }) => getMemberDashboard(ctx.user.id)),
+    favorites: protectedProcedure.query(({ ctx }) => listFavorites(ctx.user.id)),
+    toggleFavorite: protectedProcedure.input(z.object({ contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]), contentId: z.number().int().positive() })).mutation(({ ctx, input }) => toggleFavorite({ ...input, userId: ctx.user.id })),
+    progress: protectedProcedure.input(z.object({ contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]), contentId: z.number().int().positive(), status: z.enum(["started", "completed"]) })).mutation(({ ctx, input }) => markContentProgress({ ...input, userId: ctx.user.id })),
+    submitAttempt: protectedProcedure.input(z.object({ testId: z.number().int().positive(), correctCount: z.number().int().min(0), wrongCount: z.number().int().min(0), blankCount: z.number().int().min(0), score: z.number().int().min(0).max(100), durationSeconds: z.number().int().min(0) })).mutation(async ({ ctx, input }) => { await createTestAttempt({ ...input, userId: ctx.user.id }); return { success: true }; }),
   }),
   tests: router({
     list: protectedProcedure.query(async ({ ctx }) => {
@@ -222,6 +235,8 @@ export const appRouter = router({
     create: protectedProcedure.input(z.object({
       title: z.string().trim().min(3).max(220),
       description: z.string().trim().max(1000).optional(),
+      coverImageUrl: z.string().url().max(700).nullable().optional(),
+      durationMinutes: z.number().int().min(1).max(240).default(20),
       categoryId: z.number().int().positive().nullable().optional(),
       questionIds: z.array(z.number().int().positive()).min(1),
     })).mutation(async ({ ctx, input }) => {

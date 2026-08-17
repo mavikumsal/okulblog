@@ -1,6 +1,6 @@
 import { and, eq, asc, desc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, homeSlides, InsertUser, mediaAssetLinks, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -209,6 +209,7 @@ export async function createContentItem(input: {
   contentType: "test" | "document" | "simulation" | "video" | "game" | "news";
   summary?: string;
   body?: string;
+  coverImageUrl?: string | null;
   categoryId?: number | null;
   createdBy: number;
 }) {
@@ -218,15 +219,54 @@ export async function createContentItem(input: {
   await db.insert(contentItems).values({ ...input, slug, categoryId: input.categoryId ?? null, status: "draft" });
 }
 
-export async function createTest(input: { title: string; description?: string; categoryId?: number | null; questionIds: number[]; createdBy: number }) {
+export async function createTest(input: { title: string; description?: string; coverImageUrl?: string | null; durationMinutes?: number; categoryId?: number | null; questionIds: number[]; createdBy: number }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
-  await db.insert(tests).values({ ...input, categoryId: input.categoryId ?? null, status: "draft" });
+  await db.insert(tests).values({ ...input, categoryId: input.categoryId ?? null, coverImageUrl: input.coverImageUrl ?? null, durationMinutes: input.durationMinutes ?? 20, status: "draft" });
 }
 export async function listTests() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(tests).orderBy(desc(tests.createdAt));
+}
+
+export async function toggleFavorite(input: { userId: number; contentType: "test" | "document" | "simulation" | "video" | "game" | "news"; contentId: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const existing = await db.select().from(favorites).where(and(eq(favorites.userId, input.userId), eq(favorites.contentType, input.contentType), eq(favorites.contentId, input.contentId))).limit(1);
+  if (existing[0]) { await db.delete(favorites).where(eq(favorites.id, existing[0].id)); return { favorited: false }; }
+  await db.insert(favorites).values(input); return { favorited: true };
+}
+
+export async function listFavorites(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(favorites).where(eq(favorites.userId, userId)).orderBy(desc(favorites.createdAt));
+}
+
+export async function markContentProgress(input: { userId: number; contentType: "test" | "document" | "simulation" | "video" | "game" | "news"; contentId: number; status: "started" | "completed" }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const existing = await db.select().from(contentProgress).where(and(eq(contentProgress.userId, input.userId), eq(contentProgress.contentType, input.contentType), eq(contentProgress.contentId, input.contentId))).limit(1);
+  if (existing[0]) { await db.update(contentProgress).set({ status: input.status }).where(eq(contentProgress.id, existing[0].id)); } else { await db.insert(contentProgress).values(input); }
+}
+
+export async function getMemberDashboard(userId: number) {
+  const db = await getDb();
+  if (!db) return { favorites: [], progress: [], attempts: [] };
+  const [favoriteRows, progressRows, attemptRows] = await Promise.all([
+    db.select().from(favorites).where(eq(favorites.userId, userId)).orderBy(desc(favorites.createdAt)),
+    db.select().from(contentProgress).where(eq(contentProgress.userId, userId)).orderBy(desc(contentProgress.updatedAt)),
+    db.select().from(testAttempts).where(eq(testAttempts.userId, userId)).orderBy(desc(testAttempts.completedAt)),
+  ]);
+  return { favorites: favoriteRows, progress: progressRows, attempts: attemptRows };
+}
+
+export async function createTestAttempt(input: { userId: number; testId: number; correctCount: number; wrongCount: number; blankCount: number; score: number; durationSeconds: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.insert(testAttempts).values(input);
+  await markContentProgress({ userId: input.userId, contentType: "test", contentId: input.testId, status: "completed" });
 }
 
 export async function createStoredFile(input: { fileName: string; storageKey: string; publicUrl: string; mimeType: string; sizeBytes: number; uploadedBy: number }) {

@@ -31,6 +31,7 @@ export const contentItems = mysqlTable("content_items", {
   contentType: mysqlEnum("contentType", ["test", "document", "simulation", "video", "game", "news"]).notNull(),
   summary: text("summary"),
   body: text("body"),
+  coverImageUrl: varchar("coverImageUrl", { length: 700 }),
   categoryId: int("categoryId"),
   status: mysqlEnum("status", ["draft", "pending", "published", "archived"]).default("draft").notNull(),
   createdBy: int("createdBy"),
@@ -62,11 +63,42 @@ export const tests = mysqlTable("tests", {
   title: varchar("title", { length: 220 }).notNull(),
   categoryId: int("categoryId"),
   description: text("description"),
+  coverImageUrl: varchar("coverImageUrl", { length: 700 }),
+  durationMinutes: int("durationMinutes").default(20).notNull(),
   questionIds: json("questionIds"),
   status: mysqlEnum("status", ["draft", "published", "archived"]).default("draft").notNull(),
   createdBy: int("createdBy"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const favorites = mysqlTable("favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  contentType: mysqlEnum("contentType", ["test", "document", "simulation", "video", "game", "news"]).notNull(),
+  contentId: int("contentId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const contentProgress = mysqlTable("content_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  contentType: mysqlEnum("contentType", ["test", "document", "simulation", "video", "game", "news"]).notNull(),
+  contentId: int("contentId").notNull(),
+  status: mysqlEnum("status", ["started", "completed"]).default("completed").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const testAttempts = mysqlTable("test_attempts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  testId: int("testId").notNull(),
+  correctCount: int("correctCount").default(0).notNull(),
+  wrongCount: int("wrongCount").default(0).notNull(),
+  blankCount: int("blankCount").default(0).notNull(),
+  score: int("score").default(0).notNull(),
+  durationSeconds: int("durationSeconds").default(0).notNull(),
+  completedAt: timestamp("completedAt").defaultNow().notNull(),
 });
 
 export const rolePermissions = mysqlTable("role_permissions", {

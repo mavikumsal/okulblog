@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList, Cloud, Megaphone, SearchCheck } from "lucide-react";
+import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList, Cloud, Megaphone, SearchCheck, Heart } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -44,6 +44,7 @@ const menuItems = [
   { icon: FileText, label: "İçerik Yönetimi", path: "/panel/icerikler" },
   { icon: Sparkles, label: "AI Oluşturucu", path: "/panel/ai" },
   { icon: Users, label: "Üye Yönetimi", path: "/panel/uyeler", adminOnly: true },
+  { icon: Heart, label: "Üye Panelim", path: "/panel/uye-paneli" },
   { icon: BarChart3, label: "İstatistikler", path: "/panel/istatistikler", adminOnly: true },
   { icon: ShieldCheck, label: "Güvenlik", path: "/panel/guvenlik", adminOnly: true },
   { icon: Cloud, label: "Bulut Depolama", path: "/panel/bulut-depolama", adminOnly: true },

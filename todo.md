@@ -284,3 +284,18 @@
 - [x] PDF görsellerini soru/cevap alanına aktarırken 250×250 px WebP standardına dönüştürmek
 - [x] Seçilen PDF sorularını görsel ve cevap bilgileriyle çoklu editöre aktarmak
 - [x] Seçim, güven skoru, cevap anahtarı ve PDF görsel akışları için test, build ve görsel doğrulama yapmak
+
+## İçerik Kategorileri, Test Sonuçları ve Üye İlerlemesi
+
+- [ ] Testler, Dökümanlar, Videolar, Simülasyonlar ve Oyunlar kayıtlarını eğitim/kurum kategori hiyerarşisine bağlamak
+- [x] İçerik yönetiminde kategori seçimini kategori modülündeki gerçek hiyerarşiden beslemek
+- [x] İçerik türleri için kapak görseli yükleme, otomatik boyutlandırma ve ana sayfa kartı ön izlemesi eklemek
+- [ ] Testlere süre limiti, süreli çözüm akışı ve süre dolumu davranışı eklemek
+- [x] Test kayıtlarına süre limiti alanı ve yönetim formu eklemek
+- [x] Test sonu doğru/yanlış/boş sayısı, puan ve tamamlanma kaydını oluşturmak
+- [x] Üyelik isteğe bağlıyken anonim test/oyun/içerik kullanımını korumak
+- [x] Üyeler için favori içerik ekleme/çıkarma ve favori listesi eklemek
+- [x] Üyeler için çözülmüş/izlenmiş/okunmuş içerik ilerlemesini göstermek
+- [x] Üye Paneli’nde test sonuçları, doğru/yanlış özeti ve geçmiş denemeleri göstermek
+- [ ] Ana sayfada kapak görselli içerik kartlarını kategori ve içerik türüyle göstermek
+- [ ] İçerik-kategori, kapak, test süre/sonuç, favori ve ilerleme akışları için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
