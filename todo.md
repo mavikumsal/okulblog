@@ -327,12 +327,12 @@
 
 ## Soru-Cevap Arama ve Profil Etkileşimleri
 
-- [ ] Soru-Cevap sorularına kategori bağlantısı eklemek ve mevcut kategori kaynaklarından seçenekleri beslemek
-- [ ] Soru-Cevap sayfasına başlık, metin ve kategoriye göre gelişmiş arama eklemek
-- [ ] Soru-Cevap sayfasında kategori filtresi, arama temizleme ve boş sonuç durumlarını eklemek
-- [ ] Üye profilinde Sorularım ve Cevaplarım sekmelerini eklemek
-- [ ] Üyenin kendi sorularını ve cevaplarını durum, kategori ve tarih bilgileriyle göstermek
-- [ ] Arama, kategori filtreleri ve profil sekmeleri için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+- [x] Soru-Cevap sorularına kategori bağlantısı eklemek ve mevcut kategori kaynaklarından seçenekleri beslemek
+- [x] Soru-Cevap sayfasına başlık, metin ve kategoriye göre gelişmiş arama eklemek
+- [x] Soru-Cevap sayfasında kategori filtresi, arama temizleme ve boş sonuç durumlarını eklemek
+- [x] Üye profilinde Sorularım ve Cevaplarım sekmelerini eklemek
+- [x] Üyenin kendi sorularını ve cevaplarını durum, kategori ve tarih bilgileriyle göstermek
+- [x] Arama, kategori filtreleri ve profil sekmeleri için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
 
 ## Soru-Cevap Arama ve Profil Etkileşimleri — Tamamlandı
 
