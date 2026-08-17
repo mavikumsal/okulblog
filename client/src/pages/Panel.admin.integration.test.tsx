@@ -26,7 +26,7 @@ vi.mock("@/lib/trpc", () => ({
     ai: { generateQuestion: hook() },
     contents: { list: hook([]), create: hook(), archive: hook() },
     tests: { list: hook(() => panelState.testList), create: hook() },
-    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: hook([{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active", folderPath: "Kapaklar" }, { id: 5, fileName: "turkce.pdf", provider: "bunny-storage", status: "active", folderPath: "Dersler/Türkçe" }]), mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
+    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, searchConsoleStatus: hook({ configured: false, propertyUrl: null, verificationStatus: "not_configured", sitemapStatus: "not_configured", lastError: null }), testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: hook([{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active", folderPath: "Kapaklar" }, { id: 5, fileName: "turkce.pdf", provider: "bunny-storage", status: "active", folderPath: "Dersler/Türkçe" }]), mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   },
 }));
@@ -78,6 +78,15 @@ describe("Panel Admin modülleri component akışları", () => {
       expect(screen.queryByText("Bağlantı merkezi")).not.toBeInTheDocument();
       unmount();
     }
+  });
+
+  it("Search Console status sözleşmesindeki mülk, doğrulama, sitemap ve hata kartlarını gösterir", () => {
+    panelState.route = "/panel/search-console";
+    render(<Panel />);
+    expect(screen.getByText("Search Console durumu")).toBeInTheDocument();
+    expect(screen.getByText("Henüz eklenmedi")).toBeInTheDocument();
+    expect(screen.getAllByText("not_configured").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Hata kaydı yok")).toBeInTheDocument();
   });
 
   it("Bulut Depolama S3 dosya seçimi ve klasör metadata alanını gösterir", () => {

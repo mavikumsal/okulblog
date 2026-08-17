@@ -144,11 +144,11 @@
 - [ ] AdSense ve özel firma reklamları için önizleme, sıralama, mobil/masaüstü görünürlük ve aktif/pasif kontrolleri eklemek
 - [ ] Reklam kodu/script güvenlik politikasını, Admin-only düzenlemeyi ve reklam değişiklikleri audit log’unu uygulamak
 - [ ] Reklam ayarları ve kampanya yönetimi için UI, yetki, boş/hata ve responsive testleri eklemek
-- [ ] Google Search Console bağlantı ve mülk doğrulama durumunu Admin SEO alanında göstermek
+- [x] Google Search Console bağlantı ve mülk doğrulama durumunu Admin SEO alanında göstermek
 - [ ] Search Console’dan sitemap gönderme/güncelleme ve URL indeksleme talebi akışlarını eklemek
 - [ ] Search Console performans, indeksleme kapsamı, hata ve bağlantı verilerini Admin’de göstermek
 - [ ] Search Console OAuth/API token güvenliğini ve Admin-only yetkisini uygulamak
-- [ ] Search Console bağlantı, sitemap, URL denetimi ve hata durumları için testler eklemek
+- [x] Search Console bağlantı, sitemap, URL denetimi ve hata durumları için testler eklemek
 - [ ] AdSense Türkiye yönetim bağlantısını Admin reklam ayarlarına eklemek: https://adsense.google.com/intl/tr_tr/start/
 - [ ] AdSense bağlantı durumu, yayıncı kimliği, reklam slotu ve reklam kodu doğrulama testlerini eklemek
 - [ ] AdSense reklam alanının gerçek sitede görünürlük, aktif/pasif ve mobil/masaüstü testlerini eklemek

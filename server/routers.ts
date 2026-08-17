@@ -275,6 +275,17 @@ export const appRouter = router({
       return { success: true };
     }),
     settings: adminProcedure.query(() => listSiteSettings()),
+    searchConsoleStatus: adminProcedure.query(async () => {
+      const rows = await listSiteSettings();
+      const values = Object.fromEntries(rows.map(row => [row.settingKey, row.settingValue ?? ""]));
+      return {
+        configured: Boolean(values.search_console_property_url),
+        propertyUrl: values.search_console_property_url || null,
+        verificationStatus: values.search_console_verification_status || "not_configured",
+        sitemapStatus: values.search_console_sitemap_status || "not_configured",
+        lastError: values.search_console_last_error || null,
+      };
+    }),
     testProviderConnection: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "adsense", "search-console"]) })).mutation(async ({ input }) => {
       const settings = await listSiteSettings();
       const requiredKeys: Record<string, string[]> = {
