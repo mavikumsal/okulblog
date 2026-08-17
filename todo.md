@@ -494,3 +494,14 @@
 - [x] Export dosyalarını sunucu tarafında üretmek ve güvenli indirme yanıtı döndürmek
 - [x] Vitest, TypeScript, production build ve responsive görsel doğrulama yapmak
 - [x] Bu kapsam için yeni geri alınabilir checkpoint oluşturmak
+
+## Üretim İstatistikleri Dashboard’u ve Ana Sayfa Özeti
+
+- [x] Admin ve öğretmen için üretilen soru istatistikleri veri sözleşmesini tanımlamak
+- [x] Rol kontrollü üretim istatistikleri tRPC prosedürünü eklemek
+- [x] Dashboard içinde toplam soru, son dönem üretimi, zorluk dağılımı ve içerik durumu özetlerini göstermek
+- [x] Admin için tüm üretimleri, öğretmen için yalnızca kendi üretimlerini göstermek
+- [x] Ana sayfaya yalnızca yetkili kullanıcıların göreceği kompakt istatistik özet kartı eklemek
+- [x] Responsive, loading, boş veri ve hata durumlarını uygulamak
+- [x] Vitest, TypeScript, production build ve responsive görsel doğrulaması yapmak
+- [x] Yeni dashboard kapsamı için geri alınabilir checkpoint oluşturmak

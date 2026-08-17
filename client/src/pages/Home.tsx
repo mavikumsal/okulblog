@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
+import { QuestionProductionDashboard } from "@/components/QuestionProductionDashboard";
 import { trpc } from "@/lib/trpc";
 import { getHomeLoaderDelay } from "@/lib/homeLoading";
 import { getHomeAccountLabel, getHomePrimaryLabel } from "@shared/homeNavigation";
@@ -72,7 +73,7 @@ function getSlideNavigation(link: string | null | undefined) {
 }
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -185,6 +186,7 @@ export default function Home() {
                 <div className="mt-3 grid grid-cols-3 gap-2"><MiniTile icon={FileText} label="Doküman" tone="bg-[#e6f1ec] text-[#286b5e]" /><MiniTile icon={Target} label="Test" tone="bg-[#fbefd3] text-[#8f6621]" /><MiniTile icon={BrainCircuit} label="AI çalışma" tone="bg-[#ece8f7] text-[#604985]" /></div>
                 <div className="mt-3 flex items-center justify-between rounded-2xl border border-[#e3e5dc] bg-white px-4 py-3"><div><p className="text-xs font-bold">Sıradaki çalışma</p><p className="mt-0.5 text-[11px] text-[#77858a]">Okuduğunu anlama</p></div><ArrowRight size={17} className="text-[#739b90]" /></div>
               </div>
+              {(user?.role === "admin" || user?.role === "teacher") && <QuestionProductionDashboard compact className="mt-4 lg:absolute lg:-bottom-24 lg:-left-8 lg:w-[280px] lg:shadow-[0_20px_55px_rgba(0,0,0,.22)]" />}
               <div className="absolute -bottom-5 -right-3 rounded-2xl bg-[#e8b85d] px-4 py-3 text-[#2b4050] shadow-xl sm:-right-9"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div>
             </div>
           </div>

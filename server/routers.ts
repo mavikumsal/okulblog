@@ -56,6 +56,7 @@ import {
   saveSiteSetting,
   setRolePermission,
   listQuestions,
+  getQuestionProductionStats,
   recordSecurityEvent,
   setInstitutionCategoryStatus,
   setCategoryStatus,
@@ -186,6 +187,12 @@ export const appRouter = router({
     }),
   }),
   panel: router({
+    productionStats: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin" && ctx.user.role !== "teacher") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Üretim istatistikleri yalnızca admin ve öğretmenler içindir." });
+      }
+      return getQuestionProductionStats({ userId: ctx.user.id, role: ctx.user.role });
+    }),
     accessibleSections: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role === "admin") return permittedSections;
       if (ctx.user.role === "teacher" || ctx.user.role === "moderator") {

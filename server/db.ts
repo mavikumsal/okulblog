@@ -178,6 +178,47 @@ export async function listQuestions(filters?: { topicTag?: string; gradeLevel?: 
   return db.select().from(questions).where(conditions.length ? and(...conditions) : undefined).orderBy(asc(questions.createdAt));
 }
 
+export async function getQuestionProductionStats(input: { userId: number; role: "admin" | "teacher" }) {
+  const db = await getDb();
+  if (!db) {
+    return {
+      scope: input.role === "admin" ? "all" as const : "mine" as const,
+      total: 0,
+      recentCount: 0,
+      statuses: { draft: 0, approved: 0, archived: 0 },
+      difficulties: { easy: 0, medium: 0, hard: 0 },
+      questionTypes: { "multiple-choice": 0, "true-false": 0, "open-ended": 0 },
+      recentQuestions: [],
+    };
+  }
+  const rows = await db.select({
+    id: questions.id,
+    prompt: questions.prompt,
+    difficulty: questions.difficulty,
+    questionType: questions.questionType,
+    status: questions.status,
+    createdAt: questions.createdAt,
+  }).from(questions).where(input.role === "admin" ? undefined : eq(questions.createdBy, input.userId));
+  const recentThreshold = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const statuses = { draft: 0, approved: 0, archived: 0 };
+  const difficulties = { easy: 0, medium: 0, hard: 0 };
+  const questionTypes = { "multiple-choice": 0, "true-false": 0, "open-ended": 0 };
+  for (const row of rows) {
+    statuses[row.status] += 1;
+    difficulties[row.difficulty] += 1;
+    questionTypes[row.questionType] += 1;
+  }
+  return {
+    scope: input.role === "admin" ? "all" as const : "mine" as const,
+    total: rows.length,
+    recentCount: rows.filter(row => row.createdAt.getTime() >= recentThreshold).length,
+    statuses,
+    difficulties,
+    questionTypes,
+    recentQuestions: rows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5),
+  };
+}
+
 export async function createQuestion(input: {
   questionType: "multiple-choice" | "true-false" | "open-ended";
   prompt: string;

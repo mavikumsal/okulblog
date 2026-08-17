@@ -9,6 +9,7 @@ import { AdminUsersManagement } from "@/components/AdminUsersManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { QuestionProductionDashboard } from "@/components/QuestionProductionDashboard";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -1043,6 +1044,7 @@ function PanelContent() {
               tone="bg-[#e0eaf5] text-[#386886]"
             />
           </div>
+          {(isAdmin || user?.role === "teacher") && <QuestionProductionDashboard className="mt-5" />}
           <div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
             <section className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
               <div className="flex items-start justify-between">
