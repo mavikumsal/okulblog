@@ -121,6 +121,18 @@ export const siteSettings = mysqlTable("site_settings", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const searchConsoleTokens = mysqlTable("search_console_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  propertyUrl: varchar("propertyUrl", { length: 700 }).notNull(),
+  encryptedAccessToken: text("encryptedAccessToken").notNull(),
+  encryptedRefreshToken: text("encryptedRefreshToken"),
+  accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
+  scopes: text("scopes"),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const newsCategories = mysqlTable("news_categories", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 120 }).notNull().unique(),
@@ -243,6 +255,7 @@ export type Test = typeof tests.$inferSelect;
 export type StoredFile = typeof storedFiles.$inferSelect;
 export type MediaAsset = typeof mediaAssets.$inferSelect;
 export type MediaTransferJob = typeof mediaTransferJobs.$inferSelect;
+export type SearchConsoleToken = typeof searchConsoleTokens.$inferSelect;
 export type NewsCategory = typeof newsCategories.$inferSelect;
 export type HomeSlide = typeof homeSlides.$inferSelect;
 export type QaQuestion = typeof qaQuestions.$inferSelect;

@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { panelState, hook } = vi.hoisted(() => {
-  const state = { route: "/panel/ayarlar", userRole: "admin", testList: [] as unknown[], mediaLinks: [{ id: 12, mediaAssetId: 4, targetType: "content", targetId: 21, role: "cover" }], providerMutate: vi.fn(), unlinkMutate: vi.fn(), adsenseMutate: vi.fn(), mediaAssetsState: { data: [{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active", folderPath: "Kapaklar" }, { id: 5, fileName: "turkce.pdf", provider: "bunny-storage", status: "active", folderPath: "Dersler/Türkçe" }], isLoading: false, isError: false }, settingsState: { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false } };
+  const state = { route: "/panel/ayarlar", userRole: "admin", testList: [] as unknown[], mediaLinks: [{ id: 12, mediaAssetId: 4, targetType: "content", targetId: 21, role: "cover" }], providerMutate: vi.fn(), searchConsoleMutate: vi.fn(), unlinkMutate: vi.fn(), adsenseMutate: vi.fn(), mediaAssetsState: { data: [{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active", folderPath: "Kapaklar" }, { id: 5, fileName: "turkce.pdf", provider: "bunny-storage", status: "active", folderPath: "Dersler/Türkçe" }], isLoading: false, isError: false }, settingsState: { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false } };
   const makeQuery = (data: unknown, extra: Record<string, unknown> = {}) => ({ data, isLoading: false, isError: false, ...extra });
   const makeHook = (data: unknown = []) => ({ useQuery: () => makeQuery(typeof data === "function" ? data() : data), useMutation: () => ({ isPending: false, mutate: vi.fn() }) });
   return { panelState: state, hook: makeHook };
@@ -27,7 +27,7 @@ vi.mock("@/lib/trpc", () => ({
     files: { parseQuestionPdf: hook() },
     contents: { list: hook([]), create: hook(), archive: hook() },
     tests: { list: hook(() => panelState.testList), create: hook() },
-    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, searchConsoleStatus: hook({ configured: false, propertyUrl: null, verificationStatus: "not_configured", sitemapStatus: "not_configured", lastError: null }), testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: { useQuery: () => panelState.mediaAssetsState }, mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: { useMutation: () => ({ isPending: false, mutate: panelState.adsenseMutate }) }, newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
+    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, searchConsoleStatus: hook({ configured: false, propertyUrl: null, verificationStatus: "not_configured", sitemapStatus: "not_configured", lastError: null }), searchConsoleAction: { useMutation: () => ({ isPending: false, mutate: panelState.searchConsoleMutate, data: undefined }) }, testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: { useQuery: () => panelState.mediaAssetsState }, mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: { useMutation: () => ({ isPending: false, mutate: panelState.adsenseMutate }) }, newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   },
 }));
@@ -147,6 +147,20 @@ describe("Panel Admin modülleri component akışları", () => {
     fireEvent.change(screen.getByLabelText("Search Console mülk URL’si"), { target: { value: "https://okulblog.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Alanları test et" }));
     expect(panelState.providerMutate).toHaveBeenCalledWith(expect.objectContaining({ provider: "search-console", config: expect.objectContaining({ siteUrl: "https://okulblog.com" }) }));
+  });
+
+  it("Search Console sitemap ve performans action kontrollerini gösterir", () => {
+    panelState.route = "/panel/search-console";
+    render(<Panel />);
+    expect(screen.getByLabelText("Sitemap yolu veya URL’si")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sitemap gönder" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Başlangıç")).toBeInTheDocument();
+    expect(screen.getByLabelText("Bitiş")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Raporu getir" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Search Console mülk URL’si"), { target: { value: "https://okulblog.com" } });
+    fireEvent.change(screen.getByLabelText("Sitemap yolu veya URL’si"), { target: { value: "sitemap-index.xml" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sitemap gönder" }));
+    expect(panelState.searchConsoleMutate).toHaveBeenCalledWith(expect.objectContaining({ action: "submit-sitemap", sitemap: "sitemap-index.xml" }));
   });
 
   it("Search Console status sözleşmesindeki mülk, doğrulama, sitemap ve hata kartlarını gösterir", () => {

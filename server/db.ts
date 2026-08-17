@@ -1,6 +1,6 @@
 import { and, eq, asc, desc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, contentProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -457,6 +457,38 @@ export async function setQaStatus(input: { entity: "question" | "answer"; id: nu
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   if (input.entity === "question") await db.update(qaQuestions).set({ status: input.status }).where(eq(qaQuestions.id, input.id));
   else await db.update(qaAnswers).set({ status: input.status }).where(eq(qaAnswers.id, input.id));
+}
+
+export async function upsertSearchConsoleToken(input: {
+  propertyUrl: string;
+  encryptedAccessToken: string;
+  encryptedRefreshToken?: string | null;
+  accessTokenExpiresAt?: Date | null;
+  scopes?: string | null;
+  createdBy: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const existing = await db.select().from(searchConsoleTokens).where(eq(searchConsoleTokens.propertyUrl, input.propertyUrl)).limit(1);
+  if (existing[0]) {
+    await db.update(searchConsoleTokens).set({
+      encryptedAccessToken: input.encryptedAccessToken,
+      encryptedRefreshToken: input.encryptedRefreshToken ?? existing[0].encryptedRefreshToken,
+      accessTokenExpiresAt: input.accessTokenExpiresAt ?? null,
+      scopes: input.scopes ?? null,
+      updatedAt: new Date(),
+    }).where(eq(searchConsoleTokens.id, existing[0].id));
+    return existing[0].id;
+  }
+  const result = await db.insert(searchConsoleTokens).values(input);
+  return Number(result[0].insertId);
+}
+
+export async function getSearchConsoleToken(propertyUrl: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(searchConsoleTokens).where(eq(searchConsoleTokens.propertyUrl, propertyUrl)).limit(1);
+  return result[0];
 }
 
 export async function listSiteSettings() {

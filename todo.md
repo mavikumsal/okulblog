@@ -428,3 +428,24 @@
 - [x] AI test üretimini soru listesi ön izlemesi ve kaydetmeden düzenleme akışıyla doğrulamak
 - [x] Search Console ve AI genişletmesi için Vitest, TypeScript, production build ve responsive doğrulama yapmak
 - [x] Kod yapısı özetini belgelemek ve yeni kapsam için checkpoint oluşturmak
+
+## Search Console Raporları, Güvenli OAuth Token ve Ayrıntılı AI Ön İzleme
+
+- [ ] OAuth sonrası access/refresh tokenlarını şifreli sunucu tarafı veritabanı kaydına bağlamak
+- [ ] Token yenileme, süre kontrolü ve istemciye secret döndürmeme akışını tamamlamak
+- [ ] Search Console sitemap gönderme ekranını ve durum geri bildirimini eklemek
+- [ ] Search Console performans raporu ekranını tarih aralığı, tıklama, gösterim, CTR ve ortalama konum metrikleriyle eklemek
+- [ ] AI soru taslakları için seçenekler, doğru cevap, açıklama, kategori, sınıf, zorluk ve görsel alanlarını düzenlenebilir ayrıntılı ön izleme arayüzüne taşımak
+- [ ] Yeni kapsam için Vitest, migration, TypeScript, production build ve responsive doğrulama yapmak
+- [ ] Yeni kapsam için checkpoint oluşturmak
+
+## Search Console Raporları, Token Kasası ve AI Ön İzleme
+
+- [x] OAuth sonrası Search Console access/refresh tokenlarını AES-256-GCM ile şifreleyerek veritabanında saklamak
+- [x] Token kasası için güvenli upsert, durum okuma, maskeleme ve istemciye token döndürmeme yardımcılarını eklemek
+- [x] Search Console sitemap gönderme action’ını ve sitemap durumu panelini eklemek
+- [x] Search Console performans raporu için tarih aralığı, sorgu ve sonuç kartları sözleşmesini eklemek
+- [x] AI soru taslaklarında soru metni, seçenekler, doğru cevap, açıklama, konu, sınıf ve zorluk alanlarını kaydetmeden düzenlemek
+- [x] Search Console action ve AI ön izleme akışlarını Vitest ile doğrulamak
+- [x] TypeScript, production build ve responsive görsel doğrulamayı tamamlamak
+- [ ] Bu kapsam için yeni geri alınabilir checkpoint oluşturmak

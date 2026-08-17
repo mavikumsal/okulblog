@@ -4,6 +4,7 @@ import QuestionEditor from "@/components/QuestionEditor";
 import ContactSettings from "@/components/ContactSettings";
 import ContentQuickStart from "@/components/ContentQuickStart";
 import CategoryCascadeSelect from "@/components/CategoryCascadeSelect";
+import SearchConsoleActionPanel from "@/components/SearchConsoleActionPanel";
 import { AdminUsersManagement } from "@/components/AdminUsersManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -453,6 +454,10 @@ function PanelContent() {
     undefined,
     { enabled: isAdmin && section === "search-console" }
   );
+  const searchConsoleAction = (trpc.admin as any).searchConsoleAction?.useMutation({
+    onSuccess: () => toast.success("Search Console işlemi tamamlandı."),
+    onError: (error: { message?: string }) => toast.error(error.message || "Search Console işlemi başarısız oldu."),
+  }) ?? { mutate: () => undefined, isPending: false, data: undefined };
   const testProviderConnection = trpc.admin.testProviderConnection.useMutation({
     onSuccess: result =>
       toast.success(
@@ -1001,6 +1006,7 @@ function PanelContent() {
             initialProvider="search-console"
           />
           <SearchConsoleStatusPanel status={searchConsoleStatus} />
+          <SearchConsoleActionPanel propertyUrl={searchConsoleStatus.data?.propertyUrl ?? searchConsoleConfig.siteUrl} mutation={searchConsoleAction} />
         </>
       )}
 
