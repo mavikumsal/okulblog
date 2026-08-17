@@ -67,15 +67,15 @@
 - [x] Ana sayfa için eksik bölümleri ve kullanıcı akışlarını envanterlemek
 - [x] Ana sayfada Testler, Dokümanlar, Simülasyonlar, Videolar, Oyunlar ve Haberler için gerçek giriş kartları ve yönlendirmeler eklemek
 - [x] Ana sayfada eğitim seviyesi, kurum sınavları, popüler kategoriler ve içerik merkezi akışlarını tamamlamak
-- [ ] Ana sayfa header, mobil menü, CTA ve oturum durumlarını uçtan uca doğrulamak
+- [x] Ana sayfa header, mobil menü, CTA ve oturum durumlarını uçtan uca doğrulamak
 - [x] Admin paneli için eksik yönetim modüllerini ve gezinme yapısını envanterlemek
 - [x] Admin panelinde eğitim ve kurum kategorisi oluşturma, ad güncelleme ve aktif/pasif yaşam döngüsünü tamamlamak
 - [x] Admin panelinde slider ve popüler eğitim kategorileri yönetimini görünür bir ayarlar alanına taşımak
 - [x] Admin panelinde soru havuzu, testler, içerikler ve AI oluşturucu akışlarını özellik testleriyle tamamlamak
-- [ ] Admin panelinde üye/rol/yetki yönetimini, güvenlik, SEO, reklam, istatistik ve site ayarlarını genişletmek
-- [ ] Admin paneli için eksik backend prosedürlerini, yükleme/boş/hata durumlarını ve rol kontrollerini tamamlamak
+- [x] Admin panelinde üye/rol/yetki yönetimini, güvenlik, SEO, reklam, istatistik ve site ayarlarını genişletmek
+- [x] Admin paneli için eksik backend prosedürlerini, yükleme/boş/hata durumlarını ve rol kontrollerini tamamlamak
 - [x] Ana sayfa ve Admin panelini masaüstü/mobil viewport’larda görsel olarak doğrulamak
-- [ ] Genişletilmiş ana sayfa ve Admin paneli için özellik testleri eklemek ve checkpoint oluşturmak
+- [x] Genişletilmiş ana sayfa ve Admin paneli için özellik testleri eklemek ve checkpoint oluşturmak
 - [x] Admin sidebar’ında Kurum Kategorisi, Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar, Haberler ve Ana Sayfa Yönetimi için doğrudan menü girişleri eklemek
 - [x] Admin modül rotalarını Panel içindeki gerçek yönetim görünümleriyle eşlemek
 - [x] Ana sayfadaki içerik alanı kartlarını ilgili içerik modülü veya giriş akışına bağlamak
@@ -90,7 +90,7 @@
 - [x] Testler modülünde gerçek test varlığı oluşturma ve listeleme akışını netleştirmek
 - [x] Üye yönetiminde gerçek rol değiştirme ve bölüm yetkisi işlemlerini backend/UI ile tamamlamak
 - [x] Kategori güncelleme/durum ve içerik arşivleme prosedürleri için doğrudan özellik testleri eklemek
-- [ ] Ana sayfa/Admin kapsam maddelerini yalnızca doğrudan test veya görsel kanıtla tamamlandı kabul etmek
+- [x] Ana sayfa/Admin kapsam maddelerini yalnızca doğrudan test veya görsel kanıtla tamamlandı kabul etmek
 - [x] Üye Yönetimi ekranında kullanıcı rol değiştirme akışını başarı senaryosu ve liste yenilemesiyle özellik testiyle doğrulamak
 - [x] Bölüm yetkilerinin rol bazlı mı kullanıcı bazlı mı olacağını netleştirip mevcut rol bazlı izin modelini arayüzde açıklamak
 - [x] Kategori güncelleme/durum ve içerik arşivleme prosedürleri için doğrudan özellik testleri eklemek
@@ -101,8 +101,8 @@
 - [x] Üye Yönetimi ekranını Panel.tsx üzerinden render eden gerçek component/integration testi eklemek
 - [x] Panel düzeyinde rol seçimi sonrası updateUserRole mutation ve admin.users yenilemesini doğrulamak
 - [x] Panel düzeyinde rol güncelleme başarı bildirimi ve güncel rolün yeniden render edilmesini doğrulamak
-- [ ] Admin panelinde soru havuzu, testler, içerikler ve AI oluşturucu için listeleme, boş durum, hata durumu ve başarı yollarını kapsayan özellik/entegrasyon testleri eklemek
-- [ ] Testler modülü için gerçek listeleme sorgusu ve UI listesini uygulayıp test oluşturma sonrası listede görünürlüğü doğrulamak
+- [x] Admin panelinde soru havuzu, testler, içerikler ve AI oluşturucu için listeleme, boş durum, hata durumu ve başarı yollarını kapsayan özellik/entegrasyon testleri eklemek
+- [x] Testler modülü için gerçek listeleme sorgusu ve UI listesini uygulayıp test oluşturma sonrası listede görünürlüğü doğrulamak
 - [x] Üye Yönetimi ve tüm görünür profil alanlarında “Pekşen Yayınları” marka kalıntısını kaldırmak
 - [x] Testler rotasında genel içerik formunu gizleyerek test oluşturma ekranını tek ve odaklı forma dönüştürmek
 - [x] Marka temizliği ve Testler ekranı sadeleştirmesi için test/build ve responsive doğrulama yapmak
@@ -114,3 +114,7 @@
 - [x] Marka temizliği için ana sayfa, panel üst barı, kullanıcı kartları ve profil bileşenlerini kapsayan görsel/test kanıtı eklemek
 - [x] Ana sayfada marka temizliği için doğrudan görsel doğrulama veya test kanıtı eklemek
 - [x] DashboardLayout/Panel üst barı ve hesap/profil bileşenlerinde nötr etiketlerin göründüğünü doğrulayan component testleri veya açık görsel kanıt eklemek
+- [x] Home.tsx için oturumlu/oturumsuz header, mobil menü aç/kapa ve CTA hedeflerini doğrulayan gerçek component testi eklemek
+- [x] Admin güvenlik, SEO, reklam, istatistik ve site ayarları bölümleri için görünür UI + mutation/query kanıtını ayrı testlerle tamamlamak
+- [x] Soru havuzu, testler, içerikler ve AI modülleri için loading/error/empty/success durumlarını kapsayan Panel entegrasyon testleri eklemek
+- [x] Test oluşturma mutation’ından sonra `tests.list` yenilenmesini ve yeni kaydın UI listesinde görünmesini doğrulayan test eklemek
