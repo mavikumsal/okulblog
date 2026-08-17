@@ -1,6 +1,6 @@
 import { and, eq, asc, desc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, contentProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -399,6 +399,40 @@ export async function listSecurityEvents() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(securityEvents).orderBy(desc(securityEvents.createdAt));
+}
+
+export async function listQaQuestions(includeHidden = false) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(qaQuestions).where(includeHidden ? undefined : eq(qaQuestions.status, "published")).orderBy(desc(qaQuestions.createdAt));
+}
+
+export async function listQaAnswers(questionId?: number, includeHidden = false) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [questionId ? eq(qaAnswers.questionId, questionId) : undefined, includeHidden ? undefined : eq(qaAnswers.status, "published")].filter((condition): condition is NonNullable<typeof condition> => Boolean(condition));
+  return db.select().from(qaAnswers).where(conditions.length ? and(...conditions) : undefined).orderBy(asc(qaAnswers.createdAt));
+}
+
+export async function createQaQuestion(input: { title: string; body: string; imageUrl?: string | null; createdBy: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.insert(qaQuestions).values({ ...input, imageUrl: input.imageUrl ?? null, status: "pending" });
+}
+
+export async function createQaAnswer(input: { questionId: number; body: string; imageUrl?: string | null; createdBy: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const question = await db.select().from(qaQuestions).where(eq(qaQuestions.id, input.questionId)).limit(1);
+  if (!question[0] || question[0].status !== "published") throw new Error("Bu soruya şu anda cevap yazılamaz.");
+  await db.insert(qaAnswers).values({ ...input, imageUrl: input.imageUrl ?? null, status: "pending" });
+}
+
+export async function setQaStatus(input: { entity: "question" | "answer"; id: number; status: "pending" | "published" | "hidden" }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  if (input.entity === "question") await db.update(qaQuestions).set({ status: input.status }).where(eq(qaQuestions.id, input.id));
+  else await db.update(qaAnswers).set({ status: input.status }).where(eq(qaAnswers.id, input.id));
 }
 
 export async function listSiteSettings() {

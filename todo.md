@@ -299,3 +299,28 @@
 - [x] Üye Paneli’nde test sonuçları, doğru/yanlış özeti ve geçmiş denemeleri göstermek
 - [x] Ana sayfada kapak görselli içerik kartlarını kategori ve içerik türüyle göstermek
 - [x] İçerik-kategori, kapak, test süre/sonuç, favori ve ilerleme akışları için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+
+## İki Kategori Kaynağından İçerik Seçimi
+- [ ] Kullanıcının belirttiği iki kategori görselindeki mimariyi eğitim ve kurum kategori kaynaklarıyla eşlemek
+- [ ] Test ve içerik formlarındaki kategori seçimlerini yalnızca bu iki kategori kaynağından beslemek
+- [ ] Kategori seçim ekranında kaynak ayrımını ve alt kategori zincirini açıkça göstermek
+- [ ] İki kaynaklı kategori akışı için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+
+## Bize Ulaşın ve Üye Soru-Cevap Modülü
+- [ ] Ana sayfaya Admin tarafından yönetilebilen Bize Ulaşın alanı eklemek
+- [ ] Bize Ulaşın başlık, açıklama, e-posta, telefon, adres ve görünürlük ayarlarını Admin paneline eklemek
+- [ ] Soru-Cevap soruları ve cevapları için kullanıcı, durum, içerik ve görsel URL veri modelini eklemek
+- [ ] Soru-Cevap yazma yetkisini yalnızca giriş yapmış üyelere vermek; misafirlere giriş istemi göstermek
+- [ ] Soru-Cevap soru ve cevap editörlerinde gelişmiş rich text ve görsel yükleme desteği eklemek
+- [ ] Admin panelinde Soru-Cevap moderasyonu, yayınlama/gizleme ve cevap yönetimi eklemek
+- [ ] Bize Ulaşın ve Soru-Cevap akışları için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+
+## Bize Ulaşın ve Üye Soru-Cevap
+
+- [x] Ana sayfaya Admin tarafından yönetilebilen Bize Ulaşın alanı eklemek
+- [x] Bize Ulaşın başlık, açıklama, e-posta, telefon, adres ve aktiflik ayarlarını kalıcı site ayarlarına bağlamak
+- [x] Yalnızca giriş yapmış üyelerin soru yazabildiği Soru-Cevap sayfası eklemek
+- [x] Soru metni için gelişmiş rich text editörü ve görsel yükleme akışı eklemek
+- [x] Soru-Cevap gönderilerini Admin moderasyon onayına almak
+- [x] Ana sayfa ve Soru-Cevap rotasını test, TypeScript, build ve responsive görsel doğrulamayla kontrol etmek
+- [x] Soru-Cevap cevap oluşturma formunu üye ekranında tamamlamak

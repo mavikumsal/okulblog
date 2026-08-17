@@ -141,6 +141,28 @@ export const homeSlides = mysqlTable("home_slides", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const qaQuestions = mysqlTable("qa_questions", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 220 }).notNull(),
+  body: text("body").notNull(),
+  imageUrl: varchar("imageUrl", { length: 700 }),
+  status: mysqlEnum("status", ["pending", "published", "hidden"]).default("pending").notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const qaAnswers = mysqlTable("qa_answers", {
+  id: int("id").autoincrement().primaryKey(),
+  questionId: int("questionId").notNull(),
+  body: text("body").notNull(),
+  imageUrl: varchar("imageUrl", { length: 700 }),
+  status: mysqlEnum("status", ["pending", "published", "hidden"]).default("pending").notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const storedFiles = mysqlTable("stored_files", {
   id: int("id").autoincrement().primaryKey(),
   fileName: varchar("fileName", { length: 255 }).notNull(),
@@ -218,3 +240,5 @@ export type MediaAsset = typeof mediaAssets.$inferSelect;
 export type MediaTransferJob = typeof mediaTransferJobs.$inferSelect;
 export type NewsCategory = typeof newsCategories.$inferSelect;
 export type HomeSlide = typeof homeSlides.$inferSelect;
+export type QaQuestion = typeof qaQuestions.$inferSelect;
+export type QaAnswer = typeof qaAnswers.$inferSelect;

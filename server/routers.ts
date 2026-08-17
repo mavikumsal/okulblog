@@ -9,6 +9,11 @@ import {
   createContentItem,
   createHomeSlide,
   createNewsCategory,
+  listQaQuestions,
+  listQaAnswers,
+  createQaQuestion,
+  createQaAnswer,
+  setQaStatus,
   listContentByCategory,
   createQuestion,
   createStoredFile,
@@ -130,6 +135,14 @@ export const appRouter = router({
     homeSlides: publicProcedure.query(() => listActiveHomeSlides()),
     contentByCategory: publicProcedure.input(z.object({ categoryId: z.number().int().positive() })).query(({ input }) => listContentByCategory(input.categoryId)),
     popularEducationCategories: publicProcedure.query(() => listPopularEducationCategories()),
+  siteContact: publicProcedure.query(async () => {
+    const settings = await listSiteSettings();
+    const allowed = new Set(["contact_enabled", "contact_title", "contact_description", "contact_email", "contact_phone", "contact_address"]);
+    return Object.fromEntries(settings.filter(item => allowed.has(item.settingKey)).map(item => [item.settingKey, item.settingValue ?? ""]));
+  }),
+  qa: router({
+    list: publicProcedure.query(async () => ({ questions: await listQaQuestions(), answers: await listQaAnswers() })),
+  }),
   }),
   categories: router({
     list: protectedProcedure.input(z.object({ categoryType: z.enum(["education", "institution"]).optional() })).query(({ input }) => listCategoryNodes(input.categoryType)),
@@ -221,6 +234,9 @@ export const appRouter = router({
     }),
   }),
   member: router({
+    askQuestion: protectedProcedure.input(z.object({ title: z.string().trim().min(3).max(220), body: z.string().trim().min(3).max(20000), imageUrl: z.string().url().max(700).nullable().optional() })).mutation(async ({ ctx, input }) => { await createQaQuestion({ ...input, createdBy: ctx.user.id }); return { success: true, status: "pending" as const }; }),
+    answerQuestion: protectedProcedure.input(z.object({ questionId: z.number().int().positive(), body: z.string().trim().min(3).max(20000), imageUrl: z.string().url().max(700).nullable().optional() })).mutation(async ({ ctx, input }) => { await createQaAnswer({ ...input, createdBy: ctx.user.id }); return { success: true, status: "pending" as const }; }),
+    uploadQaImage: protectedProcedure.input(z.object({ fileName: z.string().trim().min(1).max(255), mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]), dataBase64: z.string().min(1) })).mutation(async ({ ctx, input }) => { const buffer = Buffer.from(input.dataBase64, "base64"); if (buffer.byteLength > 5 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Görsel en fazla 5 MB olabilir." }); const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-"); return storagePut(`okulblog/${ctx.user.id}/qa/${Date.now()}-${safeName}`, buffer, input.mimeType); }),
     dashboard: protectedProcedure.query(({ ctx }) => getMemberDashboard(ctx.user.id)),
     favorites: protectedProcedure.query(({ ctx }) => listFavorites(ctx.user.id)),
     toggleFavorite: protectedProcedure.input(z.object({ contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]), contentId: z.number().int().positive() })).mutation(({ ctx, input }) => toggleFavorite({ ...input, userId: ctx.user.id })),
@@ -499,6 +515,9 @@ export const appRouter = router({
       }
       return { success: true };
     }),
+    qaQuestions: adminProcedure.query(() => listQaQuestions(true)),
+    qaAnswers: adminProcedure.query(() => listQaAnswers(undefined, true)),
+    setQaStatus: adminProcedure.input(z.object({ entity: z.enum(["question", "answer"]), id: z.number().int().positive(), status: z.enum(["pending", "published", "hidden"]) })).mutation(async ({ input }) => { await setQaStatus(input); return { success: true }; }),
     homeSlides: adminProcedure.query(() => listHomeSlidesForAdmin()),
     popularEducationCategories: adminProcedure.query(async () => ({
       selectedIds: await getPopularEducationCategoryIds(),
