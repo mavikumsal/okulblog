@@ -21,6 +21,7 @@ import {
   listSecurityEvents,
   listSiteSettings,
   listUsersForAdmin,
+  updateUserRole,
   listNewsCategories,
   listCategoryNodes,
   listPopularEducationCategories,
@@ -32,6 +33,8 @@ import {
   listQuestions,
   recordSecurityEvent,
   setInstitutionCategoryStatus,
+  setCategoryStatus,
+  updateCategoryNode,
   updateHomeSlide,
   deleteHomeSlide,
 } from "./db";
@@ -112,6 +115,14 @@ export const appRouter = router({
     }),
     setInstitutionStatus: adminProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(async ({ input }) => {
       await setInstitutionCategoryStatus(input);
+      return { success: true };
+    }),
+    update: adminProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(2).max(180) })).mutation(async ({ input }) => {
+      await updateCategoryNode(input);
+      return { success: true };
+    }),
+    setStatus: adminProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(async ({ input }) => {
+      await setCategoryStatus(input);
       return { success: true };
     }),
   }),
@@ -243,6 +254,10 @@ export const appRouter = router({
   }),
   admin: router({
     users: adminProcedure.query(() => listUsersForAdmin()),
+    updateUserRole: adminProcedure.input(z.object({ id: z.number().int().positive(), role: z.enum(["admin", "teacher", "moderator", "member"]) })).mutation(async ({ input }) => {
+      await updateUserRole(input);
+      return { success: true };
+    }),
     settings: adminProcedure.query(() => listSiteSettings()),
     newsCategories: adminProcedure.query(() => listNewsCategories()),
     createNewsCategory: adminProcedure.input(z.object({ name: z.string().trim().min(2).max(120) })).mutation(async ({ input }) => {

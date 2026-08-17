@@ -64,13 +64,13 @@
 
 ## Ana Sayfa ve Admin Paneli Kapsam Genişletme
 
-- [ ] Ana sayfa için eksik bölümleri ve kullanıcı akışlarını envanterlemek
-- [ ] Ana sayfada Testler, Dokümanlar, Simülasyonlar, Videolar, Oyunlar ve Haberler için gerçek giriş kartları ve yönlendirmeler eklemek
-- [ ] Ana sayfada eğitim seviyesi, kurum sınavları, popüler kategoriler ve içerik merkezi akışlarını tamamlamak
+- [x] Ana sayfa için eksik bölümleri ve kullanıcı akışlarını envanterlemek
+- [x] Ana sayfada Testler, Dokümanlar, Simülasyonlar, Videolar, Oyunlar ve Haberler için gerçek giriş kartları ve yönlendirmeler eklemek
+- [x] Ana sayfada eğitim seviyesi, kurum sınavları, popüler kategoriler ve içerik merkezi akışlarını tamamlamak
 - [ ] Ana sayfa header, mobil menü, CTA ve oturum durumlarını uçtan uca doğrulamak
-- [ ] Admin paneli için eksik yönetim modüllerini ve gezinme yapısını envanterlemek
-- [ ] Admin panelinde eğitim ve kurum kategorisi CRUD akışlarını tam yönetilebilir hale getirmek
-- [ ] Admin panelinde slider ve popüler eğitim kategorileri yönetimini görünür bir ayarlar alanına taşımak
+- [x] Admin paneli için eksik yönetim modüllerini ve gezinme yapısını envanterlemek
+- [x] Admin panelinde eğitim ve kurum kategorisi oluşturma, ad güncelleme ve aktif/pasif yaşam döngüsünü tamamlamak
+- [x] Admin panelinde slider ve popüler eğitim kategorileri yönetimini görünür bir ayarlar alanına taşımak
 - [ ] Admin panelinde soru havuzu, testler, içerikler ve AI oluşturucu akışlarını tamamlamak
 - [ ] Admin panelinde üye/rol/yetki yönetimini, güvenlik, SEO, reklam, istatistik ve site ayarlarını genişletmek
 - [ ] Admin paneli için eksik backend prosedürlerini, yükleme/boş/hata durumlarını ve rol kontrollerini tamamlamak
@@ -86,3 +86,18 @@
 - [x] Her içerik modülünde yükleniyor, hata ve boş liste durumlarını göstermek
 - [x] Ortak içerik formunu modül bazlı kayıt listesiyle tamamlamak
 - [x] İçerik arşivinde geri alınabilir durum değişikliği ve arşivleme aksiyonu eklemek
+- [ ] Header ve mobil menü için oturumlu/oturumsuz CTA davranışını özellik testiyle doğrulamak
+- [ ] Testler modülünde gerçek test varlığı oluşturma ve listeleme akışını netleştirmek
+- [x] Üye yönetiminde gerçek rol değiştirme ve bölüm yetkisi işlemlerini backend/UI ile tamamlamak
+- [x] Kategori güncelleme/durum ve içerik arşivleme prosedürleri için doğrudan özellik testleri eklemek
+- [ ] Ana sayfa/Admin kapsam maddelerini yalnızca doğrudan test veya görsel kanıtla tamamlandı kabul etmek
+- [x] Üye Yönetimi ekranında kullanıcı rol değiştirme akışını başarı senaryosu ve liste yenilemesiyle özellik testiyle doğrulamak
+- [x] Bölüm yetkilerinin rol bazlı mı kullanıcı bazlı mı olacağını netleştirip mevcut rol bazlı izin modelini arayüzde açıklamak
+- [x] Kategori güncelleme/durum ve içerik arşivleme prosedürleri için doğrudan özellik testleri eklemek
+- [x] Üye Yönetimi ekranında rol değiştirme akışını UI/özellik testiyle doğrulamak ve başarılı mutation sonrası admin.users yenilenmesini kanıtlamak
+- [x] Rol değiştirme sonrası güncel rolün yeniden render edildiğini veya sorgunun invalidate edildiğini doğrudan test etmek
+- [x] Üye Yönetimi ekranı için component/feature testi eklemek: rol seçimi, mutation, invalidate ve başarı bildirimi
+- [x] Üye Yönetimi testinde güncel rol etiketinin veya select değerinin yeniden render edildiğini doğrulamak
+- [x] Üye Yönetimi ekranını Panel.tsx üzerinden render eden gerçek component/integration testi eklemek
+- [x] Panel düzeyinde rol seçimi sonrası updateUserRole mutation ve admin.users yenilemesini doğrulamak
+- [x] Panel düzeyinde rol güncelleme başarı bildirimi ve güncel rolün yeniden render edilmesini doğrulamak

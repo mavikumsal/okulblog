@@ -105,6 +105,24 @@ export async function setInstitutionCategoryStatus(input: { id: number; isActive
   await db.update(categoryNodes).set({ isActive: input.isActive }).where(eq(categoryNodes.id, input.id));
 }
 
+export async function updateCategoryNode(input: { id: number; name: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const name = input.name.trim();
+  if (name.length < 2) throw new Error("Kategori adı en az 2 karakter olmalıdır.");
+  const category = await db.select().from(categoryNodes).where(eq(categoryNodes.id, input.id)).limit(1);
+  if (!category[0]) throw new Error("Kategori bulunamadı.");
+  await db.update(categoryNodes).set({ name }).where(eq(categoryNodes.id, input.id));
+}
+
+export async function setCategoryStatus(input: { id: number; isActive: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const category = await db.select().from(categoryNodes).where(eq(categoryNodes.id, input.id)).limit(1);
+  if (!category[0]) throw new Error("Kategori bulunamadı.");
+  await db.update(categoryNodes).set({ isActive: input.isActive }).where(eq(categoryNodes.id, input.id));
+}
+
 export async function getRolePermissions(role: "teacher" | "moderator") {
   const db = await getDb();
   if (!db) return [];
@@ -212,6 +230,14 @@ export async function listUsersForAdmin() {
   const db = await getDb();
   if (!db) return [];
   return db.select({ id: users.id, name: users.name, email: users.email, role: users.role, lastSignedIn: users.lastSignedIn }).from(users).orderBy(asc(users.name));
+}
+
+export async function updateUserRole(input: { id: number; role: "admin" | "teacher" | "moderator" | "member" }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const target = await db.select({ id: users.id }).from(users).where(eq(users.id, input.id)).limit(1);
+  if (!target[0]) throw new Error("Kullanıcı bulunamadı.");
+  await db.update(users).set({ role: input.role }).where(eq(users.id, input.id));
 }
 
 export async function listSecurityEvents() {
