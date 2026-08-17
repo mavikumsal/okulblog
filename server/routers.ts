@@ -11,6 +11,8 @@ import {
   createNewsCategory,
   listQaQuestions,
   listQaAnswers,
+  listMemberQaQuestions,
+  listMemberQaAnswers,
   createQaQuestion,
   createQaAnswer,
   setQaStatus,
@@ -141,7 +143,8 @@ export const appRouter = router({
     return Object.fromEntries(settings.filter(item => allowed.has(item.settingKey)).map(item => [item.settingKey, item.settingValue ?? ""]));
   }),
   qa: router({
-    list: publicProcedure.query(async () => ({ questions: await listQaQuestions(), answers: await listQaAnswers() })),
+    categories: publicProcedure.query(async () => ({ education: await listCategoryNodes("education"), institution: await listCategoryNodes("institution") })),
+    list: publicProcedure.input(z.object({ search: z.string().trim().max(120).optional(), categoryId: z.number().int().positive().optional() }).optional()).query(async ({ input }) => ({ questions: await listQaQuestions({ search: input?.search, categoryId: input?.categoryId }), answers: await listQaAnswers() })),
   }),
   }),
   categories: router({
@@ -234,7 +237,9 @@ export const appRouter = router({
     }),
   }),
   member: router({
-    askQuestion: protectedProcedure.input(z.object({ title: z.string().trim().min(3).max(220), body: z.string().trim().min(3).max(20000), imageUrl: z.string().url().max(700).nullable().optional() })).mutation(async ({ ctx, input }) => { await createQaQuestion({ ...input, createdBy: ctx.user.id }); return { success: true, status: "pending" as const }; }),
+    askQuestion: protectedProcedure.input(z.object({ title: z.string().trim().min(3).max(220), body: z.string().trim().min(3).max(20000), imageUrl: z.string().url().max(700).nullable().optional(), categoryId: z.number().int().positive().nullable().optional() })).mutation(async ({ ctx, input }) => { await createQaQuestion({ ...input, createdBy: ctx.user.id }); return { success: true, status: "pending" as const }; }),
+    myQuestions: protectedProcedure.query(({ ctx }) => listMemberQaQuestions(ctx.user.id)),
+    myAnswers: protectedProcedure.query(({ ctx }) => listMemberQaAnswers(ctx.user.id)),
     answerQuestion: protectedProcedure.input(z.object({ questionId: z.number().int().positive(), body: z.string().trim().min(3).max(20000), imageUrl: z.string().url().max(700).nullable().optional() })).mutation(async ({ ctx, input }) => { await createQaAnswer({ ...input, createdBy: ctx.user.id }); return { success: true, status: "pending" as const }; }),
     uploadQaImage: protectedProcedure.input(z.object({ fileName: z.string().trim().min(1).max(255), mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]), dataBase64: z.string().min(1) })).mutation(async ({ ctx, input }) => { const buffer = Buffer.from(input.dataBase64, "base64"); if (buffer.byteLength > 5 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Görsel en fazla 5 MB olabilir." }); const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-"); return storagePut(`okulblog/${ctx.user.id}/qa/${Date.now()}-${safeName}`, buffer, input.mimeType); }),
     dashboard: protectedProcedure.query(({ ctx }) => getMemberDashboard(ctx.user.id)),

@@ -324,3 +324,21 @@
 - [x] Soru-Cevap gönderilerini Admin moderasyon onayına almak
 - [x] Ana sayfa ve Soru-Cevap rotasını test, TypeScript, build ve responsive görsel doğrulamayla kontrol etmek
 - [x] Soru-Cevap cevap oluşturma formunu üye ekranında tamamlamak
+
+## Soru-Cevap Arama ve Profil Etkileşimleri
+
+- [ ] Soru-Cevap sorularına kategori bağlantısı eklemek ve mevcut kategori kaynaklarından seçenekleri beslemek
+- [ ] Soru-Cevap sayfasına başlık, metin ve kategoriye göre gelişmiş arama eklemek
+- [ ] Soru-Cevap sayfasında kategori filtresi, arama temizleme ve boş sonuç durumlarını eklemek
+- [ ] Üye profilinde Sorularım ve Cevaplarım sekmelerini eklemek
+- [ ] Üyenin kendi sorularını ve cevaplarını durum, kategori ve tarih bilgileriyle göstermek
+- [ ] Arama, kategori filtreleri ve profil sekmeleri için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+
+## Soru-Cevap Arama ve Profil Etkileşimleri — Tamamlandı
+
+- [x] Soru-Cevap sorularına kategori bağlantısı eklemek ve kategori seçeneklerini mevcut eğitim/kurum kaynaklarından beslemek
+- [x] Soru-Cevap sayfasına başlık ve metin araması eklemek
+- [x] Soru-Cevap sayfasına kategori filtresi, filtre temizleme ve boş sonuç durumu eklemek
+- [x] Üye Panelim’e Sorularım ve Cevaplarım bölümlerini eklemek
+- [x] Üyenin kendi sorularını ve cevaplarını durum, kategori ve kayıt sayısıyla göstermek
+- [x] 94 Vitest testi, TypeScript, production build ve Soru-Cevap/Üye Panelim responsive görsel doğrulamasını tamamlamak

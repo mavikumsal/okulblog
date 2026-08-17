@@ -146,6 +146,7 @@ export const qaQuestions = mysqlTable("qa_questions", {
   title: varchar("title", { length: 220 }).notNull(),
   body: text("body").notNull(),
   imageUrl: varchar("imageUrl", { length: 700 }),
+  categoryId: int("categoryId"),
   status: mysqlEnum("status", ["pending", "published", "hidden"]).default("pending").notNull(),
   createdBy: int("createdBy").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

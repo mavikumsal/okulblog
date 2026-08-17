@@ -401,10 +401,19 @@ export async function listSecurityEvents() {
   return db.select().from(securityEvents).orderBy(desc(securityEvents.createdAt));
 }
 
-export async function listQaQuestions(includeHidden = false) {
+export async function listQaQuestions(options: { includeHidden?: boolean; search?: string; categoryId?: number } | boolean = false) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(qaQuestions).where(includeHidden ? undefined : eq(qaQuestions.status, "published")).orderBy(desc(qaQuestions.createdAt));
+  const normalized = typeof options === "boolean" ? { includeHidden: options } : options;
+  const search = normalized.search?.trim().toLowerCase();
+  const conditions = [
+    normalized.includeHidden ? undefined : eq(qaQuestions.status, "published"),
+    normalized.categoryId ? eq(qaQuestions.categoryId, normalized.categoryId) : undefined,
+    search ? undefined : undefined,
+  ].filter((condition): condition is NonNullable<typeof condition> => Boolean(condition));
+  const rows = await db.select().from(qaQuestions).where(conditions.length ? and(...conditions) : undefined).orderBy(desc(qaQuestions.createdAt));
+  if (!search) return rows;
+  return rows.filter(row => `${row.title} ${row.body}`.toLowerCase().includes(search));
 }
 
 export async function listQaAnswers(questionId?: number, includeHidden = false) {
@@ -414,10 +423,22 @@ export async function listQaAnswers(questionId?: number, includeHidden = false) 
   return db.select().from(qaAnswers).where(conditions.length ? and(...conditions) : undefined).orderBy(asc(qaAnswers.createdAt));
 }
 
-export async function createQaQuestion(input: { title: string; body: string; imageUrl?: string | null; createdBy: number }) {
+export async function listMemberQaQuestions(createdBy: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(qaQuestions).where(eq(qaQuestions.createdBy, createdBy)).orderBy(desc(qaQuestions.createdAt));
+}
+
+export async function listMemberQaAnswers(createdBy: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(qaAnswers).where(eq(qaAnswers.createdBy, createdBy)).orderBy(desc(qaAnswers.createdAt));
+}
+
+export async function createQaQuestion(input: { title: string; body: string; imageUrl?: string | null; categoryId?: number | null; createdBy: number }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
-  await db.insert(qaQuestions).values({ ...input, imageUrl: input.imageUrl ?? null, status: "pending" });
+  await db.insert(qaQuestions).values({ ...input, imageUrl: input.imageUrl ?? null, categoryId: input.categoryId ?? null, status: "pending" });
 }
 
 export async function createQaAnswer(input: { questionId: number; body: string; imageUrl?: string | null; createdBy: number }) {
