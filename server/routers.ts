@@ -64,6 +64,8 @@ import {
   deleteHomeSlide,
 } from "./db";
 import { generateQuestionDraft } from "./aiQuestionGenerator";
+import { getAiProviderConfig, maskSecret } from "./aiProviderConfig";
+import { invokeLLM, listLLMModels } from "./_core/llm";
 import { parsePdfQuestions } from "./pdfQuestionParser";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
@@ -277,9 +279,16 @@ export const appRouter = router({
       difficulty: z.enum(["easy", "medium", "hard"]),
       gradeLevel: z.string().trim().max(80).optional(),
       categoryId: z.number().int().positive(),
+      provider: z.enum(["openai", "gemini"]).default("openai"),
+      model: z.string().trim().max(120).optional(),
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Soru Havuzu");
-      const draft = await generateQuestionDraft(input);
+      const { provider, model, ...legacyInput } = input;
+      const draft = await generateQuestionDraft({
+        ...legacyInput,
+        ...(provider !== "openai" ? { provider } : {}),
+        ...(model ? { model } : {}),
+      });
       return draft;
     }),
     generateTest: protectedProcedure.input(z.object({
@@ -290,17 +299,31 @@ export const appRouter = router({
       difficulty: z.enum(["easy", "medium", "hard"]),
       gradeLevel: z.string().trim().max(80).optional(),
       categoryId: z.number().int().positive(),
+      provider: z.enum(["openai", "gemini"]).default("openai"),
+      model: z.string().trim().max(120).optional(),
+      previewOnly: z.boolean().default(false),
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Soru Havuzu");
       await assertSectionAccess(ctx.user, "Testler");
+      const drafts: Array<{ prompt: string; options?: string[]; answer?: string; explanation?: string }> = [];
       const questionIds: number[] = [];
       for (let index = 0; index < input.count; index += 1) {
-        const draft = await generateQuestionDraft(input);
-        const id = await createQuestion({ ...draft, topicTag: input.topic, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null, difficulty: input.difficulty, createdBy: ctx.user.id });
-        questionIds.push(id);
+        const { provider, model, ...legacyInput } = input;
+        const draft = await generateQuestionDraft({
+          ...legacyInput,
+          ...(provider !== "openai" ? { provider } : {}),
+          ...(model ? { model } : {}),
+        });
+        drafts.push({ prompt: draft.prompt, options: draft.options ?? undefined, answer: draft.answer ?? undefined, explanation: draft.explanation ?? undefined });
+        if (!input.previewOnly) {
+          const id = await createQuestion({ ...draft, topicTag: input.topic, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null, difficulty: input.difficulty, createdBy: ctx.user.id });
+          questionIds.push(id);
+        }
       }
-      await createTest({ title: input.title, description: `${input.topic} konusu için AI tarafından oluşturulan taslak test.`, categoryId: input.categoryId ?? null, questionIds, createdBy: ctx.user.id });
-      return { title: input.title, questionIds, questionCount: questionIds.length, status: "draft" as const };
+      if (!input.previewOnly) {
+        await createTest({ title: input.title, description: `${input.topic} konusu için AI tarafından oluşturulan taslak test.`, categoryId: input.categoryId ?? null, questionIds, createdBy: ctx.user.id });
+      }
+      return { title: input.title, questionIds, questionCount: drafts.length, status: input.previewOnly ? "preview" as const : "draft" as const, drafts };
     }),
   }),
   files: router({
@@ -374,6 +397,26 @@ export const appRouter = router({
       return { success: true };
     }),
     settings: adminProcedure.query(() => listSiteSettings()),
+    aiProviderStatus: adminProcedure.query(async () => {
+      const config = getAiProviderConfig({ OPENAI_API_KEY: process.env.OPENAI_API_KEY, GEMINI_API_KEY: process.env.GEMINI_API_KEY });
+      const catalog = await listLLMModels();
+      return {
+        openai: { configured: config.openai.configured, maskedKey: maskSecret(config.openai.apiKey), models: catalog.data.filter(item => item.id.startsWith("gpt-")).map(item => item.id) },
+        gemini: { configured: config.gemini.configured, maskedKey: maskSecret(config.gemini.apiKey), models: catalog.data.filter(item => item.id.startsWith("gemini-")).map(item => item.id) },
+      };
+    }),
+    testAiProviderConnection: adminProcedure.input(z.object({ provider: z.enum(["openai", "gemini"]), model: z.string().trim().max(120).optional() })).mutation(async ({ input }) => {
+      const config = getAiProviderConfig({ OPENAI_API_KEY: process.env.OPENAI_API_KEY, GEMINI_API_KEY: process.env.GEMINI_API_KEY });
+      const selected = config[input.provider];
+      if (!selected.configured) return { success: false as const, configured: false as const, message: "API anahtarı henüz girilmedi." };
+      try {
+        const response = await invokeLLM({ model: input.model || selected.defaultModel, maxTokens: 80, messages: [{ role: "user", content: "Yalnızca OK yanıtı ver." }] });
+        const content = response.choices[0]?.message.content;
+        return { success: Boolean(content), configured: true as const, message: content ? "Bağlantı ve model yanıtı başarılı." : "Model boş yanıt döndürdü." };
+      } catch {
+        return { success: false as const, configured: true as const, message: "Sağlayıcı bağlantısı başarısız. Model ve API anahtarını kontrol edin." };
+      }
+    }),
     searchConsoleStatus: adminProcedure.query(async () => {
       const rows = await listSiteSettings();
       const values = Object.fromEntries(rows.map(row => [row.settingKey, row.settingValue ?? ""]));

@@ -290,11 +290,19 @@ function PanelContent() {
     onError: () => toast.error("Soru kaydedilemedi."),
   });
   const [aiTopic, setAiTopic] = useState("");
+  const [aiProvider, setAiProvider] = useState<"openai" | "gemini">("openai");
+  const [aiModel, setAiModel] = useState("gpt-5-mini");
+  const [aiDraft, setAiDraft] = useState<{
+    questionType: "multiple-choice" | "true-false" | "open-ended";
+    prompt: string;
+    options: string[];
+    answer: string;
+    explanation: string;
+  } | null>(null);
   const aiQuestion = trpc.ai.generateQuestion.useMutation({
     onSuccess: draft => {
-      setAiTopic("");
-      utils.questions.list.invalidate();
-      toast.success("Yapay zekâ soru taslağını soru havuzuna ekledi.");
+      setAiDraft(draft);
+      toast.success("Yapay zekâ taslağı hazırlandı; kaydetmeden önce inceleyebilirsiniz.");
     },
     onError: () =>
       toast.error(
@@ -411,6 +419,15 @@ function PanelContent() {
   const adminSettings = trpc.admin.settings.useQuery(undefined, {
     enabled: isAdmin,
   });
+  const aiProviderStatus = (trpc.admin as any).aiProviderStatus?.useQuery
+    ? (trpc.admin as any).aiProviderStatus.useQuery(undefined, { enabled: isAdmin && section === "ai" })
+    : { data: undefined };
+  const testAiProviderConnection = (trpc.admin as any).testAiProviderConnection?.useMutation
+    ? (trpc.admin as any).testAiProviderConnection.useMutation({
+        onSuccess: (result: { success: boolean; message: string }) => toast[result.success ? "success" : "error"](result.message),
+        onError: () => toast.error("AI sağlayıcı bağlantı testi başarısız oldu."),
+      })
+    : { isPending: false, mutate: () => undefined };
   const qaQuestions = (trpc.admin as any).qaQuestions?.useQuery
     ? (trpc.admin as any).qaQuestions.useQuery(undefined, {
         enabled: isAdmin && requestedSection === "soru-cevap",
@@ -1702,7 +1719,28 @@ function PanelContent() {
       )}
 
       {section === "ai" && (
-        <section className="grid gap-5 lg:grid-cols-[.9fr_1.1fr]">
+        <section className="space-y-5">
+          <div className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-bold text-[#29465a]">AI sağlayıcı bağlantıları</h2>
+                <p className="mt-1 text-xs leading-5 text-[#71838b]">API anahtarları sunucuda tutulur; burada yalnızca durum ve maskeli bilgi gösterilir.</p>
+              </div>
+              <Badge variant="outline">Anahtarlar sonra eklenebilir</Badge>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {(["openai", "gemini"] as const).map(provider => {
+                const status = aiProviderStatus.data?.[provider];
+                const model = provider === "openai" ? "gpt-5-mini" : "gemini-3-flash-preview";
+                return <div key={provider} className="rounded-2xl border border-[#edf0ea] bg-[#fafcf9] p-4">
+                  <div className="flex items-center justify-between gap-2"><p className="font-semibold text-[#3b586a]">{provider === "openai" ? "ChatGPT / OpenAI" : "Google Gemini"}</p><span className={`text-xs font-semibold ${status?.configured ? "text-[#4b806d]" : "text-[#a27b46]"}`}>{status?.configured ? "Hazır" : "Anahtar bekleniyor"}</span></div>
+                  <p className="mt-2 text-xs text-[#819095]">{status?.maskedKey || "API key henüz eklenmedi"}</p>
+                  <Button variant="outline" size="sm" className="mt-3 rounded-xl" disabled={testAiProviderConnection.isPending} onClick={() => testAiProviderConnection.mutate({ provider, model })}>Bağlantıyı test et</Button>
+                </div>;
+              })}
+            </div>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-[.9fr_1.1fr]">
           <div className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#e8e4f7] text-[#68558e]">
@@ -1728,6 +1766,21 @@ function PanelContent() {
                     placeholder="Örn. 1. sınıf Türkçe: heceleme"
                     className="h-11 rounded-xl"
                   />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>AI sağlayıcısı</Label>
+                    <select value={aiProvider} onChange={event => { const next = event.target.value as typeof aiProvider; setAiProvider(next); setAiModel(next === "gemini" ? "gemini-3-flash-preview" : "gpt-5-mini"); }} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm">
+                      <option value="openai">ChatGPT / OpenAI</option>
+                      <option value="gemini">Google Gemini</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Model</Label>
+                    <select value={aiModel} onChange={event => setAiModel(event.target.value)} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm">
+                      {aiProvider === "openai" ? <><option value="gpt-5-nano">GPT-5 Nano · hızlı</option><option value="gpt-5-mini">GPT-5 Mini · dengeli</option><option value="gpt-5">GPT-5 · ileri</option></> : <><option value="gemini-3-flash-preview">Gemini 3 Flash · hızlı</option><option value="gemini-3.1-pro-preview">Gemini 3.1 Pro · ileri</option></>}
+                    </select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
@@ -1771,6 +1824,8 @@ function PanelContent() {
                       questionType,
                       difficulty: questionDifficulty,
                       categoryId: Number(questionCategoryId),
+                      provider: aiProvider,
+                      model: aiModel,
                     })
                   }
                   className="w-full rounded-xl bg-[#18344f]"
@@ -1780,6 +1835,19 @@ function PanelContent() {
                     : "AI ile taslak üret"}
                   <Sparkles size={16} />
                 </Button>
+                {aiDraft && (
+                  <div className="rounded-2xl border border-[#dfe8df] bg-[#f8fbf7] p-4 text-[#29465a]">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold">Üretim ön izlemesi</p>
+                      <Badge className="border-0 bg-[#e7f1eb] text-[#477767]">Taslak</Badge>
+                    </div>
+                    <p className="mt-3 text-sm leading-6">{aiDraft.prompt}</p>
+                    {aiDraft.options.length > 0 && <div className="mt-3 grid gap-2 sm:grid-cols-2">{aiDraft.options.map((option, index) => <div key={`${option}-${index}`} className="rounded-xl bg-white px-3 py-2 text-xs">{String.fromCharCode(65 + index)}. {option}</div>)}</div>}
+                    <div className="mt-3 rounded-xl bg-white px-3 py-2 text-xs"><strong>Cevap:</strong> {aiDraft.answer}</div>
+                    <p className="mt-3 text-xs leading-5 text-[#71838b]">{aiDraft.explanation}</p>
+                    <p className="mt-3 text-[11px] text-[#8a9999]">Taslak doğrudan yayınlanmaz; düzenleyip soru havuzuna kaydetme adımı izlenmelidir.</p>
+                  </div>
+                )}
               </div>
             ) : (
               <RestrictedNotice />
@@ -1813,6 +1881,7 @@ function PanelContent() {
                 </div>
               ))}
             </div>
+          </div>
           </div>
         </section>
       )}

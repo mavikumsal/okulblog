@@ -11,14 +11,29 @@ export const generatedQuestionSchema = z.object({
 
 export type GeneratedQuestion = z.infer<typeof generatedQuestionSchema>;
 
+export type AiProvider = "openai" | "gemini";
+
+const providerDefaults: Record<AiProvider, { model: string; prefixes: string[] }> = {
+  openai: { model: "gpt-5-mini", prefixes: ["gpt-"] },
+  gemini: { model: "gemini-3-flash-preview", prefixes: ["gemini-"] },
+};
+
 export async function generateQuestionDraft(input: {
   topic: string;
   questionType: "multiple-choice" | "true-false" | "open-ended";
   difficulty: "easy" | "medium" | "hard";
   gradeLevel?: string;
+  provider?: AiProvider;
+  model?: string;
 }) {
+  const provider = input.provider ?? "openai";
+  const defaults = providerDefaults[provider];
   const catalog = await listLLMModels();
-  const model = catalog.data.find(item => item.id === "gpt-5-mini")?.id ?? catalog.data[0]?.id;
+  const available = catalog.data.filter(item => defaults.prefixes.some(prefix => item.id.startsWith(prefix)));
+  const model = available.find(item => item.id === input.model)?.id
+    ?? available.find(item => item.id === defaults.model)?.id
+    ?? available[0]?.id
+    ?? defaults.model;
   const response = await invokeLLM({
     model,
     maxTokens: 1400,

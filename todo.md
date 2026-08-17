@@ -402,3 +402,17 @@
 - [x] PDF olmayan dokümanlarda desteklenen davranışı ve kullanıcı uyarısını göstermek
 - [x] Otomatik kapak akışı için Vitest, TypeScript, build ve responsive doğrulama yapmak
 - [x] Otomatik kapak özelliği için yeni checkpoint oluşturmak
+
+## Gemini ve ChatGPT AI Üretim Entegrasyonu
+
+- [x] Mevcut AI soru/test üretim prosedürlerini ve Admin AI ekranını yeni sağlayıcı seçimine hazırlamak
+- [x] Gemini ve ChatGPT API anahtarı alanlarını güvenli secret ayarları olarak tanımlamak
+- [x] Sağlayıcı, model, temel URL ve aktif/pasif ayarlarını Admin paneline eklemek
+- [x] Gemini ve ChatGPT için sunucu tarafı bağlantı testi eklemek; anahtarı ve tam değeri istemciye döndürmemek
+- [ ] Canlı model listesini ve uygun model seçeneklerini sağlayıcıya göre göstermek
+- [x] Soru üretimini yapılandırılmış JSON taslak çıktısı, ön izleme ve düzenleme akışına bağlamak
+- [x] Test üretimini yapılandırılmış soru listesi, ön izleme ve kaydetmeden düzenleme akışına bağlamak
+- [x] Eğitim/Kurum kategorisi, sınıf, konu ve zorluk parametrelerini AI payloadına korumak
+- [x] AI sağlayıcı hataları, boş çıktı, şema hatası ve kota durumları için kullanıcı dostu hata mesajları eklemek
+- [x] AI entegrasyonu için Vitest, TypeScript, production build ve responsive doğrulama yapmak
+- [ ] AI entegrasyonu için yeni checkpoint oluşturmak
