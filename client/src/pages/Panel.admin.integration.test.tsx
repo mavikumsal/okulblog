@@ -73,6 +73,14 @@ describe("Panel Admin modülleri component akışları", () => {
     }
   });
 
+  it("Bulut Depolama gerçek medya metadata kayıt formunu gösterir", () => {
+    panelState.route = "/panel/bulut-depolama";
+    render(<Panel />);
+    expect(screen.getByText("Dosya metadata’sı ekle")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("örnek-dokuman.pdf")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Medya kaydını oluştur" })).toBeDisabled();
+  });
+
   it("Medya entegrasyonlarında yükleniyor ve hata durumlarını gösterir", () => {
     panelState.route = "/panel/bulut-depolama";
     panelState.settingsState = { data: [], isLoading: true, isError: false };

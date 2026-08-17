@@ -161,3 +161,5 @@
 - [x] Medya sağlayıcı ekranları için admin ve non-admin yetki senaryolarını ayrı test adları ve assertions ile belgelemek
 - [x] Medya Merkezi’nde sağlayıcılar arası kopyalama/taşıma işi başlatan gerçek Admin UI akışını eklemek ve test etmek
 - [x] createMediaTransferJob akışında mediaAssetId varlığını doğrulamak ve geçersiz kayıt için hata testi eklemek
+- [x] Medya Merkezi’nde sağlayıcı ve içerik türü seçerek URL/MIME metadata kaydı oluşturma formu eklemek ve test etmek
+- [x] Dahili S3 için Admin-only gerçek dosya yükleme prosedürünü medya varlığı metadata kaydıyla birleştirmek ve MIME/boyut testlerini eklemek
