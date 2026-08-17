@@ -62,6 +62,18 @@ describe("Panel Admin modülleri component akışları", () => {
     expect(panelState.providerMutate).toHaveBeenCalledWith(expect.objectContaining({ provider: "bunny-storage", config: expect.objectContaining({ apiKey: "bunny-secret", storageZone: "okulblog-media" }) }));
   });
 
+  it("Bulut Depolama formunda Bunny CDN Pull Zone alanlarını test mutationına gönderir", () => {
+    panelState.route = "/panel/bulut-depolama";
+    render(<Panel />);
+    fireEvent.change(screen.getByRole("combobox", { name: "Depolama sağlayıcısı" }), { target: { value: "bunny-pull-zone" } });
+    fireEvent.change(screen.getByLabelText("Bunny API Key"), { target: { value: "pull-secret" } });
+    fireEvent.change(screen.getByLabelText("Pull Zone ID"), { target: { value: "123456" } });
+    fireEvent.change(screen.getByLabelText("CDN hostname"), { target: { value: "cdn.example.b-cdn.net" } });
+    fireEvent.change(screen.getByLabelText("Origin URL"), { target: { value: "https://origin.example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Alanları test et" }));
+    expect(panelState.providerMutate).toHaveBeenCalledWith(expect.objectContaining({ provider: "bunny-pull-zone", config: expect.objectContaining({ apiKey: "pull-secret", pullZoneId: "123456", cdnHostname: "cdn.example.b-cdn.net", originUrl: "https://origin.example.com" }) }));
+  });
+
   it("Bulut Depolama, Reklam Alanı ve Search Console route’larında yapılandırma durumunu gösterir", () => {
     const cases = [
       { route: "/panel/bulut-depolama", title: "Bulut Depolama", provider: "Google Drive · Kişisel hesap" },
@@ -72,7 +84,7 @@ describe("Panel Admin modülleri component akışları", () => {
       panelState.route = item.route;
       const { unmount } = render(<Panel />);
       expect(screen.getByText(item.title)).toBeInTheDocument();
-      expect(screen.getByText(item.route === "/panel/bulut-depolama" ? "1/6 hazır" : "Yapılandırılmadı")).toBeInTheDocument();
+      expect(screen.getByText(item.route === "/panel/bulut-depolama" ? "1/7 hazır" : "Yapılandırılmadı")).toBeInTheDocument();
       expect(screen.getByText(item.provider)).toBeInTheDocument();
       expect(screen.getAllByRole("button", { name: "Bağlantıyı test et" }).length).toBeGreaterThan(0);
       unmount();

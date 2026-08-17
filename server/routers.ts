@@ -290,7 +290,7 @@ export const appRouter = router({
       };
     }),
     testProviderConnection: adminProcedure.input(z.object({
-      provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "adsense", "search-console"]),
+      provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "bunny-pull-zone", "adsense", "search-console"]),
       config: z.object({
         apiKey: z.string().trim().max(500).optional(),
         apiSecret: z.string().trim().max(500).optional(),
@@ -300,6 +300,11 @@ export const appRouter = router({
         storageZone: z.string().trim().max(255).optional(),
         streamLibraryId: z.string().trim().max(255).optional(),
         dnsZoneId: z.string().trim().max(255).optional(),
+        pullZoneId: z.string().trim().max(255).optional(),
+        cdnHostname: z.string().trim().max(500).optional(),
+        originUrl: z.string().trim().url().max(900).optional(),
+        zoneSecurityKey: z.string().trim().max(500).optional(),
+        customDomain: z.string().trim().max(255).optional(),
         region: z.string().trim().max(120).optional(),
         endpoint: z.string().trim().url().max(900).optional(),
         clientId: z.string().trim().max(500).optional(),
@@ -317,6 +322,7 @@ export const appRouter = router({
         "bunny-storage": ["bunny_api_key", "bunny_storage_zone"],
         "bunny-stream": ["bunny_api_key", "bunny_stream_library_id"],
         "bunny-dns": ["bunny_api_key", "bunny_dns_zone_id"],
+        "bunny-pull-zone": ["bunny_api_key", "bunny_pull_zone_id", "bunny_pull_zone_hostname", "bunny_pull_zone_origin"],
         adsense: ["adsense_publisher_id"],
         "search-console": ["google_client_id", "google_client_secret", "search_console_property"],
       };
@@ -350,7 +356,14 @@ export const appRouter = router({
                       ...(hasSettingOrInput("bunny_api_key", config.apiKey) ? [] : ["apiKey"]),
                       ...(hasSettingOrInput("bunny_dns_zone_id", config.dnsZoneId) ? [] : ["dnsZoneId"]),
                     ]
-                  : requiredKeys[input.provider].filter(key => !configuredKeys.has(key));
+                  : input.provider === "bunny-pull-zone"
+                    ? [
+                        ...(hasSettingOrInput("bunny_api_key", config.apiKey) ? [] : ["apiKey"]),
+                        ...(hasSettingOrInput("bunny_pull_zone_id", config.pullZoneId) ? [] : ["pullZoneId"]),
+                        ...(hasSettingOrInput("bunny_pull_zone_hostname", config.cdnHostname) ? [] : ["cdnHostname"]),
+                        ...(hasSettingOrInput("bunny_pull_zone_origin", config.originUrl) ? [] : ["originUrl"]),
+                      ]
+                    : requiredKeys[input.provider].filter(key => !configuredKeys.has(key));
       return {
         provider: input.provider,
         configured: missing.length === 0,

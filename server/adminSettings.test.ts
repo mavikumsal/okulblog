@@ -70,6 +70,19 @@ describe("Admin ayar ve güvenlik yönetimi", () => {
     expect(JSON.stringify(result)).not.toContain("bunny-secret");
   });
 
+  it("Bunny CDN Pull Zone alanlarını doğrular ve secret döndürmez", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    const config = { apiKey: "pull-secret", pullZoneId: "123456", cdnHostname: "cdn.example.b-cdn.net", originUrl: "https://origin.example.com" };
+    const result = await caller.admin.testProviderConnection({ provider: "bunny-pull-zone", config });
+    expect(result).toMatchObject({ provider: "bunny-pull-zone", configured: true, status: "ready", missingKeys: [] });
+    expect(JSON.stringify(result)).not.toContain("pull-secret");
+  });
+
+  it("Bunny CDN Pull Zone için eksik hostname ve origin alanlarını raporlar", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.admin.testProviderConnection({ provider: "bunny-pull-zone", config: { apiKey: "pull-secret", pullZoneId: "123456" } })).resolves.toMatchObject({ configured: false, status: "not_configured", missingKeys: ["cdnHostname", "originUrl"] });
+  });
+
   it("Bunny Storage için API key veya zone eksikse alanları raporlar", async () => {
     const caller = appRouter.createCaller(context("admin"));
     await expect(caller.admin.testProviderConnection({ provider: "bunny-storage", config: { apiKey: "bunny-secret" } })).resolves.toMatchObject({ configured: false, status: "not_configured", missingKeys: ["storageZone"] });

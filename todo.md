@@ -197,3 +197,6 @@
 - [x] Sağlayıcı yapılandırmalarını secret sızıntısı olmadan Admin-only sunucu ayar sözleşmesine bağlamak
 - [x] S3, Google Drive kişisel/Workspace ve Bunny Storage/Stream/DNS için form doğrulaması ve gerçek test bağlantısı akışını tamamlamak
 - [x] Bulut Depolama yapılandırma formunun loading/error/success/empty, yetki ve responsive testlerini eklemek
+- [x] Bunny CDN/Pull Zone sağlayıcı kartı ve bağlantı testi eklemek
+- [x] Pull Zone ID, CDN hostname, origin URL, API key, zone security key ve özel domain alanlarını güvenli sunucu sözleşmesine bağlamak
+- [x] Bunny CDN/Pull Zone için Admin-only, secret maskesi, eksik alan, UI ve responsive testleri eklemek
