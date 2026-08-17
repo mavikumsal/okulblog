@@ -409,7 +409,7 @@
 - [x] Gemini ve ChatGPT API anahtarı alanlarını güvenli secret ayarları olarak tanımlamak
 - [x] Sağlayıcı, model, temel URL ve aktif/pasif ayarlarını Admin paneline eklemek
 - [x] Gemini ve ChatGPT için sunucu tarafı bağlantı testi eklemek; anahtarı ve tam değeri istemciye döndürmemek
-- [ ] Canlı model listesini ve uygun model seçeneklerini sağlayıcıya göre göstermek
+- [x] Canlı model listesini ve uygun model seçeneklerini sağlayıcıya göre göstermek
 - [x] Soru üretimini yapılandırılmış JSON taslak çıktısı, ön izleme ve düzenleme akışına bağlamak
 - [x] Test üretimini yapılandırılmış soru listesi, ön izleme ve kaydetmeden düzenleme akışına bağlamak
 - [x] Eğitim/Kurum kategorisi, sınıf, konu ve zorluk parametrelerini AI payloadına korumak
