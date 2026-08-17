@@ -247,12 +247,12 @@
 
 ## AI Parametreleri ve Soru Etiketleme
 
-- [ ] AI soru üretim ayar paneline konu, sınıf seviyesi ve zorluk seçimini ekle
-- [ ] AI soru ve test üretim sözleşmesine sınıf seviyesi ile konu parametrelerini bağla
-- [ ] Sorularda konu, sınıf seviyesi ve zorluk etiketlerini sakla ve göster
-- [ ] Soru Havuzu’na konu, sınıf seviyesi ve zorluk filtrelerini ekle
-- [ ] Filtrelenmiş soru sayısını, boş durumunu ve temizle akışını göster
-- [ ] AI parametreleri ve soru filtreleme için Vitest, TypeScript, build ve görsel doğrulama yap
+- [x] AI soru üretim ayar paneline konu, sınıf seviyesi ve zorluk seçimini ekle
+- [x] AI soru ve test üretim sözleşmesine sınıf seviyesi ile konu parametrelerini bağla
+- [x] Sorularda konu, sınıf seviyesi ve zorluk etiketlerini sakla ve göster
+- [x] Soru Havuzu’na konu, sınıf seviyesi ve zorluk filtrelerini ekle
+- [x] Filtrelenmiş soru sayısını, boş durumunu ve temizle akışını göster
+- [x] AI parametreleri ve soru filtreleme için Vitest, TypeScript, build ve görsel doğrulama yap
 
 ## Çoklu Soru Gelişmiş Editör Uyarlaması
 

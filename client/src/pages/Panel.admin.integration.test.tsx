@@ -256,6 +256,10 @@ describe("Panel Admin modülleri component akışları", () => {
     expect(screen.getByLabelText("A seçeneği")).toBeInTheDocument();
     expect(screen.getByLabelText("D seçeneği")).toBeInTheDocument();
     expect(screen.getByLabelText("AI konu")).toBeInTheDocument();
+    expect(screen.getByLabelText("AI sınıf seviyesi")).toBeInTheDocument();
+    expect(screen.getByLabelText("Konu filtresi")).toBeInTheDocument();
+    expect(screen.getByLabelText("Sınıf filtresi")).toBeInTheDocument();
+    expect(screen.getByLabelText("Zorluk filtresi")).toBeInTheDocument();
     expect(screen.getByLabelText("AI test başlığı")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Öğrenci ön izlemesi/ })).toBeInTheDocument();
     expect(screen.getByLabelText("AI soru sayısı")).toBeInTheDocument();
