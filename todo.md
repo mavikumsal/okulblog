@@ -401,4 +401,4 @@
 - [x] Doküman formuna otomatik kapak seçeneği, önizleme ve manuel kapakla değiştirme akışı eklemek
 - [x] PDF olmayan dokümanlarda desteklenen davranışı ve kullanıcı uyarısını göstermek
 - [x] Otomatik kapak akışı için Vitest, TypeScript, build ve responsive doğrulama yapmak
-- [ ] Otomatik kapak özelliği için yeni checkpoint oluşturmak
+- [x] Otomatik kapak özelliği için yeni checkpoint oluşturmak
