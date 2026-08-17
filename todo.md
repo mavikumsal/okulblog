@@ -71,7 +71,7 @@
 - [x] Admin paneli için eksik yönetim modüllerini ve gezinme yapısını envanterlemek
 - [x] Admin panelinde eğitim ve kurum kategorisi oluşturma, ad güncelleme ve aktif/pasif yaşam döngüsünü tamamlamak
 - [x] Admin panelinde slider ve popüler eğitim kategorileri yönetimini görünür bir ayarlar alanına taşımak
-- [ ] Admin panelinde soru havuzu, testler, içerikler ve AI oluşturucu akışlarını tamamlamak
+- [x] Admin panelinde soru havuzu, testler, içerikler ve AI oluşturucu akışlarını özellik testleriyle tamamlamak
 - [ ] Admin panelinde üye/rol/yetki yönetimini, güvenlik, SEO, reklam, istatistik ve site ayarlarını genişletmek
 - [ ] Admin paneli için eksik backend prosedürlerini, yükleme/boş/hata durumlarını ve rol kontrollerini tamamlamak
 - [x] Ana sayfa ve Admin panelini masaüstü/mobil viewport’larda görsel olarak doğrulamak
@@ -86,8 +86,8 @@
 - [x] Her içerik modülünde yükleniyor, hata ve boş liste durumlarını göstermek
 - [x] Ortak içerik formunu modül bazlı kayıt listesiyle tamamlamak
 - [x] İçerik arşivinde geri alınabilir durum değişikliği ve arşivleme aksiyonu eklemek
-- [ ] Header ve mobil menü için oturumlu/oturumsuz CTA davranışını özellik testiyle doğrulamak
-- [ ] Testler modülünde gerçek test varlığı oluşturma ve listeleme akışını netleştirmek
+- [x] Header ve mobil menü için oturumlu/oturumsuz CTA davranışını özellik testiyle doğrulamak
+- [x] Testler modülünde gerçek test varlığı oluşturma ve listeleme akışını netleştirmek
 - [x] Üye yönetiminde gerçek rol değiştirme ve bölüm yetkisi işlemlerini backend/UI ile tamamlamak
 - [x] Kategori güncelleme/durum ve içerik arşivleme prosedürleri için doğrudan özellik testleri eklemek
 - [ ] Ana sayfa/Admin kapsam maddelerini yalnızca doğrudan test veya görsel kanıtla tamamlandı kabul etmek
@@ -101,3 +101,16 @@
 - [x] Üye Yönetimi ekranını Panel.tsx üzerinden render eden gerçek component/integration testi eklemek
 - [x] Panel düzeyinde rol seçimi sonrası updateUserRole mutation ve admin.users yenilemesini doğrulamak
 - [x] Panel düzeyinde rol güncelleme başarı bildirimi ve güncel rolün yeniden render edilmesini doğrulamak
+- [ ] Admin panelinde soru havuzu, testler, içerikler ve AI oluşturucu için listeleme, boş durum, hata durumu ve başarı yollarını kapsayan özellik/entegrasyon testleri eklemek
+- [ ] Testler modülü için gerçek listeleme sorgusu ve UI listesini uygulayıp test oluşturma sonrası listede görünürlüğü doğrulamak
+- [x] Üye Yönetimi ve tüm görünür profil alanlarında “Pekşen Yayınları” marka kalıntısını kaldırmak
+- [x] Testler rotasında genel içerik formunu gizleyerek test oluşturma ekranını tek ve odaklı forma dönüştürmek
+- [x] Marka temizliği ve Testler ekranı sadeleştirmesi için test/build ve responsive doğrulama yapmak
+- [x] /panel/:section ve /panel?section=... route biçimlerini aynı Panel bölümüne bağlamak
+- [x] Sidebar aktif modül durumunu doğrudan açılan route’larla uyumlu göstermek
+- [x] Admin Üye Yönetimi’nde marka içeren e-posta adresini değiştirmeden nötr hesap etiketiyle gösterme veya gizlilik kuralı uygulamak
+- [x] Doğrudan Testler, Üye Yönetimi ve Ana Sayfa Yönetimi route’larının görsel doğrulamasını güncel sürümde tekrar kaydetmek
+- [x] Üye Yönetimi dışındaki tüm görünür profil/hesap alanlarında marka kalıntısı taraması yapıp gerekli düzeltmeleri uygulamak
+- [x] Marka temizliği için ana sayfa, panel üst barı, kullanıcı kartları ve profil bileşenlerini kapsayan görsel/test kanıtı eklemek
+- [x] Ana sayfada marka temizliği için doğrudan görsel doğrulama veya test kanıtı eklemek
+- [x] DashboardLayout/Panel üst barı ve hesap/profil bileşenlerinde nötr etiketlerin göründüğünü doğrulayan component testleri veya açık görsel kanıt eklemek

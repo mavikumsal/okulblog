@@ -13,6 +13,7 @@ import {
   createQuestion,
   createStoredFile,
   createTest,
+  listTests,
   getContentOverview,
   listContentByType,
   updateContentStatus,
@@ -192,6 +193,10 @@ export const appRouter = router({
     }),
   }),
   tests: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      await assertSectionAccess(ctx.user, "Testler");
+      return listTests();
+    }),
     create: protectedProcedure.input(z.object({
       title: z.string().trim().min(3).max(220),
       description: z.string().trim().max(1000).optional(),

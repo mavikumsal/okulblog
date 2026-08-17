@@ -20,6 +20,14 @@ describe("AdminUsersManagement", () => {
     expect(select).toHaveValue("teacher");
   });
 
+  it("marka içeren e-posta adresini nötr hesap etiketiyle gösterir", () => {
+    render(<AdminUsersManagement members={[{ id: 8, name: "Pekşen Yayınları", email: "peksenyayınları@example.com", role: "admin" }]} isLoading={false} isError={false} isPending={false} onRoleChange={vi.fn()} />);
+
+    expect(screen.getByText("OkulBlog hesabı")).toBeInTheDocument();
+    expect(screen.getByText("Hesap e-postası gizlendi")).toBeInTheDocument();
+    expect(screen.queryByText(/peksenyayınları/i)).not.toBeInTheDocument();
+  });
+
   it("yükleniyor, hata ve boş durumlarını gösterir", () => {
     const onRoleChange = vi.fn();
     const { rerender } = render(<AdminUsersManagement members={undefined} isLoading={true} isError={false} isPending={false} onRoleChange={onRoleChange} />);

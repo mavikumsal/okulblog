@@ -213,6 +213,11 @@ export async function createTest(input: { title: string; description?: string; c
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   await db.insert(tests).values({ ...input, categoryId: input.categoryId ?? null, status: "draft" });
 }
+export async function listTests() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(tests).orderBy(desc(tests.createdAt));
+}
 
 export async function createStoredFile(input: { fileName: string; storageKey: string; publicUrl: string; mimeType: string; sizeBytes: number; uploadedBy: number }) {
   const db = await getDb();

@@ -23,6 +23,7 @@ const trpcMock = vi.hoisted(() => {
   questions: { list: hook([]), create: hook() },
   ai: { generateQuestion: hook() },
   contents: { list: hook([]), create: hook(), archive: hook() },
+  tests: { list: hook([]), create: hook() },
   admin: { users: hook([{ id: 7, name: "Ayşe Öğrenci", email: "ayse@example.com", role: "member", lastSignedIn: new Date() }]), updateUserRole: hook(), settings: hook([]), saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook([]), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   };

@@ -1,8 +1,10 @@
+import React from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { getHomeLoaderDelay } from "@/lib/homeLoading";
+import { getHomeAccountLabel, getHomePrimaryLabel } from "@shared/homeNavigation";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -142,7 +144,7 @@ export default function Home() {
           <div className="hidden items-center gap-2 md:flex">
             <Button onClick={accountAction} variant="ghost" className="font-bold text-[#28445a] hover:bg-[#ecece2]">{isAuthenticated ? "Panelim" : "Giriş yap"}</Button>
             <Button onClick={accountAction} className="h-11 rounded-full bg-[#102e49] px-5 font-bold text-white shadow-[0_10px_20px_rgba(16,46,73,.15)] hover:bg-[#1b425f] active:scale-[.97]">
-              {isAuthenticated ? "Panele git" : "Başla"}<ArrowRight size={16} />
+              {getHomePrimaryLabel(isAuthenticated)}<ArrowRight size={16} />
             </Button>
           </div>
 
@@ -150,7 +152,7 @@ export default function Home() {
             {menuOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
-        {menuOpen && <div className="border-t border-[#dedfd7] bg-[#f7f4ed] px-4 py-4 md:hidden"><div className="grid gap-1"><button onClick={() => goTo("icerikler")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">İçerikler</button><button onClick={() => goTo("yolculuk")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">Nasıl çalışır?</button><button onClick={() => goTo("sinavlar")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">Sınav hazırlığı</button><Button onClick={accountAction} className="mt-2 bg-[#102e49]">{loading ? "Yükleniyor..." : isAuthenticated ? "Panele git" : "Giriş yap"}</Button></div></div>}
+        {menuOpen && <div className="border-t border-[#dedfd7] bg-[#f7f4ed] px-4 py-4 md:hidden"><div className="grid gap-1"><button onClick={() => goTo("icerikler")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">İçerikler</button><button onClick={() => goTo("yolculuk")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">Nasıl çalışır?</button><button onClick={() => goTo("sinavlar")} className="rounded-xl px-4 py-3 text-left font-bold hover:bg-white">Sınav hazırlığı</button><Button onClick={accountAction} className="mt-2 bg-[#102e49]">{getHomeAccountLabel(isAuthenticated, loading)}</Button></div></div>}
       </header>
 
       <main>
