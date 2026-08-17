@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import QuestionEditor from "@/components/QuestionEditor";
 import ContactSettings from "@/components/ContactSettings";
+import ContentQuickStart from "@/components/ContentQuickStart";
 import { AdminUsersManagement } from "@/components/AdminUsersManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -318,13 +319,27 @@ function PanelContent() {
   );
   const testList = trpc.tests.list.useQuery(undefined, {
     enabled:
-      Boolean(user) && requestedSection === "testler" && isAllowed("Testler"),
+      Boolean(user) && (requestedSection === "testler" || section === "bulut-depolama") && isAllowed("Testler"),
   });
+  const mediaTargetDocuments = trpc.contents.list.useQuery({ contentType: "document" }, { enabled: isAdmin && section === "bulut-depolama" });
+  const mediaTargetVideos = trpc.contents.list.useQuery({ contentType: "video" }, { enabled: isAdmin && section === "bulut-depolama" });
+  const mediaTargetSimulations = trpc.contents.list.useQuery({ contentType: "simulation" }, { enabled: isAdmin && section === "bulut-depolama" });
+  const mediaTargetGames = trpc.contents.list.useQuery({ contentType: "game" }, { enabled: isAdmin && section === "bulut-depolama" });
+  const mediaTargetNews = trpc.contents.list.useQuery({ contentType: "news" }, { enabled: isAdmin && section === "bulut-depolama" });
+  const mediaTargetItems = useMemo(() => [
+    ...(testList.data ?? []).map(item => ({ id: item.id, title: item.title, targetType: "test" as const, typeLabel: "Test" })),
+    ...(mediaTargetDocuments.data ?? []).map(item => ({ id: item.id, title: item.title, targetType: "content" as const, typeLabel: "Doküman" })),
+    ...(mediaTargetVideos.data ?? []).map(item => ({ id: item.id, title: item.title, targetType: "content" as const, typeLabel: "Video" })),
+    ...(mediaTargetSimulations.data ?? []).map(item => ({ id: item.id, title: item.title, targetType: "content" as const, typeLabel: "Simülasyon" })),
+    ...(mediaTargetGames.data ?? []).map(item => ({ id: item.id, title: item.title, targetType: "content" as const, typeLabel: "Oyun" })),
+    ...(mediaTargetNews.data ?? []).map(item => ({ id: item.id, title: item.title, targetType: "content" as const, typeLabel: "Haber" })),
+  ], [testList.data, mediaTargetDocuments.data, mediaTargetVideos.data, mediaTargetSimulations.data, mediaTargetGames.data, mediaTargetNews.data]);
   const [testTitle, setTestTitle] = useState("");
   const [testDescription, setTestDescription] = useState("");
   const [testCoverUrl, setTestCoverUrl] = useState("");
   const [testDurationMinutes, setTestDurationMinutes] = useState("20");
   const [testCategoryId, setTestCategoryId] = useState("");
+  const [testInstitutionCategoryId, setTestInstitutionCategoryId] = useState("");
   const [testQuestionIds, setTestQuestionIds] = useState<number[]>([]);
   const createTest = trpc.tests.create.useMutation({
     onSuccess: () => {
@@ -333,6 +348,7 @@ function PanelContent() {
       setTestCoverUrl("");
       setTestDurationMinutes("20");
       setTestCategoryId("");
+      setTestInstitutionCategoryId("");
       setTestQuestionIds([]);
       utils.tests.list.invalidate();
       toast.success("Test taslak olarak kaydedildi.");
@@ -340,11 +356,14 @@ function PanelContent() {
     onError: () => toast.error("Test kaydedilemedi."),
   });
   const [contentCategoryId, setContentCategoryId] = useState("");
+  const [contentInstitutionCategoryId, setContentInstitutionCategoryId] = useState("");
   const createContent = trpc.contents.create.useMutation({
     onSuccess: () => {
       setContentTitle("");
       setContentSummary("");
       setContentCoverUrl("");
+      setContentCategoryId("");
+      setContentInstitutionCategoryId("");
       utils.platform.overview.invalidate();
       utils.contents.list.invalidate({ contentType: selectedContentType });
       toast.success("İçerik taslak olarak kaydedildi.");
@@ -818,6 +837,10 @@ function PanelContent() {
         </div>
       </div>
 
+      {isAdmin && requestedSection === "overview" && (
+        <ContentQuickStart onNavigate={route => setLocation(route)} />
+      )}
+
       {section === "restricted-settings" && <RestrictedNotice />}
 
       {section === "bulut-depolama" && (
@@ -876,6 +899,8 @@ function PanelContent() {
             retryTransferJob={retryTransferJob}
             cancelTransferJob={cancelTransferJob}
             archiveMedia={archiveMedia}
+            contentTargets={mediaTargetItems}
+            linkMediaAsset={linkMediaAsset}
           />
         </>
       )}
@@ -1836,6 +1861,18 @@ function PanelContent() {
                     ))}
                   </optgroup>
                 </select>
+                <p className="text-[11px] text-[#7b8b90]">Eğitim kategorisi zorunludur.</p>
+                <Label className="mt-2 block">Kurum kategorisi <span className="font-normal">(opsiyonel)</span></Label>
+                <select
+                  value={contentInstitutionCategoryId}
+                  onChange={event => setContentInstitutionCategoryId(event.target.value)}
+                  className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Kurum kategorisi seçmeyin</option>
+                  {institutionCategoryOptions.map(item => (
+                    <option key={`content-institution-${item.id}`} value={item.id}>{categoryPath(item, categoryOptions)}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="contentTitle">Başlık</Label>
@@ -1880,6 +1917,7 @@ function PanelContent() {
                     summary: contentSummary,
                     coverImageUrl: contentCoverUrl.trim() || undefined,
                     categoryId: Number(contentCategoryId),
+                    institutionCategoryId: contentInstitutionCategoryId ? Number(contentInstitutionCategoryId) : null,
                   })
                 }
                 className="w-full rounded-xl bg-[#18344f]"
@@ -1970,9 +2008,18 @@ function PanelContent() {
                       ))}
                     </optgroup>
                   </select>
-                  <p className="text-[11px] text-[#7b8b90]">
-                    Kategori yönetimindeki iki ayrı ağaçtan seçilir.
-                  </p>
+                  <p className="text-[11px] text-[#7b8b90]">Eğitim kategorisi zorunludur.</p>
+                  <Label className="mt-2 block">Kurum kategorisi <span className="font-normal">(opsiyonel)</span></Label>
+                  <select
+                    value={testInstitutionCategoryId}
+                    onChange={event => setTestInstitutionCategoryId(event.target.value)}
+                    className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Kurum kategorisi seçmeyin</option>
+                    {institutionCategoryOptions.map(item => (
+                      <option key={`test-institution-${item.id}`} value={item.id}>{categoryPath(item, categoryOptions)}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Input
@@ -2051,6 +2098,7 @@ function PanelContent() {
                       coverImageUrl: testCoverUrl.trim() || undefined,
                       durationMinutes: Number(testDurationMinutes) || 20,
                       categoryId: Number(testCategoryId),
+                      institutionCategoryId: testInstitutionCategoryId ? Number(testInstitutionCategoryId) : null,
                       questionIds: testQuestionIds,
                     })
                   }
@@ -3776,6 +3824,8 @@ function MediaManagementPanel({
   retryTransferJob,
   cancelTransferJob,
   archiveMedia,
+  contentTargets,
+  linkMediaAsset,
 }: {
   isAdmin: boolean;
   assets: {
@@ -3936,6 +3986,8 @@ function MediaManagementPanel({
     mutate: (input: { id: number }) => void;
   };
   archiveMedia: { isPending: boolean; mutate: (input: { id: number }) => void };
+  contentTargets: Array<{ id: number; title: string; targetType: "content" | "test"; typeLabel: string }>;
+  linkMediaAsset: { isPending: boolean; mutate: (input: { mediaAssetId: number; targetType: "content" | "test"; targetId: number; role: string }) => void };
 }) {
   if (!isAdmin) return null;
   const providerLabel: Record<string, string> = {
@@ -3951,6 +4003,10 @@ function MediaManagementPanel({
       (assets.data ?? []).map(asset => asset.folderPath?.trim() || "Klasörsüz")
     )
   ).sort((a, b) => a.localeCompare(b, "tr"));
+  const [linkModalAssetId, setLinkModalAssetId] = useState<number | null>(null);
+  const [targetSearch, setTargetSearch] = useState("");
+  const [selectedTarget, setSelectedTarget] = useState<{ id: number; title: string; targetType: "content" | "test"; typeLabel: string } | null>(null);
+  const filteredTargets = contentTargets.filter(target => !targetSearch.trim() || target.title.toLocaleLowerCase("tr-TR").includes(targetSearch.trim().toLocaleLowerCase("tr-TR")) || target.typeLabel.toLocaleLowerCase("tr-TR").includes(targetSearch.trim().toLocaleLowerCase("tr-TR")));
   const filteredAssets = (assets.data ?? []).filter(asset => {
     const matchesSearch =
       !mediaSearch.trim() ||
@@ -4071,6 +4127,9 @@ function MediaManagementPanel({
                     className="rounded-xl"
                   >
                     Arşivle
+                  </Button>
+                  <Button variant="outline" size="sm" className="rounded-xl" onClick={() => { setLinkModalAssetId(asset.id); setSelectedTarget(null); setTargetSearch(""); }}>
+                    İçeriğe bağla
                   </Button>
                   {asset.publicUrl && (
                     <a
@@ -4388,6 +4447,33 @@ function MediaManagementPanel({
           )}
         </div>
       </div>
+      {linkModalAssetId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#173247]/35 p-4" role="dialog" aria-modal="true" aria-label="İçeriğe bağla">
+          <div className="max-h-[86vh] w-full max-w-2xl overflow-y-auto rounded-[28px] border border-[#e1e8df] bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold tracking-[.16em] text-[#668278] uppercase">Medya Merkezi</p>
+                <h2 className="mt-2 text-xl font-bold text-[#29465a]">İçeriğe bağla</h2>
+                <p className="mt-2 text-sm leading-6 text-[#71838b]">Dosyayı bağlamak istediğiniz test veya içeriği arayın ve seçin.</p>
+              </div>
+              <Button type="button" variant="ghost" onClick={() => setLinkModalAssetId(null)} aria-label="Bağlama penceresini kapat">Kapat</Button>
+            </div>
+            <Input value={targetSearch} onChange={event => setTargetSearch(event.target.value)} placeholder="Başlık veya içerik türü ara..." className="mt-5 rounded-xl" />
+            <div className="mt-4 space-y-2">
+              {filteredTargets.length ? filteredTargets.map(target => (
+                <button type="button" key={`${target.targetType}-${target.id}`} onClick={() => setSelectedTarget(target)} className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${selectedTarget?.id === target.id && selectedTarget.targetType === target.targetType ? "border-[#3aa894] bg-[#edf8f2]" : "border-[#e7ece7] bg-[#fbfcf8] hover:border-[#9fc7b6]"}`}>
+                  <span><span className="block font-semibold text-[#365368]">{target.title}</span><span className="mt-1 block text-xs text-[#7c8d91]">{target.typeLabel} · {target.targetType === "test" ? "Test" : "İçerik"} #{target.id}</span></span>
+                  <span className="text-xs font-semibold text-[#477263]">{selectedTarget?.id === target.id && selectedTarget.targetType === target.targetType ? "Seçildi" : "Seç"}</span>
+                </button>
+              )) : <p className="rounded-2xl bg-[#f7f8f4] p-4 text-sm text-[#728087]">Aramanızla eşleşen kayıt bulunamadı.</p>}
+            </div>
+            <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl bg-[#f7f8f4] p-4">
+              <p className="text-sm text-[#607781]">{selectedTarget ? `Seçilen: ${selectedTarget.title}` : "Henüz hedef seçilmedi."}</p>
+              <Button type="button" disabled={!selectedTarget || linkMediaAsset.isPending} onClick={() => { if (!selectedTarget || linkModalAssetId === null) return; linkMediaAsset.mutate({ mediaAssetId: linkModalAssetId, targetType: selectedTarget.targetType, targetId: selectedTarget.id, role: "attachment" }); setLinkModalAssetId(null); }} className="rounded-xl bg-[#18344f]">{linkMediaAsset.isPending ? "Bağlanıyor..." : "Seçili içeriğe bağla"}</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -4880,7 +4966,8 @@ function AdminOnlyIntegrationSection({
 
 export default function Panel() {
   return (
-    <DashboardLayout>
+          <DashboardLayout
+>
       <PanelContent />
     </DashboardLayout>
   );

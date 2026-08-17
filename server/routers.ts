@@ -203,6 +203,7 @@ export const appRouter = router({
       topicTag: z.string().trim().max(180).nullable().optional(),
       gradeLevel: z.string().trim().max(80).nullable().optional(),
       categoryId: z.number().int().positive(),
+      institutionCategoryId: z.number().int().positive().nullable().optional(),
       difficulty: z.enum(["easy", "medium", "hard"]),
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Soru Havuzu");
@@ -229,6 +230,7 @@ export const appRouter = router({
       body: z.string().trim().max(10000).optional(),
       coverImageUrl: z.string().url().max(700).nullable().optional(),
       categoryId: z.number().int().positive(),
+      institutionCategoryId: z.number().int().positive().nullable().optional(),
     })).mutation(async ({ ctx, input }) => {
       const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;
       await assertSectionAccess(ctx.user, sectionMap[input.contentType]);
@@ -237,7 +239,7 @@ export const appRouter = router({
     }),
   }),
   member: router({
-    askQuestion: protectedProcedure.input(z.object({ title: z.string().trim().min(3).max(220), body: z.string().trim().min(3).max(20000), imageUrl: z.string().url().max(700).nullable().optional(), categoryId: z.number().int().positive() })).mutation(async ({ ctx, input }) => { await createQaQuestion({ ...input, createdBy: ctx.user.id }); return { success: true, status: "pending" as const }; }),
+    askQuestion: protectedProcedure.input(z.object({ title: z.string().trim().min(3).max(220), body: z.string().trim().min(3).max(20000), imageUrl: z.string().url().max(700).nullable().optional(), categoryId: z.number().int().positive(), institutionCategoryId: z.number().int().positive().nullable().optional() })).mutation(async ({ ctx, input }) => { await createQaQuestion({ ...input, createdBy: ctx.user.id }); return { success: true, status: "pending" as const }; }),
     myQuestions: protectedProcedure.query(({ ctx }) => listMemberQaQuestions(ctx.user.id)),
     myAnswers: protectedProcedure.query(({ ctx }) => listMemberQaAnswers(ctx.user.id)),
     answerQuestion: protectedProcedure.input(z.object({ questionId: z.number().int().positive(), body: z.string().trim().min(3).max(20000), imageUrl: z.string().url().max(700).nullable().optional() })).mutation(async ({ ctx, input }) => { await createQaAnswer({ ...input, createdBy: ctx.user.id }); return { success: true, status: "pending" as const }; }),
@@ -259,6 +261,7 @@ export const appRouter = router({
       coverImageUrl: z.string().url().max(700).nullable().optional(),
       durationMinutes: z.number().int().min(1).max(240).default(20),
       categoryId: z.number().int().positive(),
+      institutionCategoryId: z.number().int().positive().nullable().optional(),
       questionIds: z.array(z.number().int().positive()).min(1),
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Testler");

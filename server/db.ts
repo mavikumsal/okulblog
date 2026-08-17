@@ -189,6 +189,7 @@ export async function createQuestion(input: {
   topicTag?: string | null;
   gradeLevel?: string | null;
   categoryId?: number | null;
+  institutionCategoryId?: number | null;
   difficulty: "easy" | "medium" | "hard";
   status?: "draft" | "approved" | "archived";
   createdBy: number;
@@ -199,6 +200,7 @@ export async function createQuestion(input: {
     ...input,
     options: input.options ?? [],
     categoryId: input.categoryId ?? null,
+    institutionCategoryId: input.institutionCategoryId ?? null,
     status: input.status ?? "draft",
   });
   return Number(result[0].insertId);
@@ -211,18 +213,19 @@ export async function createContentItem(input: {
   body?: string;
   coverImageUrl?: string | null;
   categoryId?: number | null;
+  institutionCategoryId?: number | null;
   createdBy: number;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   const slug = `${input.title.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşöçıİ]+/gi, "-").replace(/(^-|-$)/g, "")}-${crypto.randomUUID().slice(0, 8)}`;
-  await db.insert(contentItems).values({ ...input, slug, categoryId: input.categoryId ?? null, status: "draft" });
+  await db.insert(contentItems).values({ ...input, slug, categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, status: "draft" });
 }
 
-export async function createTest(input: { title: string; description?: string; coverImageUrl?: string | null; durationMinutes?: number; categoryId?: number | null; questionIds: number[]; createdBy: number }) {
+export async function createTest(input: { title: string; description?: string; coverImageUrl?: string | null; durationMinutes?: number; categoryId?: number | null; institutionCategoryId?: number | null; questionIds: number[]; createdBy: number }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
-  await db.insert(tests).values({ ...input, categoryId: input.categoryId ?? null, coverImageUrl: input.coverImageUrl ?? null, durationMinutes: input.durationMinutes ?? 20, status: "draft" });
+  await db.insert(tests).values({ ...input, categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, coverImageUrl: input.coverImageUrl ?? null, durationMinutes: input.durationMinutes ?? 20, status: "draft" });
 }
 export async function listTests() {
   const db = await getDb();
@@ -435,10 +438,10 @@ export async function listMemberQaAnswers(createdBy: number) {
   return db.select().from(qaAnswers).where(eq(qaAnswers.createdBy, createdBy)).orderBy(desc(qaAnswers.createdAt));
 }
 
-export async function createQaQuestion(input: { title: string; body: string; imageUrl?: string | null; categoryId?: number | null; createdBy: number }) {
+export async function createQaQuestion(input: { title: string; body: string; imageUrl?: string | null; categoryId?: number | null; institutionCategoryId?: number | null; createdBy: number }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
-  await db.insert(qaQuestions).values({ ...input, imageUrl: input.imageUrl ?? null, categoryId: input.categoryId ?? null, status: "pending" });
+  await db.insert(qaQuestions).values({ ...input, imageUrl: input.imageUrl ?? null, categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, status: "pending" });
 }
 
 export async function createQaAnswer(input: { questionId: number; body: string; imageUrl?: string | null; createdBy: number }) {
