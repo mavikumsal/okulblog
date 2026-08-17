@@ -431,13 +431,13 @@
 
 ## Search Console Raporları, Güvenli OAuth Token ve Ayrıntılı AI Ön İzleme
 
-- [ ] OAuth sonrası access/refresh tokenlarını şifreli sunucu tarafı veritabanı kaydına bağlamak
-- [ ] Token yenileme, süre kontrolü ve istemciye secret döndürmeme akışını tamamlamak
-- [ ] Search Console sitemap gönderme ekranını ve durum geri bildirimini eklemek
-- [ ] Search Console performans raporu ekranını tarih aralığı, tıklama, gösterim, CTR ve ortalama konum metrikleriyle eklemek
-- [ ] AI soru taslakları için seçenekler, doğru cevap, açıklama, kategori, sınıf, zorluk ve görsel alanlarını düzenlenebilir ayrıntılı ön izleme arayüzüne taşımak
-- [ ] Yeni kapsam için Vitest, migration, TypeScript, production build ve responsive doğrulama yapmak
-- [ ] Yeni kapsam için checkpoint oluşturmak
+- [x] OAuth sonrası access/refresh tokenlarını şifreli sunucu tarafı veritabanı kaydına bağlamak
+- [x] Token yenileme, süre kontrolü ve istemciye secret döndürmeme akışını tamamlamak
+- [x] Search Console sitemap gönderme ekranını ve durum geri bildirimini eklemek
+- [x] Search Console performans raporu ekranını tarih aralığı, tıklama, gösterim, CTR ve ortalama konum metrikleriyle eklemek
+- [x] AI soru taslakları için seçenekler, doğru cevap, açıklama, kategori, sınıf, zorluk ve görsel alanlarını düzenlenebilir ayrıntılı ön izleme arayüzüne taşımak
+- [x] Yeni kapsam için Vitest, migration, TypeScript, production build ve responsive doğrulama yapmak
+- [x] Yeni kapsam için checkpoint oluşturmak
 
 ## Search Console Raporları, Token Kasası ve AI Ön İzleme
 
@@ -448,4 +448,4 @@
 - [x] AI soru taslaklarında soru metni, seçenekler, doğru cevap, açıklama, konu, sınıf ve zorluk alanlarını kaydetmeden düzenlemek
 - [x] Search Console action ve AI ön izleme akışlarını Vitest ile doğrulamak
 - [x] TypeScript, production build ve responsive görsel doğrulamayı tamamlamak
-- [ ] Bu kapsam için yeni geri alınabilir checkpoint oluşturmak
+- [x] Bu kapsam için yeni geri alınabilir checkpoint oluşturmak
