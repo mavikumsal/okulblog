@@ -176,6 +176,7 @@ export async function listQuestions() {
 export async function createQuestion(input: {
   questionType: "multiple-choice" | "true-false" | "open-ended";
   prompt: string;
+  imageUrl?: string | null;
   options?: string[];
   answer?: string;
   explanation?: string;

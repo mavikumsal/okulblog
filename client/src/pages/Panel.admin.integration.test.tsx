@@ -246,4 +246,26 @@ describe("Panel Admin modülleri component akışları", () => {
     expect(screen.getByText("Türkçe kazanım testi")).toBeInTheDocument();
     expect(screen.getByText(/İlk deneme · 3 soru/)).toBeInTheDocument();
   });
+  it("soru editöründe rich text, görsel ön izleme, A-D cevapları ve AI aktarım alanını gösterir", () => {
+    panelState.route = "/panel/soru-havuzu";
+    render(<Panel />);
+    expect(screen.getByTestId("question-rich-editor")).toBeInTheDocument();
+    expect(screen.getByLabelText("Soru görseli")).toBeInTheDocument();
+    expect(screen.getByLabelText("A seçeneği")).toBeInTheDocument();
+    expect(screen.getByLabelText("D seçeneği")).toBeInTheDocument();
+    expect(screen.getByLabelText("AI konu")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Seçenek ekle/ })).toBeInTheDocument();
+  });
+  it("soru editöründe seçenek çoğaltma, silme ve çoklu forma geçişi çalışır", () => {
+    panelState.route = "/panel/soru-havuzu";
+    render(<Panel />);
+    fireEvent.click(screen.getByRole("button", { name: /Seçenek ekle/ }));
+    expect(screen.getByLabelText("E seçeneği")).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "Sil" })[4]);
+    expect(screen.queryByLabelText("E seçeneği")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Çoklu soru" }));
+    expect(screen.getByRole("textbox", { name: "Toplu soru 1" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Toplu soru 2" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Çoklu soruları taslak ekle/ })).toBeInTheDocument();
+  });
 });

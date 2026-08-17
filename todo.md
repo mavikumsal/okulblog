@@ -213,3 +213,16 @@
 - [x] Analytics, YouTube ve video kaynak link/unlink medya akışını doğrula
 - [x] Final görsel denetim ve 90+ testlik tam paket doğrulaması
 - [x] Hosting sonrası yapılacak gerçek API/OAuth kimlik bilgilerini TODO’da açıkça işaretle; gerçek giriş hosting sonrasında yapılacak
+
+## Soru Editörü ve AI Soru Üretimi
+
+- [x] Soru metni ve cevap alanlarını gelişmiş biçimlendirme destekli editöre dönüştürmek
+- [x] Soru görseli yükleme, otomatik boyutlandırma ve ön izleme akışını eklemek
+- [x] Çoktan seçmeli seçenekleri A, B, C, D harfleriyle otomatik oluşturmak; doğru cevabı seçilebilir yapmak
+- [x] Çoktan seçmeli seçenek ekleme, çoğaltma ve silme işlemlerini eklemek
+- [x] Tek soru ve çoklu soru ekleme modlarını aynı yönetim ekranında sunmak
+- [x] Çoklu soru formunda soru bazlı editör ve taslak kaydetme akışını eklemek
+- [x] AI ile üretilen soruyu editöre taslak ön izleme olarak aktarmak
+- [x] Soru editörü, görsel, cevap seçenekleri, çoklu giriş ve AI alanları için Vitest testleri yazmak
+- [x] Soru editörü değişikliklerini 94 test, TypeScript, build ve responsive görsel denetimle doğrulamak
+- [ ] AI ile çok sorulu test üretimini, onay sonrası test kaydı oluşturacak akışa genişletmek

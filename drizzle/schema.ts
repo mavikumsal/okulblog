@@ -42,6 +42,7 @@ export const questions = mysqlTable("questions", {
   id: int("id").autoincrement().primaryKey(),
   questionType: mysqlEnum("questionType", ["multiple-choice", "true-false", "open-ended"]).notNull(),
   prompt: text("prompt").notNull(),
+  imageUrl: varchar("imageUrl", { length: 700 }),
   options: json("options"),
   answer: text("answer"),
   explanation: text("explanation"),

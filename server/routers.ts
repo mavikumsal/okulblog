@@ -170,6 +170,7 @@ export const appRouter = router({
     create: protectedProcedure.input(z.object({
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
       prompt: z.string().trim().min(12).max(1500),
+      imageUrl: z.string().url().max(700).nullable().optional(),
       options: z.array(z.string().trim().min(1).max(300)).max(5).optional(),
       answer: z.string().trim().max(800).optional(),
       explanation: z.string().trim().max(1200).optional(),
