@@ -361,35 +361,35 @@
 
 ## İçerik Hızlı Başlangıç, Medya Bağlama ve Opsiyonel Kurum Kategorisi
 
-- [ ] Yedi temel içerik türü için ayrı ikonlu yönetim kartları ve hızlı başlangıç alanı eklemek
-- [ ] Medya Merkezi “İçeriğe bağla” işlemini arama ve seçim modalına dönüştürmek
-- [ ] Modalda içerik türü, başlık, kategori ve durum filtrelerini göstermek
-- [ ] Eğitim kategorisini zorunlu, Kurum kategorisini opsiyonel hale getirmek
-- [ ] Eğitim/Kurum seçiminde kademeli alt kategori önerileri ve seçili yol görünümü eklemek
-- [ ] Kurum kategorisi seçilen içerikleri ana sayfada kategori etiketiyle göstermek
-- [ ] Yeni akış için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+- [x] Yedi temel içerik türü için ayrı ikonlu yönetim kartları ve hızlı başlangıç alanı eklemek
+- [x] Medya Merkezi “İçeriğe bağla” işlemini arama ve seçim modalına dönüştürmek
+- [x] Modalda içerik türü, başlık, kategori ve durum filtrelerini göstermek
+- [x] Eğitim kategorisini zorunlu, Kurum kategorisini opsiyonel hale getirmek
+- [x] Eğitim/Kurum seçiminde kademeli alt kategori önerileri ve seçili yol görünümü eklemek
+- [x] Kurum kategorisi seçilen içerikleri ana sayfada kategori etiketiyle göstermek
+- [x] Yeni akış için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
 
 ## Eğitim/Kurum Kategori Sonlandırma
 
 - [x] Tüm yedi temel içerik formunda Eğitim kategorisini zorunlu, Kurum kategorisini opsiyonel ikincil seçim olarak tutmak
-- [ ] Eğitim kategori seçimlerini kademeli Ana Grup → Seviye → Sınıf → Ders → Ünite → Kazanım akışına dönüştürmek
-- [ ] Kurum kategori seçimlerinde kademeli alt kategori önerilerini görünür ve isteğe bağlı yapmak
+- [x] Eğitim kategori seçimlerini kademeli Ana Grup → Seviye → Sınıf → Ders → Ünite → Kazanım akışına dönüştürmek
+- [x] Kurum kategori seçimlerinde kademeli alt kategori önerilerini görünür ve isteğe bağlı yapmak
 - [x] Ana sayfa içerik kartlarında seçilmiş Kurum kategorisini açık etiket olarak göstermek
 - [x] Soru-Cevap oluşturma formunda Eğitim zorunluluğu ve Kurum opsiyonel seçimini tamamlamak
 - [x] Yedi içerik türünün zorunlu Eğitim kategorisi kuralını API ve özellik testleriyle doğrulamak
 - [x] Kategori UI, Ana Sayfa ve Admin akışlarını final responsive doğrulamak
-- [ ] Final Vitest, TypeScript, production build ve checkpoint doğrulamasını tamamlamak
+- [x] Final Vitest, TypeScript, production build ve checkpoint doğrulamasını tamamlamak
 
 ## Soru-Cevap Kategori İyileştirmesi
 
 - [x] Soru-Cevap formuna zorunlu Eğitim kategorisi ve opsiyonel Kurum kategorisi alanlarını eklemek
 - [x] Soru-Cevap filtre seçimini oluşturma formu seçiminden bağımsız hale getirmek
 - [x] Soru-Cevap yayınlanan kartlarında Eğitim/Kurum kategori etiketlerini göstermek
-- [ ] Soru-Cevap kategori payload’ı için özellik testi eklemek
+- [x] Soru-Cevap kategori payload’ı için özellik testi eklemek
 
 ## Validation History
 
 - [x] QA kategori alanı değişikliğinde TypeScript kontrolü
 - [x] QA kategori alanı değişikliğinde mevcut 94 Vitest testi ve production build
 - [x] Admin genel bakış, Testler ve İçerik Yönetimi ekranlarının güncel responsive görsel kontrolü
-- [ ] Son değişikliklerden sonra yeni checkpoint oluşturmak
+- [x] Son değişikliklerden sonra yeni checkpoint oluşturmak

@@ -3,6 +3,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import QuestionEditor from "@/components/QuestionEditor";
 import ContactSettings from "@/components/ContactSettings";
 import ContentQuickStart from "@/components/ContentQuickStart";
+import CategoryCascadeSelect from "@/components/CategoryCascadeSelect";
 import { AdminUsersManagement } from "@/components/AdminUsersManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1838,42 +1839,13 @@ function PanelContent() {
                   <option value="news">Haberler</option>
                 </select>
               </div>
-              <div className="space-y-2">
-                <Label>Kategori</Label>
-                <select
-                  value={contentCategoryId}
-                  onChange={event => setContentCategoryId(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">Eğitim veya Kurum kategorisi seçin</option>
-                  <optgroup label="Eğitim kategorileri">
-                    {educationCategoryOptions.map(item => (
-                      <option key={`education-${item.id}`} value={item.id}>
-                        {categoryPath(item, categoryOptions)}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Kurum kategorileri">
-                    {institutionCategoryOptions.map(item => (
-                      <option key={`institution-${item.id}`} value={item.id}>
-                        {categoryPath(item, categoryOptions)}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-                <p className="text-[11px] text-[#7b8b90]">Eğitim kategorisi zorunludur.</p>
-                <Label className="mt-2 block">Kurum kategorisi <span className="font-normal">(opsiyonel)</span></Label>
-                <select
-                  value={contentInstitutionCategoryId}
-                  onChange={event => setContentInstitutionCategoryId(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">Kurum kategorisi seçmeyin</option>
-                  {institutionCategoryOptions.map(item => (
-                    <option key={`content-institution-${item.id}`} value={item.id}>{categoryPath(item, categoryOptions)}</option>
-                  ))}
-                </select>
-              </div>
+              <CategoryCascadeSelect
+                nodes={categoryOptions}
+                educationValue={contentCategoryId}
+                institutionValue={contentInstitutionCategoryId}
+                onEducationChange={setContentCategoryId}
+                onInstitutionChange={setContentInstitutionCategoryId}
+              />
               <div className="space-y-2">
                 <Label htmlFor="contentTitle">Başlık</Label>
                 <Input
@@ -1985,42 +1957,13 @@ function PanelContent() {
                   placeholder="Kapak görseli URL’si"
                   className="h-11 rounded-xl"
                 />
-                <div className="space-y-2">
-                  <Label>Test kategorisi</Label>
-                  <select
-                    value={testCategoryId}
-                    onChange={event => setTestCategoryId(event.target.value)}
-                    className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="">Eğitim veya Kurum kategorisi seçin</option>
-                    <optgroup label="Eğitim kategorileri">
-                      {educationCategoryOptions.map(item => (
-                        <option key={`education-${item.id}`} value={item.id}>
-                          {categoryPath(item, categoryOptions)}
-                        </option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Kurum kategorileri">
-                      {institutionCategoryOptions.map(item => (
-                        <option key={`institution-${item.id}`} value={item.id}>
-                          {categoryPath(item, categoryOptions)}
-                        </option>
-                      ))}
-                    </optgroup>
-                  </select>
-                  <p className="text-[11px] text-[#7b8b90]">Eğitim kategorisi zorunludur.</p>
-                  <Label className="mt-2 block">Kurum kategorisi <span className="font-normal">(opsiyonel)</span></Label>
-                  <select
-                    value={testInstitutionCategoryId}
-                    onChange={event => setTestInstitutionCategoryId(event.target.value)}
-                    className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="">Kurum kategorisi seçmeyin</option>
-                    {institutionCategoryOptions.map(item => (
-                      <option key={`test-institution-${item.id}`} value={item.id}>{categoryPath(item, categoryOptions)}</option>
-                    ))}
-                  </select>
-                </div>
+                <CategoryCascadeSelect
+                  nodes={categoryOptions}
+                  educationValue={testCategoryId}
+                  institutionValue={testInstitutionCategoryId}
+                  onEducationChange={setTestCategoryId}
+                  onInstitutionChange={setTestInstitutionCategoryId}
+                />
                 <div className="grid grid-cols-2 gap-3">
                   <Input
                     type="number"
