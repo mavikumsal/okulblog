@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { getHomeLoaderDelay } from "@/lib/homeLoading";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -38,6 +39,28 @@ const steps = [
   ["03", "Çalışmanı sürdür", "Tekrarla, ölç, geri dön ve hedefini görünür tut."],
 ];
 
+function HomeLoadingScreen() {
+  return (
+    <div className="home-loader fixed inset-0 z-[100] grid place-items-center overflow-hidden bg-[#102e49] text-white" role="status" aria-live="polite" aria-label="OkulBlog yükleniyor">
+      <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(242,200,102,.45)_1px,transparent_1px)] [background-size:28px_28px]" />
+      <div className="relative flex flex-col items-center px-6 text-center">
+        <div className="loader-orbit relative mb-8 h-36 w-36" aria-hidden="true">
+          <div className="absolute inset-5 rounded-[30px] bg-[#f2c866] shadow-[0_20px_45px_rgba(0,0,0,.22)] [transform:rotateX(58deg) rotateZ(45deg)]" />
+          <div className="absolute inset-8 rounded-[22px] bg-[#f7f4ed] shadow-[inset_-8px_-8px_0_rgba(16,46,73,.12),0_15px_30px_rgba(0,0,0,.18)] [transform:translateZ(26px) rotateX(58deg) rotateZ(45deg)]" />
+          <div className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#b8ddd4] shadow-[0_0_0_8px_rgba(184,221,212,.16),0_10px_20px_rgba(0,0,0,.2)]" />
+        </div>
+        <p className="text-[11px] font-bold uppercase tracking-[.28em] text-[#f2c866]">OkulBlog</p>
+        <p className="mt-3 text-lg font-semibold tracking-[-.02em] text-white">Öğrenme alanın hazırlanıyor</p>
+        <div className="mt-5 flex items-center gap-1.5" aria-hidden="true">
+          <span className="loader-dot h-2 w-2 rounded-full bg-[#f2c866]" />
+          <span className="loader-dot h-2 w-2 rounded-full bg-[#b8ddd4] [animation-delay:120ms]" />
+          <span className="loader-dot h-2 w-2 rounded-full bg-[#d8c8e8] [animation-delay:240ms]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function getSlideNavigation(link: string | null | undefined) {
   const target = (link ?? "#icerikler").trim() || "#icerikler";
   if (target.startsWith("#")) return { kind: "anchor" as const, target };
@@ -50,6 +73,8 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [loaderStartedAt] = useState(() => Date.now());
+  const [showLoader, setShowLoader] = useState(true);
   const [, setLocation] = useLocation();
   const homeSlides = trpc.platform.homeSlides.useQuery();
   const overview = trpc.platform.overview.useQuery();
@@ -63,6 +88,14 @@ export default function Home() {
     { enabled: selectedCategoryId !== null }
   );
   const configuredSlides = homeSlides.data ?? [];
+  const pageReady = !loading && !homeSlides.isLoading && !overview.isLoading && !popularEducationCategories.isLoading;
+
+  useEffect(() => {
+    if (!pageReady) return;
+    const delay = getHomeLoaderDelay(loaderStartedAt, Date.now());
+    const timer = window.setTimeout(() => setShowLoader(false), delay);
+    return () => window.clearTimeout(timer);
+  }, [loaderStartedAt, pageReady]);
   const fallbackSlide = {
     eyebrow: "Eğitim için düzenli bir alan",
     title: "Aradığın içerik, doğru öğrenme bağlamında.",
@@ -90,7 +123,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#f7f4ed] text-[#102e49]">
+    <>
+      {showLoader && <HomeLoadingScreen />}
+      <div className="min-h-screen overflow-x-hidden bg-[#f7f4ed] text-[#102e49]">
       <header className="sticky top-0 z-50 border-b border-[#dfe0d8]/80 bg-[#f7f4ed]/95 backdrop-blur-xl">
         <div className="container flex h-[76px] items-center justify-between gap-5">
           <button onClick={() => goTo("baslangic")} className="flex items-center gap-2.5 text-left" aria-label="OkulBlog ana sayfa">
@@ -168,7 +203,8 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-[#dfe1d9] bg-[#efede5]"><div className="container flex flex-col gap-3 py-8 text-sm text-[#66777d] sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-2 font-bold text-[#244259]"><GraduationCap size={18} className="text-[#b77a29]" /> okulblog</div><p>İçerik, ölçme ve öğrenme için düzenli bir alan.</p><p>© {new Date().getFullYear()} OkulBlog</p></div></footer>
-    </div>
+      </div>
+    </>
   );
 }
 

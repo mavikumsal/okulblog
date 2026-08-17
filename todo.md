@@ -55,3 +55,9 @@
 - [x] Popüler kategori mutation’ı için Admin yetkisini doğrudan doğrulayan test eklemek
 - [x] Popüler kategori kaydetme akışı için boş seçim ve geçersiz kimlik senaryolarını özellik bazlı test etmek
 - [x] Admin panelindeki popüler kategori kartını masaüstü viewport’ta görünür şekilde doğrulamak
+- [x] Ana sayfaya 3D hissi veren animasyonlu yükleme ekranı eklemek
+- [x] Yükleme ekranını kısa süreli, erişilebilir ve reduced-motion uyumlu yapmak
+- [x] Yükleme ekranını masaüstü ve mobil görünümde doğrulamak
+- [x] Yükleme ekranı için genel test ve TypeScript kontrolü çalıştırmak
+- [x] Yükleme ekranı için özellik bazlı görünürlük ve reduced-motion test kanıtı eklemek
+- [ ] 3D yükleme ekranı değişikliklerinden sonra yeni checkpoint kaydetmek
