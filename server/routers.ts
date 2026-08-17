@@ -37,6 +37,8 @@ import {
   removeMediaAssetLink,
   archiveMediaAsset,
   listMediaTransferJobs,
+  getMediaTransferJob,
+  updateMediaTransferJob,
   createMediaTransferJob,
   saveSiteSetting,
   setRolePermission,
@@ -298,6 +300,8 @@ export const appRouter = router({
     unlinkMediaAsset: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { await removeMediaAssetLink(input.id); return { success: true }; }),
     mediaTransferJobs: adminProcedure.query(() => listMediaTransferJobs()),
     createMediaTransferJob: adminProcedure.input(z.object({ mediaAssetId: z.number().int().positive(), sourceProvider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), targetProvider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), operation: z.enum(["copy", "move"]) })).mutation(async ({ ctx, input }) => { if (input.sourceProvider === input.targetProvider) throw new TRPCError({ code: "BAD_REQUEST", message: "Kaynak ve hedef sağlayıcı farklı olmalıdır." }); const asset = await getMediaAsset(input.mediaAssetId); if (!asset || asset.status === "archived") throw new TRPCError({ code: "NOT_FOUND", message: "Aktarılacak medya varlığı bulunamadı veya arşivlenmiş." }); if (asset.provider !== input.sourceProvider) throw new TRPCError({ code: "BAD_REQUEST", message: "Kaynak sağlayıcı medya varlığıyla eşleşmiyor." }); await createMediaTransferJob({ ...input, requestedBy: ctx.user.id }); return { success: true }; }),
+    retryMediaTransferJob: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { const job = await getMediaTransferJob(input.id); if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Aktarım işi bulunamadı." }); if (job.status !== "failed" && job.status !== "cancelled") throw new TRPCError({ code: "BAD_REQUEST", message: "Yalnızca başarısız veya iptal edilmiş işler yeniden kuyruğa alınabilir." }); await updateMediaTransferJob({ id: input.id, status: "queued", progress: 0, errorMessage: null }); return { success: true }; }),
+    cancelMediaTransferJob: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { const job = await getMediaTransferJob(input.id); if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Aktarım işi bulunamadı." }); if (job.status !== "queued" && job.status !== "running") throw new TRPCError({ code: "BAD_REQUEST", message: "Bu aktarım işi artık iptal edilemez." }); await updateMediaTransferJob({ id: input.id, status: "cancelled", progress: job.progress ?? 0, errorMessage: "Admin tarafından iptal edildi." }); return { success: true }; }),
     newsCategories: adminProcedure.query(() => listNewsCategories()),
     createNewsCategory: adminProcedure.input(z.object({ name: z.string().trim().min(2).max(120) })).mutation(async ({ input }) => {
       await createNewsCategory(input.name);

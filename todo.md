@@ -171,7 +171,7 @@
 - [x] Medya varlıklarını içerik ve test kayıtlarına bağlayan güvenli ilişki tablolarını eklemek
 - [ ] Doküman, video, simülasyon, oyun, haber ve test ekranlarında medya ekleme/çıkarma akışını sağlamak
 - [x] Aktarım işi için queued/running/succeeded/failed/cancelled durumları, hata mesajı ve ilerleme alanlarını eklemek
-- [ ] Aktarım işi durum güncelleme, yeniden deneme ve iptal Admin prosedürlerini eklemek
+- [x] Aktarım işi durum güncelleme, yeniden deneme ve iptal Admin prosedürlerini eklemek
 - [ ] Taşıma işlemi sonrası kaynak medya arşivleme ve içerik referanslarını koruma akışını eklemek
 - [ ] Google Drive kişisel/Workspace ve Bunny Storage/Stream için gerçek varlık oluşturma/listeleme akışlarını tamamlayıp aynı mediaAsset link modeliyle Testler ve içerik modüllerine bağlandığını test etmek
 - [x] İçerik/Test ekranlarında provider bazlı bağlı medya listesini ve unlink akışını ekleyip tüm sağlayıcılar için component/integration test kanıtı üretmek

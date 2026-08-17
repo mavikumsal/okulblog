@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
-import { archiveMediaAsset, createMediaAsset, createMediaAssetLink, createMediaTransferJob, listMediaAssetLinks, listMediaAssets, listMediaTransferJobs, removeMediaAssetLink } from "./db";
+import { archiveMediaAsset, createMediaAsset, createMediaAssetLink, createMediaTransferJob, getMediaTransferJob, listMediaAssetLinks, listMediaAssets, listMediaTransferJobs, removeMediaAssetLink, updateMediaTransferJob } from "./db";
 import { storagePut } from "./storage";
 import type { TrpcContext } from "./_core/context";
 
@@ -18,6 +18,8 @@ vi.mock("./db", async importOriginal => {
     getMediaAsset: vi.fn().mockImplementation(async (id: number) => id === 1 ? { id: 1, provider: "s3", status: "active" } : undefined),
     archiveMediaAsset: vi.fn().mockResolvedValue(undefined),
     listMediaTransferJobs: vi.fn().mockResolvedValue([{ id: 7, status: "queued", operation: "copy" }]),
+    getMediaTransferJob: vi.fn().mockImplementation(async (id: number) => id === 7 ? { id: 7, status: "failed", progress: 42 } : undefined),
+    updateMediaTransferJob: vi.fn().mockResolvedValue(undefined),
     createMediaTransferJob: vi.fn().mockResolvedValue(undefined),
   };
 });
@@ -76,10 +78,28 @@ describe("Admin medya merkezi backend akışları", () => {
     await expect(caller.admin.createMediaTransferJob({ mediaAssetId: 99, sourceProvider: "s3", targetProvider: "bunny-storage", operation: "copy" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
+  it("başarısız aktarım işini yeniden kuyruğa alır ve queued işi iptal eder", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.admin.retryMediaTransferJob({ id: 7 })).resolves.toEqual({ success: true });
+    expect(getMediaTransferJob).toHaveBeenCalledWith(7);
+    expect(updateMediaTransferJob).toHaveBeenCalledWith({ id: 7, status: "queued", progress: 0, errorMessage: null });
+    vi.mocked(getMediaTransferJob).mockResolvedValueOnce({ id: 8, status: "queued", progress: 18 } as never);
+    await expect(caller.admin.cancelMediaTransferJob({ id: 8 })).resolves.toEqual({ success: true });
+    expect(updateMediaTransferJob).toHaveBeenCalledWith({ id: 8, status: "cancelled", progress: 18, errorMessage: "Admin tarafından iptal edildi." });
+  });
+
+  it("tamamlanmış aktarım işini yeniden denemeyi reddeder", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    vi.mocked(getMediaTransferJob).mockResolvedValueOnce({ id: 9, status: "completed", progress: 100 } as never);
+    await expect(caller.admin.retryMediaTransferJob({ id: 9 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
   it("üye medya varlıklarına veya aktarım işlerine erişemez", async () => {
     const caller = appRouter.createCaller(context("member"));
     await expect(caller.admin.mediaAssets()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.admin.mediaTransferJobs()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.admin.archiveMediaAsset({ id: 1 })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.admin.retryMediaTransferJob({ id: 7 })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.admin.cancelMediaTransferJob({ id: 7 })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });

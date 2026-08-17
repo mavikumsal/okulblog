@@ -299,6 +299,19 @@ export async function listMediaTransferJobs() {
   return db.select().from(mediaTransferJobs).orderBy(desc(mediaTransferJobs.createdAt));
 }
 
+export async function getMediaTransferJob(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(mediaTransferJobs).where(eq(mediaTransferJobs.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function updateMediaTransferJob(input: { id: number; status: "queued" | "running" | "completed" | "failed" | "cancelled"; progress?: number; errorMessage?: string | null }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.update(mediaTransferJobs).set({ status: input.status, progress: input.progress, errorMessage: input.errorMessage }).where(eq(mediaTransferJobs.id, input.id));
+}
+
 export async function recordSecurityEvent(input: { eventType: string; severity: "low" | "medium" | "high" | "critical"; description: string; metadata?: Record<string, unknown> }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
