@@ -83,6 +83,24 @@ describe("Admin ayar ve güvenlik yönetimi", () => {
     await expect(caller.admin.testProviderConnection({ provider: "bunny-pull-zone", config: { apiKey: "pull-secret", pullZoneId: "123456" } })).resolves.toMatchObject({ configured: false, status: "not_configured", missingKeys: ["cdnHostname", "originUrl"] });
   });
 
+  it("Google Analytics alanlarını doğrular", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.admin.testProviderConnection({ provider: "google-analytics", config: { measurementId: "G-OKULBLOG", propertyId: "123456789", endpoint: "https://analyticsdata.googleapis.com" } })).resolves.toMatchObject({ provider: "google-analytics", configured: true, status: "ready", missingKeys: [] });
+    await expect(caller.admin.testProviderConnection({ provider: "google-analytics", config: { measurementId: "G-OKULBLOG" } })).resolves.toMatchObject({ configured: false, status: "not_configured" });
+  });
+
+  it("YouTube API key ve kanal alanlarını doğrular, secret döndürmez", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    const result = await caller.admin.testProviderConnection({ provider: "youtube", config: { apiKey: "youtube-secret", channelId: "UCokulblog", channelUrl: "https://youtube.com/@okulblog", endpoint: "https://www.googleapis.com/youtube/v3" } });
+    expect(result).toMatchObject({ provider: "youtube", configured: true, status: "ready", missingKeys: [] });
+    expect(JSON.stringify(result)).not.toContain("youtube-secret");
+  });
+
+  it("video source adreslerini doğrular", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    await expect(caller.admin.testProviderConnection({ provider: "video-source", config: { videoUrl: "https://cdn.example/video.mp4", embedUrl: "https://www.youtube.com/embed/okulblog", endpoint: "https://cdn.example" } })).resolves.toMatchObject({ provider: "video-source", configured: true, status: "ready", missingKeys: [] });
+  });
+
   it("Bunny Storage için API key veya zone eksikse alanları raporlar", async () => {
     const caller = appRouter.createCaller(context("admin"));
     await expect(caller.admin.testProviderConnection({ provider: "bunny-storage", config: { apiKey: "bunny-secret" } })).resolves.toMatchObject({ configured: false, status: "not_configured", missingKeys: ["storageZone"] });

@@ -200,3 +200,16 @@
 - [x] Bunny CDN/Pull Zone sağlayıcı kartı ve bağlantı testi eklemek
 - [x] Pull Zone ID, CDN hostname, origin URL, API key, zone security key ve özel domain alanlarını güvenli sunucu sözleşmesine bağlamak
 - [x] Bunny CDN/Pull Zone için Admin-only, secret maskesi, eksik alan, UI ve responsive testleri eklemek
+- [x] Ortak entegrasyon sözleşmesine API key/secret, endpoint/adres, hesap-mülk kimliği, yönetim URL’si ve bağlantı testi alanlarını eklemek
+- [x] Bulut depolama sağlayıcılarında API endpoint, bucket/zone, region, hostname ve yönetim adresi alanlarını standartlaştırmak
+- [x] AdSense için yayıncı/slot kimliği, yönetim adresi, reklam kodu ve test bağlantısı alanlarını standartlaştırmak
+- [x] Google Analytics/istatistik için Measurement ID, property ID, API endpoint, rapor adresi ve bağlantı testi alanlarını eklemek
+- [x] YouTube için API key, kanal ID/URL, Data API endpoint, video yönetim adresi ve bağlantı testi alanlarını eklemek
+- [x] Video içerikleri için YouTube/Vimeo/CDN video URL’si, embed URL’si, poster görseli ve sağlayıcı seçimi alanlarını eklemek
+- [x] Tüm entegrasyonlarda Admin-only yetki, secret maskeleme, URL doğrulama, loading/error/success ve responsive testleri eklemek
+
+- [x] İstatistikler route’unda Analytics alanlarının erişilebilir UI testlerini tamamla
+- [x] Videolar içerik yönetimine YouTube ve video kaynak bağlantı merkezi ekle
+- [x] Analytics, YouTube ve video kaynak link/unlink medya akışını doğrula
+- [x] Final görsel denetim ve 90+ testlik tam paket doğrulaması
+- [ ] Hosting sonrası yapılacak gerçek API/OAuth kimlik bilgilerini açıkça işaretle

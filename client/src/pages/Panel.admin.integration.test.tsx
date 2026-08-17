@@ -160,6 +160,36 @@ describe("Panel Admin modülleri component akışları", () => {
     expect(screen.getByRole("button", { name: "Medya kaydını oluştur" })).toBeDisabled();
   });
 
+  it("İstatistikler ve ortak provider formu Analytics, YouTube ve video kaynak alanlarını gösterir", () => {
+    panelState.route = "/panel/istatistikler";
+    render(<Panel />);
+    expect(screen.getAllByText("Google Analytics / İstatistik").length).toBeGreaterThanOrEqual(1);
+    const providerSelect = screen.getByRole("combobox", { name: "Depolama sağlayıcısı" });
+    fireEvent.change(providerSelect, { target: { value: "google-analytics" } });
+    expect(screen.getByLabelText("Google Analytics Measurement ID")).toBeInTheDocument();
+    expect(screen.getByLabelText("Analytics Property ID")).toBeInTheDocument();
+    expect(screen.getByLabelText("Analytics API endpoint")).toBeInTheDocument();
+    fireEvent.change(providerSelect, { target: { value: "youtube" } });
+    expect(screen.getByLabelText("YouTube Data API key")).toBeInTheDocument();
+    expect(screen.getByLabelText("Kanal ID")).toBeInTheDocument();
+    fireEvent.change(providerSelect, { target: { value: "video-source" } });
+    expect(screen.getByLabelText("Video adresi")).toBeInTheDocument();
+    expect(screen.getByLabelText("Embed adresi")).toBeInTheDocument();
+  });
+
+  it("Videolar route’unda YouTube ve video kaynak bağlantı merkezini gösterir", () => {
+    panelState.route = "/panel/videolar";
+    render(<Panel />);
+    expect(screen.getByText("YouTube ve Video Kaynakları")).toBeInTheDocument();
+    const providerSelect = screen.getByRole("combobox", { name: "Depolama sağlayıcısı" });
+    fireEvent.change(providerSelect, { target: { value: "youtube" } });
+    expect(screen.getByLabelText("YouTube Data API key")).toBeInTheDocument();
+    expect(screen.getByLabelText("Kanal ID")).toBeInTheDocument();
+    fireEvent.change(providerSelect, { target: { value: "video-source" } });
+    expect(screen.getByLabelText("Video adresi")).toBeInTheDocument();
+    expect(screen.getByLabelText("Embed adresi")).toBeInTheDocument();
+  });
+
   it("Medya Merkezi klasör yolunu gösterir ve klasör filtresiyle kayıtları daraltır", () => {
     panelState.route = "/panel/bulut-depolama";
     render(<Panel />);

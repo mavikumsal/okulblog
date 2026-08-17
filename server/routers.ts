@@ -290,7 +290,7 @@ export const appRouter = router({
       };
     }),
     testProviderConnection: adminProcedure.input(z.object({
-      provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "bunny-pull-zone", "adsense", "search-console"]),
+      provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "bunny-pull-zone", "adsense", "search-console", "google-analytics", "youtube", "video-source"]),
       config: z.object({
         apiKey: z.string().trim().max(500).optional(),
         apiSecret: z.string().trim().max(500).optional(),
@@ -310,6 +310,12 @@ export const appRouter = router({
         clientId: z.string().trim().max(500).optional(),
         clientSecret: z.string().trim().max(500).optional(),
         sharedDriveId: z.string().trim().max(255).optional(),
+        propertyId: z.string().trim().max(255).optional(),
+        measurementId: z.string().trim().max(255).optional(),
+        channelId: z.string().trim().max(255).optional(),
+        channelUrl: z.string().trim().url().max(900).optional(),
+        videoUrl: z.string().trim().url().max(900).optional(),
+        embedUrl: z.string().trim().url().max(900).optional(),
       }).optional(),
     })).mutation(async ({ input }) => {
       const settings = await listSiteSettings();
@@ -325,6 +331,9 @@ export const appRouter = router({
         "bunny-pull-zone": ["bunny_api_key", "bunny_pull_zone_id", "bunny_pull_zone_hostname", "bunny_pull_zone_origin"],
         adsense: ["adsense_publisher_id"],
         "search-console": ["google_client_id", "google_client_secret", "search_console_property"],
+        "google-analytics": ["analytics_measurement_id", "analytics_property_id"],
+        youtube: ["youtube_api_key", "youtube_channel_id"],
+        "video-source": ["video_source_url"],
       };
       const configuredKeys = new Set(settings.filter(item => typeof item.settingValue === "string" && item.settingValue.trim().length > 0).map(item => item.settingKey));
       const hasSettingOrInput = (settingKey: string, ...inputValues: Array<string | undefined>) => configuredKeys.has(settingKey) || has(...inputValues);
@@ -363,7 +372,22 @@ export const appRouter = router({
                         ...(hasSettingOrInput("bunny_pull_zone_hostname", config.cdnHostname) ? [] : ["cdnHostname"]),
                         ...(hasSettingOrInput("bunny_pull_zone_origin", config.originUrl) ? [] : ["originUrl"]),
                       ]
-                    : requiredKeys[input.provider].filter(key => !configuredKeys.has(key));
+                    : input.provider === "google-analytics"
+                      ? [
+                          ...(hasSettingOrInput("analytics_measurement_id", config.measurementId) ? [] : ["measurementId"]),
+                          ...(hasSettingOrInput("analytics_property_id", config.propertyId) ? [] : ["propertyId"]),
+                        ]
+                      : input.provider === "youtube"
+                        ? [
+                            ...(hasSettingOrInput("youtube_api_key", config.apiKey) ? [] : ["apiKey"]),
+                            ...(hasSettingOrInput("youtube_channel_id", config.channelId) || has(config.channelUrl) ? [] : ["channelIdOrUrl"]),
+                          ]
+                        : input.provider === "video-source"
+                          ? [
+                              ...(hasSettingOrInput("video_source_url", config.videoUrl) ? [] : ["videoUrl"]),
+                              ...(has(config.embedUrl) ? [] : ["embedUrl"]),
+                            ]
+                          : requiredKeys[input.provider].filter(key => !configuredKeys.has(key));
       return {
         provider: input.provider,
         configured: missing.length === 0,
