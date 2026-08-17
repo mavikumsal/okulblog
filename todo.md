@@ -301,19 +301,19 @@
 - [x] İçerik-kategori, kapak, test süre/sonuç, favori ve ilerleme akışları için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
 
 ## İki Kategori Kaynağından İçerik Seçimi
-- [ ] Kullanıcının belirttiği iki kategori görselindeki mimariyi eğitim ve kurum kategori kaynaklarıyla eşlemek
-- [ ] Test ve içerik formlarındaki kategori seçimlerini yalnızca bu iki kategori kaynağından beslemek
-- [ ] Kategori seçim ekranında kaynak ayrımını ve alt kategori zincirini açıkça göstermek
-- [ ] İki kaynaklı kategori akışı için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+- [x] Kullanıcının belirttiği iki kategori görselindeki mimariyi eğitim ve kurum kategori kaynaklarıyla eşlemek
+- [x] Test ve içerik formlarındaki kategori seçimlerini yalnızca bu iki kategori kaynağından beslemek
+- [x] Kategori seçim ekranında kaynak ayrımını ve alt kategori zincirini açıkça göstermek
+- [x] İki kaynaklı kategori akışı için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
 
 ## Bize Ulaşın ve Üye Soru-Cevap Modülü
-- [ ] Ana sayfaya Admin tarafından yönetilebilen Bize Ulaşın alanı eklemek
-- [ ] Bize Ulaşın başlık, açıklama, e-posta, telefon, adres ve görünürlük ayarlarını Admin paneline eklemek
-- [ ] Soru-Cevap soruları ve cevapları için kullanıcı, durum, içerik ve görsel URL veri modelini eklemek
-- [ ] Soru-Cevap yazma yetkisini yalnızca giriş yapmış üyelere vermek; misafirlere giriş istemi göstermek
-- [ ] Soru-Cevap soru ve cevap editörlerinde gelişmiş rich text ve görsel yükleme desteği eklemek
-- [ ] Admin panelinde Soru-Cevap moderasyonu, yayınlama/gizleme ve cevap yönetimi eklemek
-- [ ] Bize Ulaşın ve Soru-Cevap akışları için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+- [x] Ana sayfaya Admin tarafından yönetilebilen Bize Ulaşın alanı eklemek
+- [x] Bize Ulaşın başlık, açıklama, e-posta, telefon, adres ve görünürlük ayarlarını Admin paneline eklemek
+- [x] Soru-Cevap soruları ve cevapları için kullanıcı, durum, içerik ve görsel URL veri modelini eklemek
+- [x] Soru-Cevap yazma yetkisini yalnızca giriş yapmış üyelere vermek; misafirlere giriş istemi göstermek
+- [x] Soru-Cevap soru ve cevap editörlerinde gelişmiş rich text ve görsel yükleme desteği eklemek
+- [x] Admin panelinde Soru-Cevap moderasyonu, yayınlama/gizleme ve cevap yönetimi eklemek
+- [x] Bize Ulaşın ve Soru-Cevap akışları için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
 
 ## Bize Ulaşın ve Üye Soru-Cevap
 
