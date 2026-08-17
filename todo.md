@@ -262,3 +262,14 @@
 - [x] Her kartta A–D seçenek ekleme/silme/çoğaltma ve doğru cevap seçimini desteklemek
 - [x] Çoklu kartlarda AI taslak üretimi ve öğrenci görünümü ön izlemesini desteklemek
 - [x] Çoklu soru akışını filtre parametreleri, test kaydı, Vitest, TypeScript, build ve responsive görsel denetimle doğrulamak
+
+## AI Taslak Onayı ve PDF Soru Aktarımı
+
+- [x] AI tarafından üretilen soruyu havuza kaydetmeden düzenlenebilir onay penceresinde göstermek
+- [x] AI taslak penceresinde soru metni, seçenekler, doğru cevap, açıklama, konu, sınıf ve zorluk alanlarını düzenlemek
+- [x] PDF yükleme ve güvenli dosya türü/boyut doğrulaması eklemek
+- [x] PDF metnini soru numarası, soru metni ve seçeneklerine ayrıştırmak
+- [x] PDF cevap anahtarını sorularla eşleştirmek; cevap anahtarı yoksa manuel seçim sunmak
+- [x] PDF sorularını toplu ön izleme, düzenleme, seçerek aktarma ve soru havuzuna kaydetme akışını eklemek
+- [x] Örnek PDF formatı için ayrıştırma, AI onay penceresi ve toplu aktarım testleri yazmak
+- [x] Tam test, TypeScript, build, güvenlik ve responsive görsel doğrulaması yapmak

@@ -52,6 +52,7 @@ import {
   deleteHomeSlide,
 } from "./db";
 import { generateQuestionDraft } from "./aiQuestionGenerator";
+import { parsePdfQuestions } from "./pdfQuestionParser";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 import { buildGoogleDriveAuthorizationUrl, createGoogleDriveResumableUpload, exchangeGoogleDriveCode, getGoogleDriveMissingConfig } from "./googleDriveProvider";
@@ -260,6 +261,23 @@ export const appRouter = router({
     }),
   }),
   files: router({
+    parseQuestionPdf: protectedProcedure.input(z.object({
+      fileName: z.string().trim().min(1).max(255),
+      mimeType: z.literal("application/pdf"),
+      dataBase64: z.string().min(1),
+      topicTag: z.string().trim().max(180).nullable().optional(),
+      gradeLevel: z.string().trim().max(80).nullable().optional(),
+      categoryId: z.number().int().positive().nullable().optional(),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Soru Havuzu");
+      const buffer = Buffer.from(input.dataBase64, "base64");
+      if (buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "PDF dosyası en fazla 20 MB olabilir." });
+      const parsed = await parsePdfQuestions(buffer, input.fileName);
+      const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+      const stored = await storagePut(`okulblog/${ctx.user.id}/question-imports/${safeName}`, buffer, "application/pdf");
+      await createStoredFile({ fileName: input.fileName, storageKey: stored.key, publicUrl: stored.url, mimeType: "application/pdf", sizeBytes: buffer.byteLength, uploadedBy: ctx.user.id });
+      return { ...parsed, topicTag: input.topicTag ?? null, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null, originalFileUrl: stored.url };
+    }),
     upload: protectedProcedure.input(z.object({
       fileName: z.string().trim().min(1).max(255),
       mimeType: z.string().trim().max(120),
