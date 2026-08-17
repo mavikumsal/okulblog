@@ -312,6 +312,19 @@ export async function updateMediaTransferJob(input: { id: number; status: "queue
   await db.update(mediaTransferJobs).set({ status: input.status, progress: input.progress, errorMessage: input.errorMessage }).where(eq(mediaTransferJobs.id, input.id));
 }
 
+export async function completeMediaTransferJob(input: { id: number; destinationMediaAssetId?: number; destinationProviderAssetId?: string | null; destinationUrl?: string | null; archiveSource?: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const job = await getMediaTransferJob(input.id);
+  if (!job) throw new Error("Aktarım işi bulunamadı.");
+  if (job.operation !== "move") throw new Error("Kaynak arşivleme yalnızca taşıma işlerinde uygulanabilir.");
+  if (job.status === "cancelled") throw new Error("İptal edilmiş aktarım tamamlanamaz.");
+  if (input.destinationMediaAssetId) {
+    await db.update(mediaAssetLinks).set({ mediaAssetId: input.destinationMediaAssetId }).where(eq(mediaAssetLinks.mediaAssetId, job.mediaAssetId));
+  }
+  if (input.archiveSource !== false) await db.update(mediaAssets).set({ status: "archived" }).where(eq(mediaAssets.id, job.mediaAssetId));
+  await db.update(mediaTransferJobs).set({ status: "completed", progress: 100, errorMessage: null, destinationProviderAssetId: input.destinationProviderAssetId ?? null, destinationUrl: input.destinationUrl ?? null, sourceArchived: input.archiveSource !== false, referencesUpdated: Boolean(input.destinationMediaAssetId) }).where(eq(mediaTransferJobs.id, input.id));
+}
 export async function recordSecurityEvent(input: { eventType: string; severity: "low" | "medium" | "high" | "critical"; description: string; metadata?: Record<string, unknown> }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");

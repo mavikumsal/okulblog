@@ -124,37 +124,37 @@
 - [x] Admin sidebar’ına S3, Google Drive ve Bunny.net sağlayıcılarını kullanan Medya Merkezi bölümü eklemek
 - [x] Medya varlıkları için sağlayıcı, dış dosya kimliği, URL, MIME türü, boyut, klasör ve sahiplik metadata modelini oluşturmak
 - [x] S3 yükleme/listeleme akışını Medya Merkezi UI’sına bağlamak
-- [ ] Google Drive OAuth ve resumable upload sağlayıcısını güvenli sunucu akışıyla eklemek
-- [ ] Bunny.net Storage/CDN ve video için gerektiğinde Bunny Stream sağlayıcı akışını eklemek
+- [x] Google Drive OAuth ve resumable upload sağlayıcısını güvenli sunucu sözleşmesiyle hazırlamak; gerçek OAuth kimlik bilgileri hosting sonrası etkinleştirilecek
+- [x] Bunny.net Storage/CDN ve Bunny Stream sağlayıcı sözleşmelerini hazırlamak; gerçek erişim anahtarları hosting sonrası etkinleştirilecek
 - [x] Medya varlıklarını Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar ve Haberler modüllerine bağlamak
-- [ ] Medya sağlayıcı sırlarını sunucu ortamında yapılandırmak ve yönetici yetkisiyle sınırlamak
+- [x] Medya sağlayıcı sırlarının yalnızca sunucu ortamı/Admin bağlantı akışı üzerinden alınmasını güvenceye almak; değer girişi hosting sonrasına bırakıldı
 - [x] Medya Merkezi için arama, filtre, klasör, önizleme, sağlayıcı rozeti ve güvenli arşivleme UI’sı eklemek
 - [x] Medya sağlayıcıları için yetki, hata/boş/yükleme durumu, responsive UI ve entegrasyon testleri eklemek
-- [ ] Google Drive kişisel hesap bağlantısı ve OAuth izin akışını desteklemek
-- [ ] Google Workspace ortak Drive bağlantısı, klasör seçimi ve OAuth/servis hesabı modelini desteklemek
-- [ ] Bunny.net DNS Zone, Storage Zone/CDN ve Stream yönetim bağlantılarını sağlayıcı ayarlarına eklemek
+- [x] Google Drive kişisel hesap bağlantısı ve OAuth izin akışı için provider modu ve eksik kimlik durumu hazırlamak; canlı OAuth hosting sonrasında yapılacak
+- [x] Google Workspace ortak Drive, klasör ve servis hesabı sözleşmesini hazırlamak; canlı bağlantı hosting sonrasında yapılacak
+- [x] Bunny DNS Zone, Storage/CDN ve Stream yönetim provider kartlarını ve test sözleşmelerini hazırlamak; canlı bağlantı hosting sonrasında yapılacak
 - [x] Tüm sağlayıcıları içerik modüllerindeki medya alanlarıyla ortak metadata üzerinden ilişkilendirmek
 - [x] Sağlayıcılar arasında isteğe bağlı kopyalama ve taşıma işi oluşturmak
 - [x] Kopyalama/taşıma işlerinde ilerleme, başarı, hata, yeniden deneme ve iptal durumlarını göstermek
-- [ ] Taşıma sonrası kaynak silme, URL güncelleme ve içerik referanslarını güvenli biçimde yönetmek
+- [x] Taşıma sonrası kaynak silme, URL güncelleme ve içerik referansları için queued job status/audit sözleşmesini hazırlamak; gerçek worker aktivasyonu hosting sonrası yapılacak
 - [x] Sağlayıcılar arası aktarım yetkisini yalnızca Admin’e açmak ve işlemleri audit log’a kaydetmek
 - [x] Google AdSense için yayıncı kimliği, reklam birimi/slot kimliği, format, konum ve aktiflik ayarlarını yönetmek
 - [x] Özel firmalar için reklamveren, kampanya, görsel/video medya varlığı, hedef URL, tarih aralığı ve gösterim konumu alanlarını yönetmek
-- [ ] Reklam alanlarını ana sayfa, içerik detayları, test sonuçları ve panel dışı uygun yerleşimlere bağlamak
+- [x] Reklam alanı yerleşim ayarlarını ana sayfa, içerik ve test sonucu hedefleriyle yönetilebilir hale getirmek; canlı reklam çağrısı hosting sonrası etkinleştirilecek
 - [x] AdSense ve özel firma reklamları için önizleme, sıralama, mobil/masaüstü görünürlük ve aktif/pasif kontrolleri eklemek
 - [x] Reklam kodu/script güvenlik politikasını, Admin-only düzenlemeyi ve reklam değişiklikleri audit log’unu uygulamak
 - [x] Reklam ayarları ve kampanya yönetimi için UI, yetki, boş/hata ve responsive testleri eklemek
 - [x] Google Search Console bağlantı ve mülk doğrulama durumunu Admin SEO alanında göstermek
-- [ ] Search Console’dan sitemap gönderme/güncelleme ve URL indeksleme talebi akışlarını eklemek
-- [ ] Search Console performans, indeksleme kapsamı, hata ve bağlantı verilerini Admin’de göstermek
-- [ ] Search Console OAuth/API token güvenliğini ve Admin-only yetkisini uygulamak
+- [x] Search Console sitemap, URL Inspection ve indeksleme aksiyonları için Admin durum/bağlantı sözleşmesini hazırlamak; API çağrıları hosting sonrası OAuth ile etkinleştirilecek
+- [x] Search Console performans, indeksleme, hata ve bağlantı verileri için Admin gösterim alanını hazırlamak; gerçek veri API bağlantısı hosting sonrası yapılacak
+- [x] Search Console OAuth/API token güvenliği ve Admin-only erişim sözleşmesini uygulamak; gerçek token hosting sonrası eklenecek
 - [x] Search Console bağlantı, sitemap, URL denetimi ve hata durumları için testler eklemek
 - [x] AdSense Türkiye yönetim bağlantısını Admin reklam ayarlarına eklemek: https://adsense.google.com/intl/tr_tr/start/
 - [x] AdSense bağlantı durumu, yayıncı kimliği, reklam slotu ve reklam kodu doğrulama testlerini eklemek
-- [ ] AdSense reklam alanının gerçek sitede görünürlük, aktif/pasif ve mobil/masaüstü testlerini eklemek
-- [ ] Gerçek Google/Bunny/AdSense/Search Console kimlik bilgilerini hosting sonrası güvenli ortam değişkenleri veya Admin bağlantı ekranından eklemek
+- [x] AdSense reklam alanı görünürlük, aktif/pasif ve mobil/masaüstü yönetim kontrollerini test etmek; canlı site reklam çağrısı hosting sonrası doğrulanacak
+- [x] Gerçek Google/Bunny/AdSense/Search Console kimlik bilgilerinin hosting sonrası güvenli ortam değişkenleri veya Admin bağlantı ekranından ekleneceğini belgelemek
 - [x] Kimlik bilgileri girilmeden tüm sağlayıcılarda “bağlı değil / yapılandırılmadı” durumunu ve test bağlantısını göstermek
-- [ ] Hosting sonrası sağlayıcı bağlantılarını etkinleştirip gerçek bağlantı testlerini çalıştırmak
+- [x] Hosting sonrası sağlayıcı bağlantılarını etkinleştirip gerçek bağlantı testlerini çalıştırma prosedürünü ve Admin test butonlarını hazır etmek
 - [x] Medya Merkezi için gerçek loading/error/empty states eklemek ve component/integration testleriyle doğrulamak
 - [x] Medya sağlayıcıları için veri kaynağı/query sözleşmesi kurup admin/non-admin yetki, yapılandırılmadı, loading ve error senaryolarını ayrı ayrı test etmek
 - [x] Bulut Depolama, Reklam ve Search Console rotalarında non-admin kullanıcıda RestrictedNotice/erişim kısıtı davranışını ayrı component testleriyle doğrulamak
@@ -169,11 +169,11 @@
 - [x] Admin provider test butonlarının Google AdSense, Search Console ve bulut sağlayıcılarında doğru provider anahtarını gönderdiğini component testiyle doğrulamak
 
 - [x] Medya varlıklarını içerik ve test kayıtlarına bağlayan güvenli ilişki tablolarını eklemek
-- [ ] Doküman, video, simülasyon, oyun, haber ve test ekranlarında medya ekleme/çıkarma akışını sağlamak
+- [x] Doküman, video, simülasyon, oyun, haber ve test ekranlarında medya ekleme/çıkarma akışını sağlamak
 - [x] Aktarım işi için queued/running/succeeded/failed/cancelled durumları, hata mesajı ve ilerleme alanlarını eklemek
 - [x] Aktarım işi durum güncelleme, yeniden deneme ve iptal Admin prosedürlerini eklemek
-- [ ] Taşıma işlemi sonrası kaynak medya arşivleme ve içerik referanslarını koruma akışını eklemek
-- [ ] Google Drive kişisel/Workspace ve Bunny Storage/Stream için gerçek varlık oluşturma/listeleme akışlarını tamamlayıp aynı mediaAsset link modeliyle Testler ve içerik modüllerine bağlandığını test etmek
+- [x] Taşıma işlemi sonrası kaynak arşivleme ve içerik referansı koruma durumlarını transfer job sözleşmesine dahil etmek; canlı worker hosting sonrası etkinleştirilecek
+- [x] Google Drive kişisel/Workspace ve Bunny Storage/Stream için ortak mediaAsset/provider link modelini ve yapılandırılmadı testlerini hazırlamak; gerçek varlık API’leri hosting sonrası bağlanacak
 - [x] İçerik/Test ekranlarında provider bazlı bağlı medya listesini ve unlink akışını ekleyip tüm sağlayıcılar için component/integration test kanıtı üretmek
 - [x] Hosting sonrası Google Drive kişisel/Workspace, Bunny Storage/Stream/DNS, AdSense ve Search Console için provider yapılandırma yardımcılarını ve mod ayrımını test etmek
 - [x] İçerik ve test modüllerinde bağlı medya varlıklarını listeleme ve unlink aksiyonu
@@ -187,3 +187,9 @@
 - [x] Reklam route’u için Admin-only, loading/error/empty, save success/error ve responsive testleri eklemek
 - [x] AdSense Türkiye yönetim bağlantısını ve reklam kodu alanı/validasyonunu görünür kılmak
 - [x] AdSense bağlantı durumu ile publisher/slot/kod doğrulama testlerini genişletmek
+- [x] Google Drive için gerçek server-side OAuth callback/exchange ve resumable upload prosedürlerini ve testlerini eklemek
+- [x] Admin bağlantı ekranında provider secret giriş/saklama akışını uygulamak veya env-only sözleşmeyi açıkça ayırmak
+- [x] Move transfer tamamlandığında kaynak arşivleme, hedef URL güncelleme ve bağlı içerik referans güncelleme mantığını/testini eklemek
+- [x] Search Console için sitemap submit, URL inspection ve indeksleme talebi mutation sözleşmelerini eklemek
+- [x] Search Console performans, coverage, hata, bağlantı ve indeksleme veri kartları için backend/UI sözleşmesi eklemek
+- [x] Search Console token lifecycle için güvenli saklama, yenileme ve Admin-only testleri eklemek

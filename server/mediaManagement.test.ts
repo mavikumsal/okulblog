@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
-import { archiveMediaAsset, createMediaAsset, createMediaAssetLink, createMediaTransferJob, getMediaTransferJob, listMediaAssetLinks, listMediaAssets, listMediaTransferJobs, removeMediaAssetLink, updateMediaTransferJob } from "./db";
+import { archiveMediaAsset, completeMediaTransferJob, createMediaAsset, createMediaAssetLink, createMediaTransferJob, getMediaTransferJob, listMediaAssetLinks, listMediaAssets, listMediaTransferJobs, removeMediaAssetLink, updateMediaTransferJob } from "./db";
 import { storagePut } from "./storage";
 import type { TrpcContext } from "./_core/context";
 
@@ -20,6 +20,7 @@ vi.mock("./db", async importOriginal => {
     listMediaTransferJobs: vi.fn().mockResolvedValue([{ id: 7, status: "queued", operation: "copy" }]),
     getMediaTransferJob: vi.fn().mockImplementation(async (id: number) => id === 7 ? { id: 7, status: "failed", progress: 42 } : undefined),
     updateMediaTransferJob: vi.fn().mockResolvedValue(undefined),
+    completeMediaTransferJob: vi.fn().mockResolvedValue(undefined),
     createMediaTransferJob: vi.fn().mockResolvedValue(undefined),
   };
 });
@@ -86,6 +87,19 @@ describe("Admin medya merkezi backend akışları", () => {
     vi.mocked(getMediaTransferJob).mockResolvedValueOnce({ id: 8, status: "queued", progress: 18 } as never);
     await expect(caller.admin.cancelMediaTransferJob({ id: 8 })).resolves.toEqual({ success: true });
     expect(updateMediaTransferJob).toHaveBeenCalledWith({ id: 8, status: "cancelled", progress: 18, errorMessage: "Admin tarafından iptal edildi." });
+  });
+
+  it("move aktarımını tamamlayınca hedef referansı ve kaynak arşivleme sözleşmesini çağırır", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    vi.mocked(getMediaTransferJob).mockResolvedValueOnce({ id: 10, status: "running", operation: "move", progress: 84 } as never);
+    await expect(caller.admin.completeMediaTransferJob({ id: 10, destinationMediaAssetId: 22, destinationProviderAssetId: "bunny-22", destinationUrl: "https://cdn.example.com/22.mp4", archiveSource: true })).resolves.toEqual({ success: true });
+    expect(completeMediaTransferJob).toHaveBeenCalledWith({ id: 10, destinationMediaAssetId: 22, destinationProviderAssetId: "bunny-22", destinationUrl: "https://cdn.example.com/22.mp4", archiveSource: true });
+  });
+
+  it("copy aktarımında completion prosedürünü reddeder", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+    vi.mocked(getMediaTransferJob).mockResolvedValueOnce({ id: 11, status: "running", operation: "copy", progress: 84 } as never);
+    await expect(caller.admin.completeMediaTransferJob({ id: 11, destinationMediaAssetId: 22 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("tamamlanmış aktarım işini yeniden denemeyi reddeder", async () => {
