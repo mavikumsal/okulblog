@@ -34,6 +34,14 @@ describe("Admin ayar ve güvenlik yönetimi", () => {
     expect(saveSiteSetting).toHaveBeenCalledWith({ settingKey: "adsense_publisher_id", settingValue: "ca-pub-123456", updatedBy: 1 });
   });
 
+  it("reklam ayarı değişikliğini audit log’a kaydeder ve güvensiz scripti reddeder", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+
+    await expect(caller.admin.saveSetting({ settingKey: "private_ad_campaign", settingValue: JSON.stringify({ advertiser: "Firma", campaignUrl: "https://firma.example" }) })).resolves.toEqual({ success: true });
+    expect(recordSecurityEvent).toHaveBeenCalledWith(expect.objectContaining({ eventType: "ad_setting_changed", severity: "low" }));
+    await expect(caller.admin.saveSetting({ settingKey: "private_ad_campaign", settingValue: "<script>alert(1)</script>" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
   it("yüksek güvenlik olayını kaydeder ve Admin bildirimi gönderir", async () => {
     const caller = appRouter.createCaller(context("admin"));
 

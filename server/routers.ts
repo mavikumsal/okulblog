@@ -319,7 +319,14 @@ export const appRouter = router({
       return { success: true };
     }),
     saveSetting: adminProcedure.input(z.object({ settingKey: z.string().trim().min(2).max(120), settingValue: z.string().trim().max(4000) })).mutation(async ({ ctx, input }) => {
+      if (["adsense_config", "private_ad_campaign", "custom_home_ad"].includes(input.settingKey) && /<script|javascript:/i.test(input.settingValue)) {
+        const isAllowedAdSense = input.settingKey === "adsense_config" && input.settingValue.includes("pagead2.googlesyndication.com");
+        if (!isAllowedAdSense) throw new TRPCError({ code: "BAD_REQUEST", message: "Reklam kodu güvenlik politikası nedeniyle kaydedilemedi." });
+      }
       await saveSiteSetting({ ...input, updatedBy: ctx.user.id });
+      if (["adsense_config", "private_ad_campaign", "custom_home_ad"].includes(input.settingKey)) {
+        await recordSecurityEvent({ eventType: "ad_setting_changed", severity: "low", description: "Admin reklam ayarını güncelledi.", metadata: { settingKey: input.settingKey, updatedBy: ctx.user.id } });
+      }
       return { success: true };
     }),
     homeSlides: adminProcedure.query(() => listHomeSlidesForAdmin()),

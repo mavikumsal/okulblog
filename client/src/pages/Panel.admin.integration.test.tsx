@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { panelState, hook } = vi.hoisted(() => {
-  const state = { route: "/panel/ayarlar", userRole: "admin", testList: [] as unknown[], mediaLinks: [{ id: 12, mediaAssetId: 4, targetType: "content", targetId: 21, role: "cover" }], providerMutate: vi.fn(), unlinkMutate: vi.fn(), settingsState: { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false } };
+  const state = { route: "/panel/ayarlar", userRole: "admin", testList: [] as unknown[], mediaLinks: [{ id: 12, mediaAssetId: 4, targetType: "content", targetId: 21, role: "cover" }], providerMutate: vi.fn(), unlinkMutate: vi.fn(), adsenseMutate: vi.fn(), mediaAssetsState: { data: [{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active", folderPath: "Kapaklar" }, { id: 5, fileName: "turkce.pdf", provider: "bunny-storage", status: "active", folderPath: "Dersler/Türkçe" }], isLoading: false, isError: false }, settingsState: { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false } };
   const makeQuery = (data: unknown, extra: Record<string, unknown> = {}) => ({ data, isLoading: false, isError: false, ...extra });
   const makeHook = (data: unknown = []) => ({ useQuery: () => makeQuery(typeof data === "function" ? data() : data), useMutation: () => ({ isPending: false, mutate: vi.fn() }) });
   return { panelState: state, hook: makeHook };
@@ -26,7 +26,7 @@ vi.mock("@/lib/trpc", () => ({
     ai: { generateQuestion: hook() },
     contents: { list: hook([]), create: hook(), archive: hook() },
     tests: { list: hook(() => panelState.testList), create: hook() },
-    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, searchConsoleStatus: hook({ configured: false, propertyUrl: null, verificationStatus: "not_configured", sitemapStatus: "not_configured", lastError: null }), testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: hook([{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active", folderPath: "Kapaklar" }, { id: 5, fileName: "turkce.pdf", provider: "bunny-storage", status: "active", folderPath: "Dersler/Türkçe" }]), mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
+    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, searchConsoleStatus: hook({ configured: false, propertyUrl: null, verificationStatus: "not_configured", sitemapStatus: "not_configured", lastError: null }), testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: { useQuery: () => panelState.mediaAssetsState }, mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: { useMutation: () => ({ isPending: false, mutate: panelState.adsenseMutate }) }, newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   },
 }));
@@ -34,7 +34,7 @@ vi.mock("@/lib/trpc", () => ({
 import Panel from "./Panel";
 
 describe("Panel Admin modülleri component akışları", () => {
-  afterEach(() => { cleanup(); panelState.userRole = "admin"; panelState.route = "/panel/ayarlar"; panelState.providerMutate.mockReset(); panelState.unlinkMutate.mockReset(); panelState.settingsState = { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false }; });
+  afterEach(() => { cleanup(); panelState.userRole = "admin"; panelState.route = "/panel/ayarlar"; panelState.providerMutate.mockReset(); panelState.unlinkMutate.mockReset(); panelState.adsenseMutate.mockReset(); panelState.mediaAssetsState = { data: [{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active", folderPath: "Kapaklar" }, { id: 5, fileName: "turkce.pdf", provider: "bunny-storage", status: "active", folderPath: "Dersler/Türkçe" }], isLoading: false, isError: false }; panelState.settingsState = { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false }; });
 
   it("ayarlar görünümünde izin, SEO, Search Console, reklam ve site haritası alanlarını gösterir", () => {
     panelState.route = "/panel/ayarlar";
@@ -78,6 +78,40 @@ describe("Panel Admin modülleri component akışları", () => {
       expect(screen.queryByText("Bağlantı merkezi")).not.toBeInTheDocument();
       unmount();
     }
+  });
+
+  it("Reklam route’unda AdSense slotu ve özel kampanya alanlarını gösterir", () => {
+    panelState.route = "/panel/reklam";
+    render(<Panel />);
+    expect(screen.getByText("AdSense Türkiye")).toBeInTheDocument();
+    expect(screen.getByLabelText("AdSense yayıncı kimliği")).toBeInTheDocument();
+    expect(screen.getByLabelText("AdSense reklam slotu")).toBeInTheDocument();
+    expect(screen.getByLabelText("Reklamveren")).toBeInTheDocument();
+    expect(screen.getByLabelText("Kampanya tarih aralığı")).toBeInTheDocument();
+    expect(screen.getByLabelText("AdSense reklam kodu")).toBeInTheDocument();
+    expect(screen.getByLabelText("Reklam medya varlığı")).toBeInTheDocument();
+    expect(screen.getByText("Görsel/video medya varlığı bulunamadı; önce Medya Merkezi’nden yükleyin.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Reklam sırası")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "AdSense yönetimine git" })).toHaveAttribute("href", "https://adsense.google.com/intl/tr_tr/start/");
+    expect(screen.getByRole("button", { name: "AdSense ayarlarını kaydet" })).toBeDisabled();
+    expect(screen.getByTestId("ad-config-grid")).toHaveClass("lg:grid-cols-2");
+  });
+
+  it("reklam medya sorgusu hata verdiğinde anlaşılır hata durumu gösterir", () => {
+    panelState.route = "/panel/reklam";
+    panelState.mediaAssetsState = { data: [], isLoading: false, isError: true };
+    render(<Panel />);
+    expect(screen.getByText("Reklam medya varlıkları yüklenemedi.")).toBeInTheDocument();
+  });
+
+  it("geçerli AdSense kimlikleri ve koduyla saveSetting mutationına yapılandırmayı gönderir", () => {
+    panelState.route = "/panel/reklam";
+    render(<Panel />);
+    fireEvent.change(screen.getByLabelText("AdSense yayıncı kimliği"), { target: { value: "ca-pub-123456" } });
+    fireEvent.change(screen.getByLabelText("AdSense reklam slotu"), { target: { value: "1234567890" } });
+    fireEvent.change(screen.getByLabelText("AdSense reklam kodu"), { target: { value: "pagead2.googlesyndication.com/ad.js" } });
+    fireEvent.click(screen.getByRole("button", { name: "AdSense ayarlarını kaydet" }));
+    expect(panelState.adsenseMutate).toHaveBeenCalledWith(expect.objectContaining({ settingKey: "adsense_config" }));
   });
 
   it("Search Console status sözleşmesindeki mülk, doğrulama, sitemap ve hata kartlarını gösterir", () => {

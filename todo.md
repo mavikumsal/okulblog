@@ -138,19 +138,19 @@
 - [x] Kopyalama/taşıma işlerinde ilerleme, başarı, hata, yeniden deneme ve iptal durumlarını göstermek
 - [ ] Taşıma sonrası kaynak silme, URL güncelleme ve içerik referanslarını güvenli biçimde yönetmek
 - [x] Sağlayıcılar arası aktarım yetkisini yalnızca Admin’e açmak ve işlemleri audit log’a kaydetmek
-- [ ] Google AdSense için yayıncı kimliği, reklam birimi/slot kimliği, format, konum ve aktiflik ayarlarını yönetmek
-- [ ] Özel firmalar için reklamveren, kampanya, görsel/video medya varlığı, hedef URL, tarih aralığı ve gösterim konumu alanlarını yönetmek
+- [x] Google AdSense için yayıncı kimliği, reklam birimi/slot kimliği, format, konum ve aktiflik ayarlarını yönetmek
+- [x] Özel firmalar için reklamveren, kampanya, görsel/video medya varlığı, hedef URL, tarih aralığı ve gösterim konumu alanlarını yönetmek
 - [ ] Reklam alanlarını ana sayfa, içerik detayları, test sonuçları ve panel dışı uygun yerleşimlere bağlamak
-- [ ] AdSense ve özel firma reklamları için önizleme, sıralama, mobil/masaüstü görünürlük ve aktif/pasif kontrolleri eklemek
-- [ ] Reklam kodu/script güvenlik politikasını, Admin-only düzenlemeyi ve reklam değişiklikleri audit log’unu uygulamak
-- [ ] Reklam ayarları ve kampanya yönetimi için UI, yetki, boş/hata ve responsive testleri eklemek
+- [x] AdSense ve özel firma reklamları için önizleme, sıralama, mobil/masaüstü görünürlük ve aktif/pasif kontrolleri eklemek
+- [x] Reklam kodu/script güvenlik politikasını, Admin-only düzenlemeyi ve reklam değişiklikleri audit log’unu uygulamak
+- [x] Reklam ayarları ve kampanya yönetimi için UI, yetki, boş/hata ve responsive testleri eklemek
 - [x] Google Search Console bağlantı ve mülk doğrulama durumunu Admin SEO alanında göstermek
 - [ ] Search Console’dan sitemap gönderme/güncelleme ve URL indeksleme talebi akışlarını eklemek
 - [ ] Search Console performans, indeksleme kapsamı, hata ve bağlantı verilerini Admin’de göstermek
 - [ ] Search Console OAuth/API token güvenliğini ve Admin-only yetkisini uygulamak
 - [x] Search Console bağlantı, sitemap, URL denetimi ve hata durumları için testler eklemek
-- [ ] AdSense Türkiye yönetim bağlantısını Admin reklam ayarlarına eklemek: https://adsense.google.com/intl/tr_tr/start/
-- [ ] AdSense bağlantı durumu, yayıncı kimliği, reklam slotu ve reklam kodu doğrulama testlerini eklemek
+- [x] AdSense Türkiye yönetim bağlantısını Admin reklam ayarlarına eklemek: https://adsense.google.com/intl/tr_tr/start/
+- [x] AdSense bağlantı durumu, yayıncı kimliği, reklam slotu ve reklam kodu doğrulama testlerini eklemek
 - [ ] AdSense reklam alanının gerçek sitede görünürlük, aktif/pasif ve mobil/masaüstü testlerini eklemek
 - [ ] Gerçek Google/Bunny/AdSense/Search Console kimlik bilgilerini hosting sonrası güvenli ortam değişkenleri veya Admin bağlantı ekranından eklemek
 - [x] Kimlik bilgileri girilmeden tüm sağlayıcılarda “bağlı değil / yapılandırılmadı” durumunu ve test bağlantısını göstermek
@@ -182,3 +182,8 @@
 - [x] Medya link/unlink bileşen testleri ve son görsel denetim
 - [x] Medya Merkezi listesinde folderPath/klasör bilgisini görünür göstermek ve klasöre göre filtreleme eklemek
 - [x] Klasörlü medya kayıtları için component/integration test eklemek
+- [x] Özel firma reklamına mevcut medya varlıklarından görsel/video seçici ve bağlama akışı eklemek
+- [x] Reklam yönetimine önizleme, sıra, mobil/masaüstü görünürlük ve özel reklam aktif/pasif kontrollerini eklemek
+- [x] Reklam route’u için Admin-only, loading/error/empty, save success/error ve responsive testleri eklemek
+- [x] AdSense Türkiye yönetim bağlantısını ve reklam kodu alanı/validasyonunu görünür kılmak
+- [x] AdSense bağlantı durumu ile publisher/slot/kod doğrulama testlerini genişletmek
