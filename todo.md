@@ -471,3 +471,26 @@
 - [x] Listeleme hatasında upstream hata detayını açığa çıkarmadan fallback’e dönmek
 - [x] Dinamik katalog için Vitest, TypeScript, production build ve responsive doğrulama yapmak
 - [x] Dinamik model kataloğu için yeni geri alınabilir checkpoint oluşturmak
+
+## AI Filtreleri, Taslak İnceleme ve Dışa Aktarma
+
+- [ ] AI soru üretiminde konu başlığı, zorluk derecesi ve soru tipini gelişmiş filtrelerle seçmek
+- [ ] AI üretim payloadında filtreleri ve seçilen modeli korumak
+- [ ] Üretilen soruları kaydetmeden önce tek tek düzenlenebilir alanlarla göstermek
+- [ ] Taslak soruları tek tek silme ve seçerek veritabanına kaydetme akışı eklemek
+- [ ] Hazırlanan testleri PDF formatında dışa aktarmak
+- [ ] Soru havuzunu PDF formatında dışa aktarmak
+- [ ] Hazırlanan testleri ve soru havuzunu Word formatında dışa aktarmak
+- [ ] Export yetkisi, boş veri, hata, dosya adı ve responsive indirme akışlarını test etmek
+- [ ] AI filtreleri ve export kapsamı için Vitest, TypeScript, production build ve responsive doğrulama yapmak
+- [ ] AI filtreleri ve export kapsamı için yeni geri alınabilir checkpoint oluşturmak
+
+## AI Filtreleri, Taslak Yönetimi ve Dışa Aktarma
+
+- [x] Zorluk derecesi, soru tipi ve konu başlığı filtrelerini AI soru üretimine bağlamak
+- [x] Üretilen soruları tek tek inceleme, düzenleme, silme ve seçerek kaydetme akışını tamamlamak
+- [x] Test taslaklarını PDF ve Word formatında dışa aktarmak
+- [x] Soru havuzu kayıtlarını PDF ve Word formatında dışa aktarmak
+- [x] Export dosyalarını sunucu tarafında üretmek ve güvenli indirme yanıtı döndürmek
+- [x] Vitest, TypeScript, production build ve responsive görsel doğrulama yapmak
+- [ ] Bu kapsam için yeni geri alınabilir checkpoint oluşturmak

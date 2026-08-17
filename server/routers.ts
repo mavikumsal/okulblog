@@ -76,6 +76,7 @@ import { buildGoogleDriveAuthorizationUrl, createGoogleDriveResumableUpload, exc
 import { buildSearchConsoleActions, buildSearchConsoleAuthorizationUrl, createSearchConsoleOAuthState, exchangeSearchConsoleCode, getSearchConsoleMissingConfig, getSearchConsoleTokenMetadata, refreshSearchConsoleToken, verifySearchConsoleOAuthState } from "./searchConsoleProvider";
 import { decryptSearchConsoleToken, encryptSearchConsoleToken } from "./searchConsoleTokenVault";
 import { renderPdfCover } from "./documentCover";
+import { buildExportFile } from "./exportDocuments";
 
 export function canManagePopularEducationCategories(role: string | undefined) {
   return role === "admin";
@@ -328,6 +329,26 @@ export const appRouter = router({
         await createTest({ title: input.title, description: `${input.topic} konusu için AI tarafından oluşturulan taslak test.`, categoryId: input.categoryId ?? null, questionIds, createdBy: ctx.user.id });
       }
       return { title: input.title, questionIds, questionCount: drafts.length, status: input.previewOnly ? "preview" as const : "draft" as const, drafts };
+    }),
+  }),
+  exports: router({
+    questions: protectedProcedure.input(z.object({
+      format: z.enum(["pdf", "doc"]),
+      title: z.string().trim().min(1).max(220),
+      questions: z.array(z.object({ prompt: z.string().trim().min(1).max(5000), options: z.array(z.string().max(500)).max(6).optional(), answer: z.string().max(1000).optional(), explanation: z.string().max(2000).optional() })).min(1).max(100),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Soru Havuzu");
+      const file = buildExportFile(input.format, input.title, input.questions);
+      return { fileName: `${input.title.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 80)}.${file.extension}`, mimeType: file.mimeType, dataBase64: file.buffer.toString("base64") };
+    }),
+    test: protectedProcedure.input(z.object({
+      format: z.enum(["pdf", "doc"]),
+      title: z.string().trim().min(1).max(220),
+      questions: z.array(z.object({ prompt: z.string().trim().min(1).max(5000), options: z.array(z.string().max(500)).max(6).optional(), answer: z.string().max(1000).optional(), explanation: z.string().max(2000).optional() })).min(1).max(100),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Testler");
+      const file = buildExportFile(input.format, input.title, input.questions);
+      return { fileName: `${input.title.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 80)}.${file.extension}`, mimeType: file.mimeType, dataBase64: file.buffer.toString("base64") };
     }),
   }),
   files: router({
