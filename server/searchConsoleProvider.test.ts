@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildSearchConsoleActions, exchangeSearchConsoleCode, getSearchConsoleMissingConfig, refreshSearchConsoleToken } from "./searchConsoleProvider";
+import { buildSearchConsoleActions, buildSearchConsoleAuthorizationUrl, createSearchConsoleOAuthState, exchangeSearchConsoleCode, getSearchConsoleMissingConfig, getSearchConsoleTokenMetadata, refreshSearchConsoleToken, verifySearchConsoleOAuthState } from "./searchConsoleProvider";
 
 describe("Search Console provider sözleşmesi", () => {
   beforeEach(() => {
@@ -12,6 +12,16 @@ describe("Search Console provider sözleşmesi", () => {
 
   it("eksik OAuth yapılandırmasını raporlar", () => {
     expect(getSearchConsoleMissingConfig()).toEqual(["clientId", "clientSecret", "redirectUri", "siteUrl"]);
+  });
+
+  it("imzalı OAuth state’i doğrular, yetkilendirme URL’si üretir ve tokenı maskeli metadata’ya indirger", () => {
+    process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_ID = "client-id";
+    process.env.GOOGLE_SEARCH_CONSOLE_REDIRECT_URI = "https://okulblog.example.com/oauth/search-console";
+    const state = createSearchConsoleOAuthState();
+    expect(verifySearchConsoleOAuthState(state)).toBe(true);
+    expect(verifySearchConsoleOAuthState(`${state}tampered`)).toBe(false);
+    expect(buildSearchConsoleAuthorizationUrl(state)).toContain("accounts.google.com/o/oauth2/v2/auth");
+    expect(getSearchConsoleTokenMetadata({ access_token: "secret", refresh_token: "refresh", expires_in: 3600 })).toEqual({ connected: true, hasRefreshToken: true, expiresInSeconds: 3600 });
   });
 
   it("token exchange/refresh ve sitemap, inspection, indexing, performance, links isteklerini üretir", async () => {

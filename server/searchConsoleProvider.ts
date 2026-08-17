@@ -1,5 +1,9 @@
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const SEARCH_CONSOLE_ENDPOINT = "https://searchconsole.googleapis.com/webmasters/v3";
+const GOOGLE_AUTH_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth";
+const SEARCH_CONSOLE_SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly", "https://www.googleapis.com/auth/webmasters"];
 
 type SearchConsoleConfig = { clientId?: string; clientSecret?: string; redirectUri?: string; siteUrl?: string };
 
@@ -9,6 +13,41 @@ function config(): SearchConsoleConfig {
 
 export function getSearchConsoleMissingConfig() {
   return Object.entries(config()).filter(([, value]) => !value?.trim()).map(([key]) => key);
+}
+
+function stateSecret() {
+  return process.env.JWT_SECRET || "okulblog-search-console-development-secret";
+}
+
+export function createSearchConsoleOAuthState() {
+  const payload = Buffer.from(JSON.stringify({ nonce: randomUUID(), issuedAt: Date.now() })).toString("base64url");
+  const signature = createHmac("sha256", stateSecret()).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+export function verifySearchConsoleOAuthState(state: string) {
+  const [payload, signature] = state.split(".");
+  if (!payload || !signature) return false;
+  const expected = createHmac("sha256", stateSecret()).update(payload).digest("base64url");
+  const left = Buffer.from(signature);
+  const right = Buffer.from(expected);
+  if (left.length !== right.length || !timingSafeEqual(left, right)) return false;
+  try {
+    const value = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { issuedAt?: number };
+    return typeof value.issuedAt === "number" && Date.now() - value.issuedAt < 10 * 60 * 1000;
+  } catch {
+    return false;
+  }
+}
+
+export function buildSearchConsoleAuthorizationUrl(state: string) {
+  const values = config();
+  if (!values.clientId || !values.redirectUri) throw new Error("Search Console OAuth Client ID ve Redirect URL gereklidir.");
+  return `${GOOGLE_AUTH_ENDPOINT}?${new URLSearchParams({ client_id: values.clientId, redirect_uri: values.redirectUri, response_type: "code", access_type: "offline", prompt: "consent", scope: SEARCH_CONSOLE_SCOPES.join(" "), state }).toString()}`;
+}
+
+export function getSearchConsoleTokenMetadata(token: { expires_in?: number; refresh_token?: string }) {
+  return { connected: true, hasRefreshToken: Boolean(token.refresh_token), expiresInSeconds: token.expires_in ?? null };
 }
 
 async function googleRequest(path: string, accessToken: string, init: RequestInit = {}) {

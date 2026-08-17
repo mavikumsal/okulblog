@@ -422,8 +422,8 @@
 - [x] `/panel/search-console` sayfasına Google OAuth Client ID alanı eklemek
 - [x] Google OAuth Client Secret ve Redirect URL alanlarını güvenli giriş olarak eklemek
 - [x] Search Console mülk URL’si, mülk türü ve aktif bağlantı ayarlarını eklemek
-- [ ] OAuth bağlantı başlatma, callback ve token metadata sözleşmesini hazırlamak; secret/token değerlerini istemciye döndürmemek
-- [ ] Search Console sitemap ve mülk doğrulama durumlarını bağlantı akışına bağlamak
+- [x] OAuth bağlantı başlatma, callback ve token metadata sözleşmesini hazırlamak; secret/token değerlerini istemciye döndürmemek
+- [x] Search Console sitemap ve mülk doğrulama durumlarını bağlantı akışına bağlamak
 - [x] AI soru üretimini Gemini/ChatGPT sağlayıcı seçimi, yapılandırılmış çıktı ve ön izleme akışıyla doğrulamak
 - [x] AI test üretimini soru listesi ön izlemesi ve kaydetmeden düzenleme akışıyla doğrulamak
 - [x] Search Console ve AI genişletmesi için Vitest, TypeScript, production build ve responsive doğrulama yapmak

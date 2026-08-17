@@ -70,7 +70,7 @@ import { parsePdfQuestions } from "./pdfQuestionParser";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 import { buildGoogleDriveAuthorizationUrl, createGoogleDriveResumableUpload, exchangeGoogleDriveCode, getGoogleDriveMissingConfig } from "./googleDriveProvider";
-import { buildSearchConsoleActions, exchangeSearchConsoleCode, getSearchConsoleMissingConfig, refreshSearchConsoleToken } from "./searchConsoleProvider";
+import { buildSearchConsoleActions, buildSearchConsoleAuthorizationUrl, createSearchConsoleOAuthState, exchangeSearchConsoleCode, getSearchConsoleMissingConfig, getSearchConsoleTokenMetadata, refreshSearchConsoleToken, verifySearchConsoleOAuthState } from "./searchConsoleProvider";
 import { renderPdfCover } from "./documentCover";
 
 export function canManagePopularEducationCategories(role: string | undefined) {
@@ -427,6 +427,21 @@ export const appRouter = router({
         sitemapStatus: values.search_console_sitemap_status || "not_configured",
         lastError: values.search_console_last_error || null,
       };
+    }),
+    searchConsoleAuthorization: adminProcedure.query(() => {
+      const missingConfig = getSearchConsoleMissingConfig();
+      if (missingConfig.length > 0) return { configured: false as const, authorizationUrl: null, missingConfig };
+      const state = createSearchConsoleOAuthState();
+      return { configured: true as const, authorizationUrl: buildSearchConsoleAuthorizationUrl(state), missingConfig: [] as string[] };
+    }),
+    searchConsoleOAuthCallback: adminProcedure.input(z.object({ code: z.string().trim().min(8).max(4000), state: z.string().trim().min(20).max(2000) })).mutation(async ({ input }) => {
+      if (!verifySearchConsoleOAuthState(input.state)) throw new TRPCError({ code: "BAD_REQUEST", message: "Search Console OAuth state doğrulanamadı veya süresi doldu." });
+      try {
+        const token = await exchangeSearchConsoleCode(input.code);
+        return { ...getSearchConsoleTokenMetadata(token), message: "Google Search Console bağlantısı doğrulandı. Token değerleri istemciye gönderilmedi." };
+      } catch {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Search Console OAuth kodu doğrulanamadı." });
+      }
     }),
     testProviderConnection: adminProcedure.input(z.object({
       provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "bunny-pull-zone", "adsense", "search-console", "google-analytics", "youtube", "video-source"]),
