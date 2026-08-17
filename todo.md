@@ -342,3 +342,19 @@
 - [x] Üye Panelim’e Sorularım ve Cevaplarım bölümlerini eklemek
 - [x] Üyenin kendi sorularını ve cevaplarını durum, kategori ve kayıt sayısıyla göstermek
 - [x] 94 Vitest testi, TypeScript, production build ve Soru-Cevap/Üye Panelim responsive görsel doğrulamasını tamamlamak
+
+## Zorunlu Eğitim/Kurum Kategorisi — Yeni Kapsam
+
+- [ ] Test oluşturma formunda kategori seçimini zorunlu yapmak ve “isteğe bağlı” metnini kaldırmak
+- [ ] Dokümanlar, Videolar, Simülasyonlar ve Oyunlar içerik formlarında Eğitim veya Kurum kategorisini zorunlu yapmak
+- [ ] Sorular ve Soru-Cevap kayıtlarında Eğitim veya Kurum kategorisini zorunlu yapmak
+- [ ] Tüm ilgili backend create/update prosedürlerinde kategori yoksa kaydı reddetmek
+- [ ] Kategori seçiminde kaynak türünü ve hiyerarşik kategori yolunu açıkça göstermek
+- [ ] Zorunlu kategori akışı için Vitest, TypeScript, build ve responsive görsel doğrulama yapmak
+
+## Admin Formu ve Soru-Cevap Editörü Sadeleştirme Planı
+
+- [ ] Admin içerik oluşturma ekranını yalnızca Testler, Dökümanlar, Videolar, Simülasyonlar, Oyunlar, Sorular ve Soru-Cevap akışlarına göre yeniden düzenlemek
+- [ ] Medya bağlama alanlarını içerik formlarından kaldırıp yalnızca Medya Merkezi içindeki gelişmiş Admin işlemine taşımak
+- [ ] Üye Soru-Cevap rich text ve görsel editörünün tasarım, doğrulama, boyutlandırma ve moderasyon kurallarını uygulama sözleşmesine dönüştürmek
+- [ ] Sadeleştirme sonrası kullanıcı akışını ve editör kurallarını test/build/görsel doğrulama kriterleriyle belgelemek
