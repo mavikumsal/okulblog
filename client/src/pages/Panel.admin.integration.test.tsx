@@ -26,7 +26,7 @@ vi.mock("@/lib/trpc", () => ({
     ai: { generateQuestion: hook() },
     contents: { list: hook([]), create: hook(), archive: hook() },
     tests: { list: hook(() => panelState.testList), create: hook() },
-    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: hook([{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active" }]), mediaTransferJobs: hook([]), createMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
+    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: hook([{ id: 4, fileName: "kapak.pdf", provider: "s3", status: "active", folderPath: "Kapaklar" }, { id: 5, fileName: "turkce.pdf", provider: "bunny-storage", status: "active", folderPath: "Dersler/Türkçe" }]), mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook(() => panelState.mediaLinks), unlinkMediaAsset: { useMutation: () => ({ isPending: false, mutate: panelState.unlinkMutate }) }, saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   },
 }));
@@ -80,12 +80,29 @@ describe("Panel Admin modülleri component akışları", () => {
     }
   });
 
+  it("Bulut Depolama S3 dosya seçimi ve klasör metadata alanını gösterir", () => {
+    panelState.route = "/panel/bulut-depolama";
+    render(<Panel />);
+    expect(screen.getByLabelText("S3 dosyası seç")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Klasör yolu" })).toBeInTheDocument();
+  });
+
   it("Bulut Depolama gerçek medya metadata kayıt formunu gösterir", () => {
     panelState.route = "/panel/bulut-depolama";
     render(<Panel />);
     expect(screen.getByText("Dosya metadata’sı ekle")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("örnek-dokuman.pdf")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Medya kaydını oluştur" })).toBeDisabled();
+  });
+
+  it("Medya Merkezi klasör yolunu gösterir ve klasör filtresiyle kayıtları daraltır", () => {
+    panelState.route = "/panel/bulut-depolama";
+    render(<Panel />);
+    expect(screen.getByText("Klasör: Kapaklar")).toBeInTheDocument();
+    expect(screen.getByText("Klasör: Dersler/Türkçe")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("combobox", { name: "Klasör filtresi" }), { target: { value: "Dersler/Türkçe" } });
+    expect(screen.queryByText("kapak.pdf")).not.toBeInTheDocument();
+    expect(screen.getByText("turkce.pdf")).toBeInTheDocument();
   });
 
   it("Medya entegrasyonlarında yükleniyor ve hata durumlarını gösterir", () => {

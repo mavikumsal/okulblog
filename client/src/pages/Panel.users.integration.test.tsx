@@ -24,7 +24,7 @@ const trpcMock = vi.hoisted(() => {
   ai: { generateQuestion: hook() },
   contents: { list: hook([]), create: hook(), archive: hook() },
   tests: { list: hook([]), create: hook() },
-  admin: { users: hook([{ id: 7, name: "Ayşe Öğrenci", email: "ayse@example.com", role: "member", lastSignedIn: new Date() }]), updateUserRole: hook(), testProviderConnection: hook(), settings: hook([]), mediaAssets: hook([]), mediaTransferJobs: hook([]), createMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook([]), unlinkMediaAsset: hook(), saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook([]), savePopularEducationCategories: hook() },
+  admin: { users: hook([{ id: 7, name: "Ayşe Öğrenci", email: "ayse@example.com", role: "member", lastSignedIn: new Date() }]), updateUserRole: hook(), testProviderConnection: hook(), settings: hook([]), mediaAssets: hook([]), mediaTransferJobs: hook([]), createMediaAsset: hook(), uploadMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), retryMediaTransferJob: hook(), cancelMediaTransferJob: hook(), linkMediaAsset: hook(), mediaAssetLinks: hook([]), unlinkMediaAsset: hook(), saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook([]), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   };
 });

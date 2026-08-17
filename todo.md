@@ -123,21 +123,21 @@
 
 - [x] Admin sidebar’ına S3, Google Drive ve Bunny.net sağlayıcılarını kullanan Medya Merkezi bölümü eklemek
 - [x] Medya varlıkları için sağlayıcı, dış dosya kimliği, URL, MIME türü, boyut, klasör ve sahiplik metadata modelini oluşturmak
-- [ ] S3 yükleme/listeleme akışını Medya Merkezi UI’sına bağlamak
+- [x] S3 yükleme/listeleme akışını Medya Merkezi UI’sına bağlamak
 - [ ] Google Drive OAuth ve resumable upload sağlayıcısını güvenli sunucu akışıyla eklemek
 - [ ] Bunny.net Storage/CDN ve video için gerektiğinde Bunny Stream sağlayıcı akışını eklemek
 - [x] Medya varlıklarını Testler, Dokümanlar, Videolar, Simülasyonlar, Oyunlar ve Haberler modüllerine bağlamak
 - [ ] Medya sağlayıcı sırlarını sunucu ortamında yapılandırmak ve yönetici yetkisiyle sınırlamak
-- [ ] Medya Merkezi için arama, filtre, klasör, önizleme, sağlayıcı rozeti ve güvenli arşivleme UI’sı eklemek
+- [x] Medya Merkezi için arama, filtre, klasör, önizleme, sağlayıcı rozeti ve güvenli arşivleme UI’sı eklemek
 - [x] Medya sağlayıcıları için yetki, hata/boş/yükleme durumu, responsive UI ve entegrasyon testleri eklemek
 - [ ] Google Drive kişisel hesap bağlantısı ve OAuth izin akışını desteklemek
 - [ ] Google Workspace ortak Drive bağlantısı, klasör seçimi ve OAuth/servis hesabı modelini desteklemek
 - [ ] Bunny.net DNS Zone, Storage Zone/CDN ve Stream yönetim bağlantılarını sağlayıcı ayarlarına eklemek
 - [x] Tüm sağlayıcıları içerik modüllerindeki medya alanlarıyla ortak metadata üzerinden ilişkilendirmek
 - [x] Sağlayıcılar arasında isteğe bağlı kopyalama ve taşıma işi oluşturmak
-- [ ] Kopyalama/taşıma işlerinde ilerleme, başarı, hata, yeniden deneme ve iptal durumlarını göstermek
+- [x] Kopyalama/taşıma işlerinde ilerleme, başarı, hata, yeniden deneme ve iptal durumlarını göstermek
 - [ ] Taşıma sonrası kaynak silme, URL güncelleme ve içerik referanslarını güvenli biçimde yönetmek
-- [ ] Sağlayıcılar arası aktarım yetkisini yalnızca Admin’e açmak ve işlemleri audit log’a kaydetmek
+- [x] Sağlayıcılar arası aktarım yetkisini yalnızca Admin’e açmak ve işlemleri audit log’a kaydetmek
 - [ ] Google AdSense için yayıncı kimliği, reklam birimi/slot kimliği, format, konum ve aktiflik ayarlarını yönetmek
 - [ ] Özel firmalar için reklamveren, kampanya, görsel/video medya varlığı, hedef URL, tarih aralığı ve gösterim konumu alanlarını yönetmek
 - [ ] Reklam alanlarını ana sayfa, içerik detayları, test sonuçları ve panel dışı uygun yerleşimlere bağlamak
@@ -180,3 +180,5 @@
 - [x] Ads/Search Console yapılandırma durumlarının backend sözleşmesiyle görünür doğrulanması
 - [x] Medya aktarım işi ilerleme ve durum alanlarının UI’da doğrulanması
 - [x] Medya link/unlink bileşen testleri ve son görsel denetim
+- [x] Medya Merkezi listesinde folderPath/klasör bilgisini görünür göstermek ve klasöre göre filtreleme eklemek
+- [x] Klasörlü medya kayıtları için component/integration test eklemek
