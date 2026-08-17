@@ -43,11 +43,24 @@ describe("Admin ayar ve güvenlik yönetimi", () => {
     expect(notifyOwner).toHaveBeenCalledTimes(1);
   });
 
+  it("provider bağlantısı için eksik hosting anahtarlarını raporlar", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+
+    await expect(caller.admin.testProviderConnection({ provider: "google-drive-personal" })).resolves.toMatchObject({
+      provider: "google-drive-personal",
+      configured: false,
+      status: "not_configured",
+      missingKeys: ["google_client_id", "google_client_secret"],
+    });
+    await expect(caller.admin.testProviderConnection({ provider: "s3" })).resolves.toMatchObject({ provider: "s3", configured: true, status: "ready" });
+  });
+
   it("üye rolü Admin ayarlarını değiştiremez veya güvenlik olaylarını listeleyemez", async () => {
     const caller = appRouter.createCaller(context("member"));
 
     await expect(caller.admin.settings()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.admin.saveSetting({ settingKey: "seo_description", settingValue: "değişiklik" })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.security.list()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.admin.testProviderConnection({ provider: "s3" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });

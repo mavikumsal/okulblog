@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import React from "react";
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { panelState, hook } = vi.hoisted(() => {
-  const state = { route: "/panel/ayarlar", userRole: "admin", testList: [] as unknown[], settingsState: { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false } };
+  const state = { route: "/panel/ayarlar", userRole: "admin", testList: [] as unknown[], providerMutate: vi.fn(), settingsState: { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false } };
   const makeQuery = (data: unknown, extra: Record<string, unknown> = {}) => ({ data, isLoading: false, isError: false, ...extra });
   const makeHook = (data: unknown = []) => ({ useQuery: () => makeQuery(typeof data === "function" ? data() : data), useMutation: () => ({ isPending: false, mutate: vi.fn() }) });
   return { panelState: state, hook: makeHook };
@@ -26,7 +26,7 @@ vi.mock("@/lib/trpc", () => ({
     ai: { generateQuestion: hook() },
     contents: { list: hook([]), create: hook(), archive: hook() },
     tests: { list: hook(() => panelState.testList), create: hook() },
-    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, mediaAssets: hook([]), mediaTransferJobs: hook([]), createMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
+    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, testProviderConnection: { useMutation: () => ({ isPending: false, mutate: panelState.providerMutate }) }, mediaAssets: hook([]), mediaTransferJobs: hook([]), createMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   },
 }));
@@ -34,7 +34,7 @@ vi.mock("@/lib/trpc", () => ({
 import Panel from "./Panel";
 
 describe("Panel Admin modülleri component akışları", () => {
-  afterEach(() => { cleanup(); panelState.userRole = "admin"; panelState.route = "/panel/ayarlar"; panelState.settingsState = { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false }; });
+  afterEach(() => { cleanup(); panelState.userRole = "admin"; panelState.route = "/panel/ayarlar"; panelState.providerMutate.mockReset(); panelState.settingsState = { data: [{ settingKey: "seo_description", settingValue: "OkulBlog eğitim platformu" }], isLoading: false, isError: false }; });
 
   it("ayarlar görünümünde izin, SEO, Search Console, reklam ve site haritası alanlarını gösterir", () => {
     panelState.route = "/panel/ayarlar";
@@ -43,6 +43,13 @@ describe("Panel Admin modülleri component akışları", () => {
     expect(screen.getByText("SEO ve Google Search Console")).toBeInTheDocument();
     expect(screen.getByText("Reklam Alanı")).toBeInTheDocument();
     expect(screen.getByText("Site haritası önizlemesi")).toBeInTheDocument();
+  });
+
+  it("provider test butonu doğru AdSense sağlayıcı anahtarını gönderir", () => {
+    panelState.route = "/panel/reklam";
+    render(<Panel />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Bağlantıyı test et" })[0]);
+    expect(panelState.providerMutate).toHaveBeenCalledWith({ provider: "adsense" });
   });
 
   it("Bulut Depolama, Reklam Alanı ve Search Console route’larında yapılandırılmadı durumunu gösterir", () => {

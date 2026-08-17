@@ -165,3 +165,5 @@
 - [x] Dahili S3 için Admin-only gerçek dosya yükleme prosedürünü medya varlığı metadata kaydıyla birleştirmek ve MIME/boyut testlerini eklemek
 
 - [x] Medya Merkezi kütüphanesine dosya adı araması, sağlayıcı filtresi, içerik modülü filtresi ve filtrelenmiş kayıt sayacı eklemek ve test etmek
+- [x] Hosting öncesi S3/Google Drive/Bunny/AdSense/Search Console provider test bağlantısı prosedürünü yapılandırılmadı, hazır ve eksik anahtar durumlarıyla test etmek
+- [x] Admin provider test butonlarının Google AdSense, Search Console ve bulut sağlayıcılarında doğru provider anahtarını gönderdiğini component testiyle doğrulamak

@@ -270,6 +270,22 @@ export const appRouter = router({
       return { success: true };
     }),
     settings: adminProcedure.query(() => listSiteSettings()),
+    testProviderConnection: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "adsense", "search-console"]) })).mutation(async ({ input }) => {
+      const settings = await listSiteSettings();
+      const requiredKeys: Record<string, string[]> = {
+        s3: [],
+        "google-drive-personal": ["google_client_id", "google_client_secret"],
+        "google-drive-workspace": ["google_client_id", "google_client_secret", "google_drive_shared_id"],
+        "bunny-storage": ["bunny_api_key", "bunny_storage_zone"],
+        "bunny-stream": ["bunny_api_key", "bunny_stream_library_id"],
+        "bunny-dns": ["bunny_api_key", "bunny_dns_zone_id"],
+        adsense: ["adsense_publisher_id"],
+        "search-console": ["google_client_id", "google_client_secret", "search_console_property"],
+      };
+      const configuredKeys = new Set(settings.filter(item => typeof item.settingValue === "string" && item.settingValue.trim().length > 0).map(item => item.settingKey));
+      const missing = requiredKeys[input.provider].filter(key => !configuredKeys.has(key));
+      return { provider: input.provider, configured: missing.length === 0, status: missing.length === 0 ? "ready" : "not_configured", missingKeys: missing, message: missing.length === 0 ? "Bağlantı yapılandırması hazır." : "Hosting sonrası gerekli bağlantı bilgilerini ekleyin." };
+    }),
     mediaAssets: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]).optional(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).optional() }).optional()).query(({ input }) => listMediaAssets(input)),
     createMediaAsset: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), providerAssetId: z.string().trim().max(500).optional().nullable(), fileName: z.string().trim().min(1).max(255), publicUrl: z.string().trim().url().max(900).optional().nullable(), mimeType: z.string().trim().min(1).max(120), sizeBytes: z.number().int().nonnegative().optional().nullable(), folderPath: z.string().trim().max(500).optional().nullable(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).default("general"), metadata: z.record(z.string(), z.unknown()).optional() })).mutation(async ({ ctx, input }) => { await createMediaAsset({ ...input, uploadedBy: ctx.user.id }); return { success: true }; }),
     uploadMediaAsset: adminProcedure.input(z.object({ fileName: z.string().trim().min(1).max(255), mimeType: z.string().trim().min(1).max(120), dataBase64: z.string().min(1), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).default("general") })).mutation(async ({ ctx, input }) => { const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]; if (!allowedMimeTypes.includes(input.mimeType)) throw new TRPCError({ code: "BAD_REQUEST", message: "Bu dosya türüne izin verilmiyor." }); const buffer = Buffer.from(input.dataBase64, "base64"); if (buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Dosya boyutu en fazla 20 MB olabilir." }); const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-"); const result = await storagePut(`okulblog/media/${ctx.user.id}/${safeName}`, buffer, input.mimeType); await createMediaAsset({ provider: "s3", providerAssetId: result.key, fileName: input.fileName, publicUrl: result.url, mimeType: input.mimeType, sizeBytes: buffer.byteLength, contentType: input.contentType, metadata: { storageKey: result.key }, uploadedBy: ctx.user.id }); return result; }),
