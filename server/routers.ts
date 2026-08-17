@@ -29,6 +29,12 @@ import {
   getPopularEducationCategoryIds,
   savePopularEducationCategoryIds,
   listHomeSlidesForAdmin,
+  listMediaAssets,
+  getMediaAsset,
+  createMediaAsset,
+  archiveMediaAsset,
+  listMediaTransferJobs,
+  createMediaTransferJob,
   saveSiteSetting,
   setRolePermission,
   listQuestions,
@@ -264,6 +270,11 @@ export const appRouter = router({
       return { success: true };
     }),
     settings: adminProcedure.query(() => listSiteSettings()),
+    mediaAssets: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]).optional(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).optional() }).optional()).query(({ input }) => listMediaAssets(input)),
+    createMediaAsset: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), providerAssetId: z.string().trim().max(500).optional().nullable(), fileName: z.string().trim().min(1).max(255), publicUrl: z.string().trim().url().max(900).optional().nullable(), mimeType: z.string().trim().min(1).max(120), sizeBytes: z.number().int().nonnegative().optional().nullable(), folderPath: z.string().trim().max(500).optional().nullable(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).default("general"), metadata: z.record(z.string(), z.unknown()).optional() })).mutation(async ({ ctx, input }) => { await createMediaAsset({ ...input, uploadedBy: ctx.user.id }); return { success: true }; }),
+    archiveMediaAsset: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { await archiveMediaAsset(input.id); return { success: true }; }),
+    mediaTransferJobs: adminProcedure.query(() => listMediaTransferJobs()),
+    createMediaTransferJob: adminProcedure.input(z.object({ mediaAssetId: z.number().int().positive(), sourceProvider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), targetProvider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), operation: z.enum(["copy", "move"]) })).mutation(async ({ ctx, input }) => { if (input.sourceProvider === input.targetProvider) throw new TRPCError({ code: "BAD_REQUEST", message: "Kaynak ve hedef sağlayıcı farklı olmalıdır." }); const asset = await getMediaAsset(input.mediaAssetId); if (!asset || asset.status === "archived") throw new TRPCError({ code: "NOT_FOUND", message: "Aktarılacak medya varlığı bulunamadı veya arşivlenmiş." }); if (asset.provider !== input.sourceProvider) throw new TRPCError({ code: "BAD_REQUEST", message: "Kaynak sağlayıcı medya varlığıyla eşleşmiyor." }); await createMediaTransferJob({ ...input, requestedBy: ctx.user.id }); return { success: true }; }),
     newsCategories: adminProcedure.query(() => listNewsCategories()),
     createNewsCategory: adminProcedure.input(z.object({ name: z.string().trim().min(2).max(120) })).mutation(async ({ input }) => {
       await createNewsCategory(input.name);

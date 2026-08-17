@@ -26,7 +26,7 @@ vi.mock("@/lib/trpc", () => ({
     ai: { generateQuestion: hook() },
     contents: { list: hook([]), create: hook(), archive: hook() },
     tests: { list: hook(() => panelState.testList), create: hook() },
-    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
+    admin: { users: hook([]), updateUserRole: hook(), settings: { useQuery: () => panelState.settingsState }, mediaAssets: hook([]), mediaTransferJobs: hook([]), createMediaAsset: hook(), archiveMediaAsset: hook(), createMediaTransferJob: hook(), saveSetting: hook(), newsCategories: hook([]), createNewsCategory: hook(), homeSlides: hook([]), createHomeSlide: hook(), updateHomeSlide: hook(), deleteHomeSlide: hook(), popularEducationCategories: hook({ selectedIds: [], available: [] }), savePopularEducationCategories: hook() },
     security: { list: hook([]) },
   },
 }));

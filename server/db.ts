@@ -1,6 +1,6 @@
 import { eq, asc, desc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, homeSlides, InsertUser, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, homeSlides, InsertUser, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, securityEvents, siteSettings, storedFiles, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -223,6 +223,62 @@ export async function createStoredFile(input: { fileName: string; storageKey: st
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   await db.insert(storedFiles).values(input);
+}
+
+export async function listMediaAssets(input?: { provider?: "s3" | "google-drive-personal" | "google-drive-workspace" | "bunny-storage" | "bunny-stream"; contentType?: "test" | "document" | "video" | "simulation" | "game" | "news" | "general" }) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(mediaAssets).orderBy(desc(mediaAssets.createdAt));
+  return rows.filter(row => (!input?.provider || row.provider === input.provider) && (!input?.contentType || row.contentType === input.contentType));
+}
+
+export async function createMediaAsset(input: {
+  provider: "s3" | "google-drive-personal" | "google-drive-workspace" | "bunny-storage" | "bunny-stream";
+  providerAssetId?: string | null;
+  fileName: string;
+  publicUrl?: string | null;
+  mimeType: string;
+  sizeBytes?: number | null;
+  folderPath?: string | null;
+  contentType?: "test" | "document" | "video" | "simulation" | "game" | "news" | "general";
+  metadata?: Record<string, unknown>;
+  uploadedBy: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.insert(mediaAssets).values({ ...input, contentType: input.contentType ?? "general", providerAssetId: input.providerAssetId ?? null, publicUrl: input.publicUrl ?? null, sizeBytes: input.sizeBytes ?? null, folderPath: input.folderPath ?? null, metadata: input.metadata ?? {} });
+}
+
+export async function archiveMediaAsset(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.update(mediaAssets).set({ status: "archived" }).where(eq(mediaAssets.id, id));
+}
+
+export async function getMediaAsset(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(mediaAssets).where(eq(mediaAssets.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function createMediaTransferJob(input: {
+  mediaAssetId: number;
+  sourceProvider: "s3" | "google-drive-personal" | "google-drive-workspace" | "bunny-storage" | "bunny-stream";
+  targetProvider: "s3" | "google-drive-personal" | "google-drive-workspace" | "bunny-storage" | "bunny-stream";
+  operation: "copy" | "move";
+  requestedBy: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  if (input.sourceProvider === input.targetProvider) throw new Error("Kaynak ve hedef sağlayıcı farklı olmalıdır.");
+  await db.insert(mediaTransferJobs).values({ ...input, status: "queued", progress: 0 });
+}
+
+export async function listMediaTransferJobs() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(mediaTransferJobs).orderBy(desc(mediaTransferJobs.createdAt));
 }
 
 export async function recordSecurityEvent(input: { eventType: string; severity: "low" | "medium" | "high" | "critical"; description: string; metadata?: Record<string, unknown> }) {

@@ -116,6 +116,37 @@ export const storedFiles = mysqlTable("stored_files", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const mediaAssets = mysqlTable("media_assets", {
+  id: int("id").autoincrement().primaryKey(),
+  provider: mysqlEnum("provider", ["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]).notNull(),
+  providerAssetId: varchar("providerAssetId", { length: 500 }),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  publicUrl: varchar("publicUrl", { length: 900 }),
+  mimeType: varchar("mimeType", { length: 120 }).notNull(),
+  sizeBytes: int("sizeBytes"),
+  folderPath: varchar("folderPath", { length: 500 }),
+  contentType: mysqlEnum("contentType", ["test", "document", "video", "simulation", "game", "news", "general"]).default("general").notNull(),
+  status: mysqlEnum("status", ["active", "archived"]).default("active").notNull(),
+  metadata: json("metadata"),
+  uploadedBy: int("uploadedBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const mediaTransferJobs = mysqlTable("media_transfer_jobs", {
+  id: int("id").autoincrement().primaryKey(),
+  mediaAssetId: int("mediaAssetId").notNull(),
+  sourceProvider: mysqlEnum("sourceProvider", ["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]).notNull(),
+  targetProvider: mysqlEnum("targetProvider", ["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]).notNull(),
+  operation: mysqlEnum("operation", ["copy", "move"]).notNull(),
+  status: mysqlEnum("status", ["queued", "running", "completed", "failed", "cancelled"]).default("queued").notNull(),
+  progress: int("progress").default(0).notNull(),
+  errorMessage: text("errorMessage"),
+  requestedBy: int("requestedBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const securityEvents = mysqlTable("security_events", {
   id: int("id").autoincrement().primaryKey(),
   eventType: varchar("eventType", { length: 120 }).notNull(),
@@ -133,5 +164,7 @@ export type ContentItem = typeof contentItems.$inferSelect;
 export type Question = typeof questions.$inferSelect;
 export type Test = typeof tests.$inferSelect;
 export type StoredFile = typeof storedFiles.$inferSelect;
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type MediaTransferJob = typeof mediaTransferJobs.$inferSelect;
 export type NewsCategory = typeof newsCategories.$inferSelect;
 export type HomeSlide = typeof homeSlides.$inferSelect;

@@ -36,6 +36,13 @@
       "when": 1786900774671,
       "tag": "0004_smart_scalphunter",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1786962076083,
+      "tag": "0005_gifted_lizard",
+      "breakpoints": true
     }
   ]
 }

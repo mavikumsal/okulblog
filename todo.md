@@ -122,7 +122,7 @@
 ## Dosya ve Medya Yönetimi
 
 - [x] Admin sidebar’ına S3, Google Drive ve Bunny.net sağlayıcılarını kullanan Medya Merkezi bölümü eklemek
-- [ ] Medya varlıkları için sağlayıcı, dış dosya kimliği, URL, MIME türü, boyut, klasör ve sahiplik metadata modelini oluşturmak
+- [x] Medya varlıkları için sağlayıcı, dış dosya kimliği, URL, MIME türü, boyut, klasör ve sahiplik metadata modelini oluşturmak
 - [ ] S3 yükleme/listeleme akışını Medya Merkezi UI’sına bağlamak
 - [ ] Google Drive OAuth ve resumable upload sağlayıcısını güvenli sunucu akışıyla eklemek
 - [ ] Bunny.net Storage/CDN ve video için gerektiğinde Bunny Stream sağlayıcı akışını eklemek
@@ -134,7 +134,7 @@
 - [ ] Google Workspace ortak Drive bağlantısı, klasör seçimi ve OAuth/servis hesabı modelini desteklemek
 - [ ] Bunny.net DNS Zone, Storage Zone/CDN ve Stream yönetim bağlantılarını sağlayıcı ayarlarına eklemek
 - [ ] Tüm sağlayıcıları içerik modüllerindeki medya alanlarıyla ortak metadata üzerinden ilişkilendirmek
-- [ ] Sağlayıcılar arasında isteğe bağlı kopyalama ve taşıma işi oluşturmak
+- [x] Sağlayıcılar arasında isteğe bağlı kopyalama ve taşıma işi oluşturmak
 - [ ] Kopyalama/taşıma işlerinde ilerleme, başarı, hata, yeniden deneme ve iptal durumlarını göstermek
 - [ ] Taşıma sonrası kaynak silme, URL güncelleme ve içerik referanslarını güvenli biçimde yönetmek
 - [ ] Sağlayıcılar arası aktarım yetkisini yalnızca Admin’e açmak ve işlemleri audit log’a kaydetmek
@@ -159,3 +159,5 @@
 - [x] Medya sağlayıcıları için veri kaynağı/query sözleşmesi kurup admin/non-admin yetki, yapılandırılmadı, loading ve error senaryolarını ayrı ayrı test etmek
 - [x] Bulut Depolama, Reklam ve Search Console rotalarında non-admin kullanıcıda RestrictedNotice/erişim kısıtı davranışını ayrı component testleriyle doğrulamak
 - [x] Medya sağlayıcı ekranları için admin ve non-admin yetki senaryolarını ayrı test adları ve assertions ile belgelemek
+- [x] Medya Merkezi’nde sağlayıcılar arası kopyalama/taşıma işi başlatan gerçek Admin UI akışını eklemek ve test etmek
+- [x] createMediaTransferJob akışında mediaAssetId varlığını doğrulamak ve geçersiz kayıt için hata testi eklemek
