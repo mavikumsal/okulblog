@@ -616,6 +616,34 @@ function PanelContent() {
     }
   );
   const [settingValue, setSettingValue] = useState("");
+  const [searchConsoleConfig, setSearchConsoleConfig] = useState<CloudStorageConfig>({
+    apiKey: "",
+    apiSecret: "",
+    accessKeyId: "",
+    secretAccessKey: "",
+    bucketName: "",
+    storageZone: "",
+    streamLibraryId: "",
+    dnsZoneId: "",
+    pullZoneId: "",
+    cdnHostname: "",
+    originUrl: "",
+    zoneSecurityKey: "",
+    customDomain: "",
+    region: "",
+    endpoint: "",
+    clientId: "",
+    clientSecret: "",
+    sharedDriveId: "",
+    propertyId: "",
+    measurementId: "",
+    channelId: "",
+    channelUrl: "",
+    videoUrl: "",
+    embedUrl: "",
+    redirectUri: "",
+    siteUrl: "",
+  });
   const [adSensePublisherId, setAdSensePublisherId] = useState("");
   const [customAdSnippet, setCustomAdSnippet] = useState("");
   const saveSetting = trpc.admin.saveSetting.useMutation({
@@ -968,6 +996,9 @@ function PanelContent() {
             isAdmin={isAdmin}
             settings={adminSettings}
             testProviderConnection={testProviderConnection}
+            storageConfig={searchConsoleConfig}
+            setStorageConfig={setSearchConsoleConfig}
+            initialProvider="search-console"
           />
           <SearchConsoleStatusPanel status={searchConsoleStatus} />
         </>
@@ -4529,6 +4560,8 @@ type CloudStorageConfig = {
   sharedDriveId: string;
   propertyId: string;
   measurementId: string;
+  redirectUri?: string;
+  siteUrl?: string;
   channelId: string;
   channelUrl: string;
   videoUrl: string;
@@ -4558,6 +4591,7 @@ function AdminOnlyIntegrationSection({
   testProviderConnection,
   storageConfig,
   setStorageConfig,
+  initialProvider,
 }: {
   title: string;
   description: string;
@@ -4577,8 +4611,9 @@ function AdminOnlyIntegrationSection({
   };
   storageConfig?: CloudStorageConfig;
   setStorageConfig?: (value: CloudStorageConfig) => void;
+  initialProvider?: ProviderKey;
 }) {
-  const [selectedProvider, setSelectedProvider] = useState<ProviderKey>("s3");
+  const [selectedProvider, setSelectedProvider] = useState<ProviderKey>(initialProvider ?? "s3");
   if (!isAdmin) return <RestrictedNotice />;
   if (settings.isLoading)
     return (
@@ -4764,7 +4799,29 @@ function AdminOnlyIntegrationSection({
       },
     ],
     adsense: [],
-    "search-console": [],
+    "search-console": [
+      {
+        key: "clientId",
+        label: "Google OAuth Client ID",
+        placeholder: "…apps.googleusercontent.com",
+      },
+      {
+        key: "clientSecret",
+        label: "Google OAuth Client Secret",
+        secret: true,
+        placeholder: "Hosting secret olarak girilecek",
+      },
+      {
+        key: "redirectUri",
+        label: "OAuth Redirect URL",
+        placeholder: "https://okulblog.com/api/search-console/callback",
+      },
+      {
+        key: "siteUrl",
+        label: "Search Console mülk URL’si",
+        placeholder: "https://okulblog.com/ veya sc-domain:okulblog.com",
+      },
+    ],
     "google-analytics": [
       {
         key: "measurementId",
@@ -4870,6 +4927,7 @@ function AdminOnlyIntegrationSection({
                       provider: key,
                       config:
                         key === "s3" ||
+                        key === "search-console" ||
                         key.startsWith("google") ||
                         key.startsWith("bunny")
                           ? storageConfig
@@ -4895,12 +4953,14 @@ function AdminOnlyIntegrationSection({
                 Sağlayıcı yapılandırması
               </p>
               <h3 className="mt-2 text-xl font-bold text-[#29465a]">
-                API anahtarı ve depolama alanı
+                {selectedProvider === "search-console"
+                  ? "Google OAuth ve mülk bağlantısı"
+                  : "API anahtarı ve depolama alanı"}
               </h3>
               <p className="mt-2 text-sm leading-6 text-[#71838b]">
-                Bu formdaki secret değerler veritabanına yazılmaz; yalnızca
-                bağlantı testi isteğinde sunucuya gönderilir ve yanıtta
-                maskelenir.
+                {selectedProvider === "search-console"
+                  ? "Client ID, Redirect URL ve mülk URL’sini burada hazırlayın. Client Secret hosting ortam değişkeni olarak girilecek; tarayıcıya veya veritabanına yazılmayacaktır."
+                  : "Bu formdaki secret değerler veritabanına yazılmaz; yalnızca bağlantı testi isteğinde sunucuya gönderilir ve yanıtta maskelenir."}
               </p>
             </div>
             <select
@@ -4922,6 +4982,7 @@ function AdminOnlyIntegrationSection({
               <option value="bunny-stream">Bunny Stream</option>
               <option value="bunny-dns">Bunny DNS</option>
               <option value="bunny-pull-zone">Bunny CDN · Pull Zone</option>
+              <option value="search-console">Google Search Console</option>
               <option value="google-analytics">
                 Google Analytics / İstatistik
               </option>

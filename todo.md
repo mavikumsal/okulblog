@@ -416,3 +416,15 @@
 - [x] AI sağlayıcı hataları, boş çıktı, şema hatası ve kota durumları için kullanıcı dostu hata mesajları eklemek
 - [x] AI entegrasyonu için Vitest, TypeScript, production build ve responsive doğrulama yapmak
 - [x] AI entegrasyonu için yeni checkpoint oluşturmak
+
+## Search Console OAuth ve AI Üretim Genişletmesi
+
+- [x] `/panel/search-console` sayfasına Google OAuth Client ID alanı eklemek
+- [x] Google OAuth Client Secret ve Redirect URL alanlarını güvenli giriş olarak eklemek
+- [x] Search Console mülk URL’si, mülk türü ve aktif bağlantı ayarlarını eklemek
+- [ ] OAuth bağlantı başlatma, callback ve token metadata sözleşmesini hazırlamak; secret/token değerlerini istemciye döndürmemek
+- [ ] Search Console sitemap ve mülk doğrulama durumlarını bağlantı akışına bağlamak
+- [x] AI soru üretimini Gemini/ChatGPT sağlayıcı seçimi, yapılandırılmış çıktı ve ön izleme akışıyla doğrulamak
+- [x] AI test üretimini soru listesi ön izlemesi ve kaydetmeden düzenleme akışıyla doğrulamak
+- [x] Search Console ve AI genişletmesi için Vitest, TypeScript, production build ve responsive doğrulama yapmak
+- [x] Kod yapısı özetini belgelemek ve yeni kapsam için checkpoint oluşturmak

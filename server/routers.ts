@@ -455,6 +455,8 @@ export const appRouter = router({
         channelUrl: z.string().trim().url().max(900).optional(),
         videoUrl: z.string().trim().url().max(900).optional(),
         embedUrl: z.string().trim().url().max(900).optional(),
+        redirectUri: z.string().trim().max(900).optional(),
+        siteUrl: z.string().trim().max(700).optional(),
       }).optional(),
     })).mutation(async ({ input }) => {
       const settings = await listSiteSettings();
@@ -511,8 +513,15 @@ export const appRouter = router({
                         ...(hasSettingOrInput("bunny_pull_zone_hostname", config.cdnHostname) ? [] : ["cdnHostname"]),
                         ...(hasSettingOrInput("bunny_pull_zone_origin", config.originUrl) ? [] : ["originUrl"]),
                       ]
-                    : input.provider === "google-analytics"
-                      ? [
+                          : input.provider === "search-console"
+                            ? [
+                                ...(hasSettingOrInput("google_client_id", config.clientId) ? [] : ["clientId"]),
+                                ...(hasSettingOrInput("google_client_secret", config.clientSecret) ? [] : ["clientSecret"]),
+                                ...(hasSettingOrInput("google_oauth_redirect_uri", config.redirectUri) ? [] : ["redirectUri"]),
+                                ...(hasSettingOrInput("search_console_property", config.siteUrl) ? [] : ["siteUrl"]),
+                              ]
+                            : input.provider === "google-analytics"
+                            ? [
                           ...(hasSettingOrInput("analytics_measurement_id", config.measurementId) ? [] : ["measurementId"]),
                           ...(hasSettingOrInput("analytics_property_id", config.propertyId) ? [] : ["propertyId"]),
                         ]

@@ -84,8 +84,8 @@ describe("Panel Admin modülleri component akışları", () => {
     for (const item of cases) {
       panelState.route = item.route;
       const { unmount } = render(<Panel />);
-      expect(screen.getByText(item.title)).toBeInTheDocument();
-      expect(screen.getByText(item.route === "/panel/bulut-depolama" ? "1/7 hazır" : "Yapılandırılmadı")).toBeInTheDocument();
+      expect(screen.getAllByText(item.title).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(item.route === "/panel/bulut-depolama" ? "1/7 hazır" : "Yapılandırılmadı").length).toBeGreaterThan(0);
       expect(screen.getByText(item.provider)).toBeInTheDocument();
       expect(screen.getAllByRole("button", { name: "Bağlantıyı test et" }).length).toBeGreaterThan(0);
       unmount();
@@ -135,6 +135,18 @@ describe("Panel Admin modülleri component akışları", () => {
     fireEvent.change(screen.getByLabelText("AdSense reklam kodu"), { target: { value: "pagead2.googlesyndication.com/ad.js" } });
     fireEvent.click(screen.getByRole("button", { name: "AdSense ayarlarını kaydet" }));
     expect(panelState.adsenseMutate).toHaveBeenCalledWith(expect.objectContaining({ settingKey: "adsense_config" }));
+  });
+
+  it("Search Console OAuth ve mülk alanlarını gösterir", () => {
+    panelState.route = "/panel/search-console";
+    render(<Panel />);
+    expect(screen.getByLabelText("Google OAuth Client ID")).toBeInTheDocument();
+    expect(screen.getByLabelText("Google OAuth Client Secret")).toHaveAttribute("type", "password");
+    expect(screen.getByLabelText("OAuth Redirect URL")).toBeInTheDocument();
+    expect(screen.getByLabelText("Search Console mülk URL’si")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Search Console mülk URL’si"), { target: { value: "https://okulblog.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Alanları test et" }));
+    expect(panelState.providerMutate).toHaveBeenCalledWith(expect.objectContaining({ provider: "search-console", config: expect.objectContaining({ siteUrl: "https://okulblog.com" }) }));
   });
 
   it("Search Console status sözleşmesindeki mülk, doğrulama, sitemap ve hata kartlarını gösterir", () => {
