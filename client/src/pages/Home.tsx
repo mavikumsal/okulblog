@@ -222,7 +222,7 @@ export default function Home() {
               <div className="mt-3 hidden flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-[#b6c7c9] sm:flex"><span>• Kazanım odaklı</span><span>• Rol tabanlı</span><span>• Yapay zekâ destekli</span></div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[300px] sm:max-w-[360px] lg:absolute lg:right-8 lg:top-1/2 lg:w-[360px] lg:-translate-y-1/2">
+            <div className="relative mx-auto w-full max-w-[300px] sm:max-w-[360px] lg:absolute lg:right-5 lg:top-1/2 lg:w-[320px] lg:-translate-y-1/2">
               <div className="absolute -left-5 top-20 h-48 w-48 rounded-full bg-[#c9e4dc]/20 blur-3xl" />
               <div className="relative overflow-hidden rounded-[20px] border border-white/25 bg-white/95 p-2.5 text-[#15344e] shadow-[0_16px_40px_rgba(31,41,55,.24)] sm:rounded-[24px] sm:p-3.5">
                 <div className="flex items-center justify-between border-b border-[#e1e2d9] pb-4"><div className="flex items-center gap-2.5"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#cce9df] text-[#176559]"><Search size={17} /></span><div><p className="text-sm font-bold">Öğrenme yolu</p><p className="text-[11px] text-[#75838a]">Adım adım keşfet</p></div></div><span className="rounded-full bg-[#f5e4b6] px-3 py-1 text-[10px] font-bold text-[#855f20]">AKILLI SEÇİM</span></div>
@@ -230,7 +230,7 @@ export default function Home() {
                 <div className="mt-2 grid grid-cols-3 gap-1.5 sm:mt-3 sm:gap-2"><MiniTile icon={FileText} label="Doküman" tone="bg-[#e6f1ec] text-[#286b5e]" /><MiniTile icon={Target} label="Test" tone="bg-[#fbefd3] text-[#8f6621]" /><MiniTile icon={BrainCircuit} label="AI çalışma" tone="bg-[#ece8f7] text-[#604985]" /></div>
                 <div className="mt-2 flex items-center justify-between rounded-2xl sm:mt-3 border border-[#e3e5dc] bg-white px-4 py-3"><div><p className="text-xs font-bold">Sıradaki çalışma</p><p className="mt-0.5 text-[11px] text-[#77858a]">Okuduğunu anlama</p></div><ArrowRight size={17} className="text-[#739b90]" /></div>
               </div>
-              {(user?.role === "admin" || user?.role === "teacher") && <QuestionProductionDashboard compact className="mt-4 lg:absolute lg:-bottom-24 lg:-left-8 lg:w-[280px] lg:shadow-[0_20px_55px_rgba(0,0,0,.22)]" />}
+              {(user?.role === "admin" || user?.role === "teacher") && <QuestionProductionDashboard compact className="mt-3 lg:absolute lg:top-16 lg:-left-3 lg:w-[230px] lg:scale-[.78] lg:origin-top-left lg:shadow-[0_16px_40px_rgba(0,0,0,.22)]" />}
               <div className="absolute -bottom-2 -right-2 rounded-xl bg-[#ffd21a] px-3 py-2 text-[#111827] shadow-xl sm:-right-5"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div>
             </div>
           </div>

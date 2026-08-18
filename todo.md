@@ -572,3 +572,12 @@
 - [x] Masaüstü, tablet ve mobilde kart taşması ve içerik kesilmesini önlemek
 - [x] Yarı yüksek hero değişikliği için test, TypeScript, production build ve görsel doğrulama yapmak
 - [x] Yarı yüksek hero değişikliği için geri alınabilir checkpoint oluşturmak
+
+## Hero Sağ Kompozisyonunu Alana Sığdırma
+
+- [x] Öğrenme yolu ve soru üretim istatistik kartlarının mevcut taşma noktalarını belirlemek
+- [x] Sağ kompozisyonu hero alanının sınırları içinde kalacak şekilde küçültmek ve konumlandırmak
+- [x] İstatistik kartındaki başlık, sayılar ve durum bilgisini okunabilir biçimde korumak
+- [x] Masaüstü ve mobilde kartların kesilmesini, yatay taşmasını ve alt hero dışına çıkmasını önlemek
+- [x] Kompozisyon düzeltmesi için test, TypeScript, production build ve görsel doğrulama yapmak
+- [x] Kompozisyon düzeltmesi için geri alınabilir checkpoint oluşturmak
