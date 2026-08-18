@@ -105,3 +105,16 @@
   @media (min-width: 640px) { .container { padding-left: 1.5rem; padding-right: 1.5rem; } }
   @media (min-width: 1024px) { .container { padding-left: 2rem; padding-right: 2rem; max-width: 1280px; } }
 }
+
+@keyframes qa-success-pop {
+  0% { opacity: 0; transform: translateY(10px) scale(.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.qa-success-pop {
+  animation: qa-success-pop 240ms cubic-bezier(.23,1,.32,1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qa-success-pop { animation: none; }
+}

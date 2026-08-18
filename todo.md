@@ -667,3 +667,18 @@
 - [x] Masaüstü, mobil ve erişilebilirlik doğrulaması yapmak
 - [x] TypeScript, Vitest ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Soru-Cevap Dosya, Başlık ve Sıralama İyileştirmeleri
+
+- [x] Soru Sor modalında maksimum 5 MB dosya boyutu sınırı uygulamak
+- [x] Dosya sınırı aşıldığında anlaşılır ve erişilebilir uyarı göstermek
+- [x] Soru başarıyla gönderildiğinde şık bir onay animasyonu göstermek
+- [x] URL parametrelerinden seçilen sınıf ve ders bilgisini QA üst başlığında dinamik göstermek
+- [x] Soru listesine sıralama açılır menüsü eklemek
+- [x] En Yeni sıralamasını uygulamak
+- [x] En Çok Cevaplanan sıralamasını uygulamak
+- [x] Çözüldü filtresini/sıralamasını uygulamak
+- [x] Yeni QA davranışları için Vitest testleri eklemek
+- [x] Masaüstü ve mobil responsive/erişilebilirlik doğrulaması yapmak
+- [x] TypeScript, Vitest ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak

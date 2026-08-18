@@ -50,6 +50,16 @@ describe("Soru-Cevap sayfası", () => {
     expect(screen.getByLabelText("Soru başlığı")).toBeInTheDocument();
   });
 
+  it("modalda 5 MB görsel sınırını ve soru sıralama seçeneklerini gösterir", () => {
+    qaState.isAuthenticated = true;
+    render(<QA />);
+    fireEvent.click(screen.getByRole("button", { name: "Soru Sor" }));
+    expect(screen.getByText("5 MB", { exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Soru sıralama" })).toHaveValue("newest");
+    expect(screen.getByRole("option", { name: "En Çok Cevaplanan" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Çözüldü" })).toBeInTheDocument();
+  });
+
   it("arama ve kategori seçimini kullanıcıya sunar ve URL'yi günceller", () => {
     render(<QA />);
     fireEvent.change(screen.getByPlaceholderText("Sorularda ara..."), { target: { value: "matematik" } });
