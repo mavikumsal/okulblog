@@ -913,3 +913,9 @@
 - [x] Mobil içerik sayaçlarını ilgili içerik türü filtrelerine tıklanabilir bağlantılar yap
 - [x] Hero responsive görünümünü 320px, 375px ve tablet genişliklerinde doğrula
 - [x] Bu değişiklikler için Vitest, TypeScript, build ve checkpoint işlemlerini tamamla
+
+## Yeni istek: interaktif hero ve tablet sınıf grid’i
+- [x] Mobil sınıf kartı sayaçlarında gerçek video, test, doküman ve diğer içerik sayılarını göster
+- [x] Hero kategori seçimini kullanıcı tıklamasıyla anlık güncelle ve seçimi görünür kıl
+- [x] Tablet ekranlarda sınıf kartlarını üç sütunlu responsive grid yap
+- [x] Dinamik sayaç, hero seçim ve tablet grid için test, TypeScript, build ve responsive doğrulama yap
