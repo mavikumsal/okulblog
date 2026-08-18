@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { categoryIdsForSelection, contentTypes, getTypeFromPath } from "./ContentHub";
+import { categoryBreadcrumb } from "./ContentDetail";
 
 type Node = {
   id: number;
@@ -30,5 +31,10 @@ describe("ContentHub public kategori akışı", () => {
     expect(Array.from(categoryIdsForSelection(nodes.filter(node => node.isActive), 3)!)).toEqual([3, 4, 5]);
     expect(Array.from(categoryIdsForSelection(nodes.filter(node => node.isActive), 5)!)).toEqual([5]);
     expect(categoryIdsForSelection(nodes, null)).toBeNull();
+  });
+
+  it("detay sayfası için Admin kategori yolunu kökten kazanıma kadar üretir", () => {
+    expect(categoryBreadcrumb(5, nodes.filter(node => node.isActive)).map(node => node.name)).toEqual(["İlkokul", "1. Sınıf", "Türkçe", "Okuma", "Sesleri tanır"]);
+    expect(categoryBreadcrumb(6, nodes.filter(node => node.isActive))).toEqual([]);
   });
 });

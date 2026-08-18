@@ -738,3 +738,14 @@
 - [x] Admin’in kategori ağacını ve aktif/pasif durumunu içerik listelerine yansıtmak
 - [x] Haberler dahil tüm içerik türlerinde sade kategori görünümünü korumak
 - [x] Yeni public kategori görünümü için test, responsive doğrulama ve checkpoint tamamlamak
+
+## İçerik Detayları ve Kategori Yönetimi İyileştirmeleri
+
+- [x] Public içerik kartlarından içerik detay sayfasına yönlendirme eklemek
+- [x] İçerik detay sayfasında Admin kategori yolunu breadcrumb olarak göstermek
+- [x] Testler, Dokümanlar, Videolar, Oyunlar, Simülasyonlar ve Haberler için detay rotasını desteklemek
+- [x] Admin kategori aktif/pasif değişikliğinin public içerik sayfalarında anında yansımasını sağlamak
+- [x] Admin kategori ağacında kategoriye bağlı içerik sayısını göstermek
+- [x] Admin kategori ağacına hızlı düzenleme, aktif/pasif ve içerikleri görüntüleme bağlantıları eklemek
+- [x] Yeni akışlar için Vitest, TypeScript, production build ve responsive doğrulaması yapmak
+- [x] İçerik detayları ve kategori yönetimi sürümü için checkpoint oluşturmak

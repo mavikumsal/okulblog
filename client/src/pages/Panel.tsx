@@ -106,6 +106,8 @@ function PanelContent() {
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
   const isAdmin = user?.role === "admin";
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const requestedCategoryId = Number(searchParams?.get("categoryId") ?? 0) || undefined;
   const requestedSection = getPanelSectionFromRoute(
     location,
     typeof window !== "undefined" ? window.location.search : ""
@@ -208,6 +210,26 @@ function PanelContent() {
     onError: () => toast.error("Kategori durumu güncellenemedi."),
   });
   const categoryOptions = (categoryNodes.data ?? []) as CategoryOption[];
+  const categoryContentCounts = useMemo(() => {
+    const direct = new Map<number, number>();
+    const children = new Map<number, number[]>();
+    for (const node of categoryOptions) {
+      if (node.parentId) children.set(node.parentId, [...(children.get(node.parentId) ?? []), node.id]);
+    }
+    for (const item of overview.data?.content ?? []) {
+      if (item.categoryId) direct.set(item.categoryId, (direct.get(item.categoryId) ?? 0) + 1);
+    }
+    const totals = new Map<number, number>();
+    const totalFor = (id: number, seen = new Set<number>()): number => {
+      if (seen.has(id)) return 0;
+      const nextSeen = new Set(seen).add(id);
+      const total = (direct.get(id) ?? 0) + (children.get(id) ?? []).reduce((sum, childId) => sum + totalFor(childId, nextSeen), 0);
+      totals.set(id, total);
+      return total;
+    };
+    categoryOptions.forEach(node => totalFor(node.id));
+    return totals;
+  }, [categoryOptions, overview.data?.content]);
   const educationCategoryOptions = categoryOptions
     .filter(item => item.categoryType === "education" && item.isActive)
     .sort((a, b) =>
@@ -334,7 +356,7 @@ function PanelContent() {
   const selectedContentType =
     getPanelContentType(requestedSection) ?? contentType;
   const contentList = trpc.contents.list.useQuery(
-    { contentType: selectedContentType },
+    { contentType: selectedContentType, categoryId: requestedCategoryId },
     {
       enabled:
         Boolean(user) &&
@@ -1512,12 +1534,27 @@ function PanelContent() {
                             </Button>
                           </div>
                         ) : (
-                          <span className="truncate text-sm font-semibold text-[#456073]">
-                            {item.name}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="truncate text-sm font-semibold text-[#456073]">
+                              {item.name}
+                            </span>
+                            <p className="mt-1 text-[11px] text-[#82918f]">
+                              {categoryContentCounts.get(item.id) ?? 0} bağlı içerik · {categoryPath(item, categoryOptions)}
+                            </p>
+                          </div>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        {isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setLocation(`/panel/icerikler?categoryId=${item.id}`)}
+                            className="h-8 rounded-lg text-xs"
+                          >
+                            İçerikleri gör
+                          </Button>
+                        )}
                         {editingCategoryId !== item.id && isAdmin && (
                           <Button
                             size="sm"

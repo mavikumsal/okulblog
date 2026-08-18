@@ -227,10 +227,10 @@ export const appRouter = router({
     }),
   }),
   contents: router({
-    list: protectedProcedure.input(z.object({ contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).query(async ({ ctx, input }) => {
+    list: protectedProcedure.input(z.object({ contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]), categoryId: z.number().int().positive().optional() })).query(async ({ ctx, input }) => {
       const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;
       await assertSectionAccess(ctx.user, sectionMap[input.contentType]);
-      return listContentByType(input.contentType);
+      return listContentByType(input.contentType, input.categoryId);
     }),
     archive: protectedProcedure.input(z.object({ id: z.number().int().positive(), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(async ({ ctx, input }) => {
       const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;

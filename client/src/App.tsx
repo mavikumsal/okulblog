@@ -9,6 +9,7 @@ import Panel from "./pages/Panel";
 import TestRunner from "./pages/TestRunner";
 import QA from "./pages/QA";
 import ContentHub from "./pages/ContentHub";
+import ContentDetail from "./pages/ContentDetail";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/panel" component={Panel} />
       <Route path="/test/:id" component={TestRunner} />
       <Route path="/soru-cevap" component={QA} />
+      <Route path="/icerik/:type/:id" component={ContentDetail} />
       <Route path="/icerik/:type" component={ContentHub} />
       <Route path="/panel/:section" component={Panel} />
       <Route path="/404" component={NotFound} />

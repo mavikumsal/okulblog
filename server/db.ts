@@ -155,10 +155,11 @@ export async function getContentOverview() {
   return db.select().from(contentItems).orderBy(asc(contentItems.contentType));
 }
 
-export async function listContentByType(contentType: "test" | "document" | "simulation" | "video" | "game" | "news") {
+export async function listContentByType(contentType: "test" | "document" | "simulation" | "video" | "game" | "news", categoryId?: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(contentItems).where(eq(contentItems.contentType, contentType)).orderBy(desc(contentItems.createdAt));
+  const conditions = [eq(contentItems.contentType, contentType), categoryId ? eq(contentItems.categoryId, categoryId) : undefined].filter(Boolean) as Array<ReturnType<typeof eq>>;
+  return db.select().from(contentItems).where(and(...conditions)).orderBy(desc(contentItems.createdAt));
 }
 
 export async function updateContentStatus(input: { id: number; status: "draft" | "pending" | "published" | "archived" }) {
