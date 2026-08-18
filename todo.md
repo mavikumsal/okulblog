@@ -598,3 +598,11 @@
 - [x] Yeni bölüm sırasını masaüstü ve mobil viewport’larda görsel olarak doğrulamak
 - [x] Bölüm sırası değişikliği sonrası Vitest, TypeScript ve production build kontrollerini çalıştırmak
 - [x] Bölüm sırası rafinesi için yeni checkpoint oluşturmak
+
+## Ana Sayfa Popüler Kategori Bölümü Kaldırma
+
+- [x] Ana sayfadaki “Popüler eğitim kategorileri” bölümünü kaldırmak
+- [x] Bölüm kaldırıldıktan sonra kategori sonuçları ve kalan ana sayfa akışındaki gereksiz bağlantıları temizlemek
+- [x] Masaüstü ve mobil görünümde bölüm boşluğu ve ardışık section geçişlerini doğrulamak
+- [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak
