@@ -699,3 +699,12 @@
 - [x] Masaüstü ve mobil görünümü doğrulamak
 - [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Hero Dashboard Kompozisyonunu Alana Sığdırma Rafinesi
+
+- [x] Sağ hero dashboard kompozisyonunun mevcut taşma ve ölçek sorununu düzeltmek
+- [x] Dashboard kartlarını bulunduğu hero alanına tamamen sığacak şekilde küçültmek
+- [x] Kart metinleri ve metriklerin küçültme sonrası okunabilirliğini korumak
+- [x] Masaüstü ve mobil viewport’larda yatay/dikey taşma olmadığını doğrulamak
+- [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak
