@@ -877,3 +877,9 @@
 - [x] Hover önizlemede Tümünü Gör butonu ve içerik türü ikonlarını görünür/doğrulanabilir yap
 - [x] /onizleme/guncel paylaşılabilir güncelleme önizleme sayfasını oluştur
 - [x] Yeni önizleme sayfasını 130 test, TypeScript, build ve responsive görsel kontrolleriyle doğrula
+
+## Yeni istek: dinamik sınıf önizleme içeriği
+- [x] Önizleme kartlarında sınıfa göre gerçek ders kategorilerini getir
+- [x] Sınıf bağlamına göre yeni eklenen gerçek içerikleri getir ve göster
+- [x] Dinamik veri yokken erişilebilir ve açıklayıcı boş durum göster
+- [x] Dinamik önizleme için test, TypeScript, build ve responsive doğrulama yap
