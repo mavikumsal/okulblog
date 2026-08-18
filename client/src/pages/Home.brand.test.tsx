@@ -17,9 +17,9 @@ vi.mock("@/lib/trpc", () => ({
   trpc: {
     platform: {
       homeSlides: { useQuery: () => ({ data: [], isLoading: false, isError: false }) },
-      overview: { useQuery: () => ({ data: { educationCategories: [], content: [] }, isLoading: false, isError: false }) },
+      overview: { useQuery: () => ({ data: { educationCategories: [{ id: 1, name: "Türkçe", level: "subject" }], content: [] }, isLoading: false, isError: false }) },
       popularEducationCategories: { useQuery: () => ({ data: [], isLoading: false, isError: false }) },
-      contentByCategory: { useQuery: () => ({ data: [], isLoading: false, isError: false }) },
+      contentByCategory: { useQuery: () => ({ data: [{ id: 7, title: "Türkçe çalışma testi", contentType: "test", summary: "Kısa test" }, { id: 8, title: "Türkçe konu dokümanı", contentType: "document", summary: "Kısa doküman" }], isLoading: false, isError: false }) },
     },
   },
 }));
@@ -53,6 +53,29 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     expect(screen.getAllByRole("button", { name: "İçerikler" })).toHaveLength(1);
     fireEvent.click(screen.getAllByRole("button", { name: "Giriş yap" })[0]);
     expect(homeState.startLogin).toHaveBeenCalledTimes(1);
+  });
+
+  it("Ders kartını seçili kategori sonuçlarına taşır ve içerik türü filtresini uygular", () => {
+    render(<Home />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Türkçe/ }));
+    expect(screen.getByText("Seçili öğrenme yolu")).toBeInTheDocument();
+    expect(screen.getByText("Türkçe çalışma testi")).toBeInTheDocument();
+
+    const documentFilter = screen.getAllByRole("button", { name: /^Dokümanlar$/ }).at(-1);
+    expect(documentFilter).toBeDefined();
+    fireEvent.click(documentFilter!);
+    expect(screen.getByText("Türkçe konu dokümanı")).toBeInTheDocument();
+    expect(screen.queryByText("Türkçe çalışma testi")).not.toBeInTheDocument();
+  });
+
+  it("iletişim formunu ve SSS alanını ana sayfada gösterir", () => {
+    render(<Home />);
+
+    expect(screen.getByText("Sıkça sorulan sorular")).toBeInTheDocument();
+    expect(screen.getByLabelText("Adınız")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("E-posta").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByLabelText("Mesajınız")).toBeInTheDocument();
   });
 
   it("oturumlu kullanıcıya Panelim ve Panele git CTA’larını gösterip Panel’e yönlendirir", () => {

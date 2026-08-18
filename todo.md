@@ -606,3 +606,17 @@
 - [x] Masaüstü ve mobil görünümde bölüm boşluğu ve ardışık section geçişlerini doğrulamak
 - [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Ana Sayfa Etkileşim ve İletişim İyileştirmeleri
+
+- [x] Dersleri Keşfet kartlarını ilgili içerik türü filtreleriyle eşleştirmek
+- [x] Kart tıklamasında kullanıcıyı seçili filtreyle içerik sayfasına yönlendirmek
+- [x] Ana sayfanın altına sade iletişim formu eklemek
+- [x] İletişim formunda doğrulama, başarı ve hata durumlarını göstermek
+- [x] Ana sayfanın altına sıkça sorulan sorular bölümü eklemek
+- [x] SSS bölümünü klavye erişimli açılır/kapanır yapı olarak uygulamak
+- [x] Hero slider geçişlerini daha akıcı animasyonla güncellemek
+- [x] Hero slider otomatik geçiş süresini 5 saniyeye ayarlamak
+- [x] Yeni akışları masaüstü ve mobilde görsel olarak doğrulamak
+- [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak
