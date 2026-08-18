@@ -907,3 +907,9 @@
 - [x] İkinci hero sağ kartını mobilde ekran genişliğine uyumlu hale getir
 - [x] Kart iç boşluklarını, başlık satırını ve küçük ekran okunabilirliğini iyileştir
 - [x] Mobil ve masaüstü görsel kontrol ile 133 test, TypeScript ve build doğrulamasını tamamla
+
+## Yeni istek: hero gerçek kategori ve mobil sayaç bağlantıları
+- [x] Hero öğrenme yolu kartındaki örnek sınıf/ders metnini gerçek kategori verisine bağla
+- [x] Mobil içerik sayaçlarını ilgili içerik türü filtrelerine tıklanabilir bağlantılar yap
+- [x] Hero responsive görünümünü 320px, 375px ve tablet genişliklerinde doğrula
+- [x] Bu değişiklikler için Vitest, TypeScript, build ve checkpoint işlemlerini tamamla

@@ -24,7 +24,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-import Home, { buildClassAllContentUrl, classSummary } from "./Home";
+import Home, { buildClassAllContentUrl, buildClassTypeUrl, classSummary, getHeroLearningContext } from "./Home";
 
 describe("Home marka, mobil menü ve CTA akışı", () => {
   afterEach(() => {
@@ -131,6 +131,19 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
 
   it("sınıfın Tümünü Gör URL’si sınıfı ve tüm içerik modunu korur", () => {
     expect(buildClassAllContentUrl("1. Sınıf")).toBe("/icerik/test?class=1.%20S%C4%B1n%C4%B1f&contentType=all");
+  });
+
+  it("hero öğrenme yolu için gerçek sınıf ve ders bağlamını üretir", () => {
+    const context = getHeroLearningContext([
+      { id: 10, name: "1. Sınıf", level: "class", parentId: null, sortOrder: 1 },
+      { id: 11, name: "Türkçe", level: "subject", parentId: 10, sortOrder: 1 },
+    ], []);
+    expect(context.className).toBe("1. Sınıf");
+    expect(context.subjectName).toBe("Türkçe");
+  });
+
+  it("mobil içerik sayaç URL’si sınıf ve içerik türünü korur", () => {
+    expect(buildClassTypeUrl("1. Sınıf", "video")).toBe("/icerik/video?class=1.%20S%C4%B1n%C4%B1f&contentType=video");
   });
 
   it("oturumlu kullanıcıya Panelim ve Panele git CTA’larını gösterip Panel’e yönlendirir", () => {

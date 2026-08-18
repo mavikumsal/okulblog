@@ -96,6 +96,7 @@ export default function Home() {
   const featuredContent = (overview.data?.content ?? []).filter(item => item.status === "published" || item.status === "pending").slice(0, 6);
   const referenceSubjects = [{ id: -1, name: "Türkçe", level: "Ders kaynakları" }, { id: -2, name: "Matematik", level: "Problem ve işlem çalışmaları" }, { id: -3, name: "Fen Bilimleri", level: "Bilim ve keşif içerikleri" }, { id: -4, name: "Sosyal Bilgiler", level: "Tarih ve toplum çalışmaları" }, { id: -5, name: "İngilizce", level: "Dil ve kelime çalışmaları" }, { id: -6, name: "Diğer Dersler", level: "Sanat, müzik ve beden" }];
   const subjectCards = displayedEducationCategories.length ? displayedEducationCategories.slice(0, 6) : (educationCategories.length ? educationCategories.slice(0, 6) : referenceSubjects);
+  const heroLearning = getHeroLearningContext(educationCategories as HomeCategoryNode[], (overview.data?.content ?? []) as HomeContentItem[]);
   const newsItems = (overview.data?.content ?? []).filter(item => item.contentType === "news" && (item.status === "published" || item.status === "pending")).slice(0, 3);
   const categoryNameById = new Map([...(overview.data?.educationCategories ?? []), ...(overview.data?.institutionCategories ?? [])].map(item => [item.id, item.name]));
   const selectedCategory = educationCategories.find(category => category.id === selectedCategoryId);
@@ -239,8 +240,8 @@ export default function Home() {
               <div className="absolute -left-5 top-16 h-40 w-40 rounded-full bg-[#c9e4dc]/20 blur-3xl" />
               <div className="relative overflow-hidden rounded-[20px] border border-white/25 bg-white/95 p-3 text-[#15344e] shadow-[0_16px_40px_rgba(31,41,55,.24)] sm:rounded-[22px] sm:p-3 lg:p-2.5">
                 <div className="flex min-w-0 items-center justify-between gap-2 border-b border-[#e1e2d9] pb-3"><div className="flex items-center gap-2.5"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#cce9df] text-[#176559]"><Search size={17} /></span><div><p className="text-xs font-bold sm:text-sm">Öğrenme yolu</p><p className="text-[11px] text-[#75838a]">Adım adım keşfet</p></div></div><span className="rounded-full bg-[#f5e4b6] px-2 py-1 text-[9px] font-bold text-[#855f20]">AKILLI SEÇİM</span></div>
-                <div className="mt-2 rounded-[18px] bg-[#172c74] p-3 text-white sm:mt-3 sm:rounded-[20px] sm:p-3.5"><p className="text-[10px] font-bold tracking-[.16em] text-[#a9c9c4] uppercase">Eğitim kategorisi</p><p className="mt-1.5 text-lg font-semibold tracking-[-.03em]">Türkçe · 1. Sınıf</p><div className="mt-3 flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-[#e7eff0]"><span className="rounded-md bg-white/10 px-2 py-1">Ders</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-white/10 px-2 py-1">Ünite</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-[#e8b75e] px-2 py-1 text-[#19384f]">Kazanım</span></div></div>
-                <div className="mt-2 grid grid-cols-3 gap-1.5 sm:mt-3 sm:gap-2"><MiniTile icon={FileText} label="Doküman" tone="bg-[#e6f1ec] text-[#286b5e]" /><MiniTile icon={Target} label="Test" tone="bg-[#fbefd3] text-[#8f6621]" /><MiniTile icon={BrainCircuit} label="AI çalışma" tone="bg-[#ece8f7] text-[#604985]" /></div>
+                <div className="mt-2 rounded-[18px] bg-[#172c74] p-3 text-white sm:mt-3 sm:rounded-[20px] sm:p-3.5"><p className="text-[10px] font-bold tracking-[.16em] text-[#a9c9c4] uppercase">Eğitim kategorisi</p><p className="mt-1.5 text-lg font-semibold tracking-[-.03em]">{heroLearning.subjectName} · {heroLearning.className}</p><div className="mt-3 flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-[#e7eff0]"><span className="rounded-md bg-white/10 px-2 py-1">Ders</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-white/10 px-2 py-1">Ünite</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-[#e8b75e] px-2 py-1 text-[#19384f]">Kazanım</span></div></div>
+                <div className="mt-2 grid grid-cols-3 gap-1.5 sm:mt-3 sm:gap-2">{([['document', FileText, 'Doküman'], ['test', Target, 'Test'], ['video', Video, 'Video']] as const).map(([type, Icon, label]) => <button key={type} type="button" onClick={() => setLocation(buildClassTypeUrl(heroLearning.className, type))} className="rounded-2xl p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5540e8]/40" aria-label={`${heroLearning.className} ${label} içeriklerini aç`}><Icon size={16} /><p className="mt-3 text-[11px] font-bold">{label} <span className="opacity-70">{heroLearning.counts[type]}</span></p></button>)}</div>
                 <div className="mt-2 flex items-center justify-between rounded-2xl border border-[#e3e5dc] bg-white px-3 py-2.5"><div><p className="text-xs font-bold">Sıradaki çalışma</p><p className="mt-0.5 text-[11px] text-[#77858a]">Okuduğunu anlama</p></div><ArrowRight size={17} className="text-[#739b90]" /></div>
               </div>
               {(user?.role === "admin" || user?.role === "teacher") && <QuestionProductionDashboard compact className="mt-2 w-[190px] max-w-[72%] scale-[.82] origin-top-left sm:w-[205px] lg:absolute lg:top-14 lg:-left-2 lg:w-[200px] lg:scale-[.7] lg:shadow-[0_12px_30px_rgba(0,0,0,.2)]" />}
@@ -273,7 +274,7 @@ export default function Home() {
   );
 }
 
-type HomeCategoryNode = { id: number; name: string; level: string; parentId: number | null; isActive?: boolean };
+type HomeCategoryNode = { id: number; name: string; level: string; parentId: number | null; isActive?: boolean; sortOrder?: number | null };
 type HomeContentItem = { id: number; title: string; categoryId?: number | null; contentType: string; status: string; createdAt?: string | number | Date };
 
 export function classSummary(className: string, nodes: HomeCategoryNode[], items: HomeContentItem[]) {
@@ -304,6 +305,19 @@ export function classCoverUrl(groupKey: string) {
 
 export function buildClassAllContentUrl(grade: string) {
   return `/icerik/test?class=${encodeURIComponent(grade)}&contentType=all`;
+}
+
+export function buildClassTypeUrl(grade: string, contentType: string) {
+  return `/icerik/${contentType === "document" ? "document" : contentType}?class=${encodeURIComponent(grade)}&contentType=${encodeURIComponent(contentType)}`;
+}
+
+export function getHeroLearningContext(nodes: HomeCategoryNode[], items: HomeContentItem[]) {
+  const classNodes = nodes.filter(node => node.level === "class").sort((a, b) => (a.sortOrder ?? a.id) - (b.sortOrder ?? b.id));
+  const classNode = classNodes[0];
+  const subjectNode = classNode ? nodes.filter(node => node.level === "subject" && node.parentId === classNode.id).sort((a, b) => (a.sortOrder ?? a.id) - (b.sortOrder ?? b.id))[0] : undefined;
+  const className = classNode?.name ?? "1. Sınıf";
+  const summary = classSummary(className, nodes, items);
+  return { className, subjectName: subjectNode?.name ?? "Ders seçimi", counts: summary.counts };
 }
 
 function contentTypeLabel(type: string) {
