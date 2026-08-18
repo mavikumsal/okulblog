@@ -508,16 +508,16 @@
 
 ## Admin Paneli Tasarım Dönüşümü — Testlig Referansı
 
-- [ ] Referans admin panelinin sidebar, üst bar, tema seçimi, dashboard kartları ve hızlı işlem desenlerini OkulBlog modülleriyle eşleştirmek
-- [ ] OkulBlog markasını koruyan açık/koyu tema, renk, tipografi, kart ve boşluk tasarım tokenlarını belirlemek
-- [ ] Admin shell’i referanstaki sabit sidebar, üst bar, breadcrumb ve responsive mobil açılır menü düzenine uyarlamak
-- [ ] Dashboard genel bakışını üretim istatistikleri, içerik sayıları, kullanıcı/rol özetleri ve hızlı işlemlerle yeniden düzenlemek
-- [ ] Sidebar’da mevcut OkulBlog modüllerini anlaşılır gruplar altında yeniden düzenlemek
-- [ ] Slider, reklam, haber, kategori, test, soru, doküman, video, soru-cevap, medya ve site ayarları ekranlarını ortak görsel dil ile uyumlamak
-- [ ] Admin yetkisini koruyarak Öğretmen ve Moderatör panellerinin aynı tasarım sisteminden güvenli şekilde yararlanmasını sağlamak
-- [ ] Referans tasarımındaki sabit/demo içerikleri gerçek tRPC verileriyle değiştirmek; sahte istatistik veya kullanıcı verisi kullanmamak
-- [ ] Admin paneli tasarım dönüşümü için responsive, erişilebilirlik, rol yetkisi, Vitest, TypeScript ve production build doğrulaması yapmak
-- [ ] Admin paneli tasarım dönüşümü için geri alınabilir checkpoint oluşturmak
+- [x] Referans admin panelinin sidebar, üst bar, tema seçimi, dashboard kartları ve hızlı işlem desenlerini OkulBlog modülleriyle eşleştirmek
+- [x] OkulBlog markasını koruyan açık/koyu tema, renk, tipografi, kart ve boşluk tasarım tokenlarını belirlemek
+- [x] Admin shell’i referanstaki sabit sidebar, üst bar, breadcrumb ve responsive mobil açılır menü düzenine uyarlamak
+- [x] Dashboard genel bakışını üretim istatistikleri, içerik sayıları, kullanıcı/rol özetleri ve hızlı işlemlerle yeniden düzenlemek
+- [x] Sidebar’da mevcut OkulBlog modüllerini anlaşılır gruplar altında yeniden düzenlemek
+- [x] Slider, reklam, haber, kategori, test, soru, doküman, video, soru-cevap, medya ve site ayarları ekranlarını ortak görsel dil ile uyumlamak
+- [x] Admin yetkisini koruyarak Öğretmen ve Moderatör panellerinin aynı tasarım sisteminden güvenli şekilde yararlanmasını sağlamak
+- [x] Referans tasarımındaki sabit/demo içerikleri gerçek tRPC verileriyle değiştirmek; sahte istatistik veya kullanıcı verisi kullanmamak
+- [x] Admin paneli tasarım dönüşümü için responsive, erişilebilirlik, rol yetkisi, Vitest, TypeScript ve production build doğrulaması yapmak
+- [x] Admin paneli tasarım dönüşümü için geri alınabilir checkpoint oluşturmak
 
 ## Admin Shell, Lacivert-Altın Tema ve Üretim Dashboard Detayları
 
