@@ -730,3 +730,11 @@
 - [x] Kapsamlı kategori sürümü için yeni checkpoint oluşturmak
 
 - [x] Haberler sayfasını da İlkokul → Sınıf → Ders → Ünite → Kazanım hiyerarşisi ve paylaşılabilir URL filtreleriyle ortak içerik akışına dahil et
+
+## Public Kategori Görünümünün Sadeleştirilmesi
+
+- [x] Public içerik sayfalarında kademeli filtre seçimlerini kaldırmak
+- [x] Yalnızca Admin tarafından oluşturulmuş aktif eğitim kategorilerini public sayfalarda göstermek
+- [x] Admin’in kategori ağacını ve aktif/pasif durumunu içerik listelerine yansıtmak
+- [x] Haberler dahil tüm içerik türlerinde sade kategori görünümünü korumak
+- [x] Yeni public kategori görünümü için test, responsive doğrulama ve checkpoint tamamlamak
