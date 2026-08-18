@@ -682,3 +682,11 @@
 - [x] Masaüstü ve mobil responsive/erişilebilirlik doğrulaması yapmak
 - [x] TypeScript, Vitest ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Header Arama Çubuğunu Kaldırma
+
+- [x] Ana sayfa üst header’ındaki arama çubuğunu kaldırmak
+- [x] Arama çubuğu kaldırıldıktan sonra header hizasını ve boşluklarını düzenlemek
+- [x] Masaüstü ve mobil header görünümünü doğrulamak
+- [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak

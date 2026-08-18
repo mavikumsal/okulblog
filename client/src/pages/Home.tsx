@@ -77,7 +77,6 @@ function getSlideNavigation(link: string | null | undefined) {
 export default function Home() {
   const { isAuthenticated, loading, user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [selectedContentType, setSelectedContentType] = useState("all");
@@ -146,13 +145,6 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, [configuredSlides.length]);
 
-  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const query = searchQuery.trim();
-    if (!query) return goTo("icerikler");
-    setLocation(`/panel/icerikler?search=${encodeURIComponent(query)}`);
-  };
-
   const goTo = (id: string) => {
     setMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -177,13 +169,6 @@ export default function Home() {
             <span className="text-[21px] font-bold tracking-[-.06em] text-[#5540e8]">okul<span className="font-serif text-[#7c3aed]">blog</span></span>
           </button>
 
-            <form onSubmit={submitSearch} className="hidden min-w-0 flex-1 max-w-[430px] lg:block" role="search">
-              <label className="relative block">
-                <span className="sr-only">İçerik ara</span>
-                <input value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Hangi testi veya konuyu arıyorsun?" className="h-11 w-full rounded-2xl border-0 bg-[#eef0eb] pl-11 pr-4 text-sm font-medium text-[#111827] outline-none transition placeholder:text-[#9ca3af] focus:ring-2 focus:ring-[#5540e8]" />
-                <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#6e8984]" />
-              </label>
-            </form>
             <nav className="hidden items-center gap-3 text-[11px] font-bold text-[#374151] xl:flex">
               <button onClick={() => goTo("icerikler")} className="relative rounded-full px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f0edff] hover:text-[#5540e8] hover:shadow-[0_6px_14px_rgba(85,64,232,.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5540e8]/40 active:scale-95">Ana Sayfa</button>
               <button onClick={() => setLocation("/panel/testler")} className="relative rounded-full px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f0edff] hover:text-[#5540e8] hover:shadow-[0_6px_14px_rgba(85,64,232,.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5540e8]/40 active:scale-95">Testler</button>
