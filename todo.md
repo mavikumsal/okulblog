@@ -563,3 +563,12 @@
 - [x] Takip eden öğrenme yolu hero alanının dikey boşluklarını azaltmak ve kart taşmasını önlemek
 - [x] Kompakt hero düzenini masaüstü, tablet ve mobil görünümde doğrulamak
 - [x] Kompakt hero düzeni için test, TypeScript, production build ve geri alınabilir checkpoint doğrulaması yapmak
+
+## İkinci Hero Alanını Yarı Yarıya Kompaktlaştırma
+
+- [x] İkinci hero/öğrenme yolu alanının mevcut yüksekliğini referans görselle karşılaştırmak
+- [x] İkinci hero alanının dikey yüksekliğini yaklaşık yarıya indirmek
+- [x] Başlık, açıklama, CTA, yardımcı özellikler ve sağ öğrenme/istatistik kartlarının görünürlüğünü korumak
+- [x] Masaüstü, tablet ve mobilde kart taşması ve içerik kesilmesini önlemek
+- [x] Yarı yüksek hero değişikliği için test, TypeScript, production build ve görsel doğrulama yapmak
+- [x] Yarı yüksek hero değişikliği için geri alınabilir checkpoint oluşturmak

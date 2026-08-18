@@ -209,29 +209,29 @@ export default function Home() {
         <section id="baslangic" className="relative overflow-hidden bg-gradient-to-br from-[#1f5fe8] via-[#3f35c4] to-[#6322a0] text-white">
           <div className="pointer-events-none absolute inset-0 opacity-[.08]" style={{ backgroundImage: "radial-gradient(#f6d881 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
           <div className="pointer-events-none absolute -right-36 top-[-13rem] h-[36rem] w-[36rem] rounded-full border-[62px] border-[#e5ae55]/20" />
-          <div className="container relative grid gap-5 py-7 sm:gap-8 sm:py-10 lg:min-h-[470px] lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:py-14">
+          <div className="container relative grid gap-4 py-5 sm:gap-6 sm:py-7 lg:min-h-[280px] lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:py-7">
             <div className="max-w-2xl">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.06] px-3.5 py-2 text-[11px] font-bold tracking-[.12em] text-[#f6d47f] uppercase"><Sparkles size={14} /> {currentSlide.eyebrow || "Eğitim için düzenli bir alan"}</div>
-              <h1 className="max-w-2xl text-[2.15rem] font-semibold leading-[.95] tracking-[-.073em] sm:text-6xl lg:text-[4.25rem]">{currentSlide.title}</h1>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-[#c4d1d3] sm:mt-5 sm:text-base sm:leading-7">{currentSlide.description || fallbackSlide.description}</p>
-              <div className="mt-4 flex flex-col gap-2.5 sm:mt-6 sm:flex-row sm:gap-3">
+              <h1 className="max-w-2xl text-[1.8rem] font-semibold leading-[.92] tracking-[-.073em] sm:text-5xl lg:text-[3.2rem]">{currentSlide.title}</h1>
+              <p className="mt-2 max-w-lg text-xs leading-5 text-[#c4d1d3] sm:mt-3 sm:text-sm sm:leading-6">{currentSlide.description || fallbackSlide.description}</p>
+              <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:gap-2.5">
                 <Button onClick={followSlideLink} size="lg" className="h-13 rounded-full bg-[#f2c866] px-6 font-bold text-[#1b354c] hover:bg-[#f7d982]">{currentSlide.buttonLabel || "İçerikleri keşfet"} <ArrowDownRight size={18} /></Button>
                 <Button onClick={() => goTo("yolculuk")} variant="outline" size="lg" className="h-13 rounded-full border-white/25 bg-white/[.03] px-6 font-bold text-white hover:bg-white/10 hover:text-white"><PlayCircle size={18} /> Nasıl çalışır?</Button>
               </div>
               {configuredSlides.length > 1 && <div className="mt-8 flex items-center gap-2" aria-label="Slider seçimi">{configuredSlides.map((slide, index) => <button key={slide.id} onClick={() => setActiveSlideIndex(index)} className={`h-2.5 rounded-full transition-all ${index === activeSlideIndex ? "w-8 bg-[#f2c866]" : "w-2.5 bg-white/35 hover:bg-white/60"}`} aria-label={`${index + 1}. slide: ${slide.title}`} />)}</div>}
-              <div className="mt-4 hidden flex-wrap gap-x-7 gap-y-3 text-sm font-medium text-[#b6c7c9] sm:flex"><span>• Kazanım odaklı</span><span>• Rol tabanlı</span><span>• Yapay zekâ destekli</span></div>
+              <div className="mt-3 hidden flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-[#b6c7c9] sm:flex"><span>• Kazanım odaklı</span><span>• Rol tabanlı</span><span>• Yapay zekâ destekli</span></div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[430px] lg:translate-y-0">
+            <div className="relative mx-auto w-full max-w-[300px] sm:max-w-[360px] lg:absolute lg:right-8 lg:top-1/2 lg:w-[360px] lg:-translate-y-1/2">
               <div className="absolute -left-5 top-20 h-48 w-48 rounded-full bg-[#c9e4dc]/20 blur-3xl" />
-              <div className="relative overflow-hidden rounded-[24px] border border-white/25 bg-white/95 p-3 text-[#15344e] shadow-[0_20px_55px_rgba(31,41,55,.24)] sm:rounded-[28px] sm:p-5">
+              <div className="relative overflow-hidden rounded-[20px] border border-white/25 bg-white/95 p-2.5 text-[#15344e] shadow-[0_16px_40px_rgba(31,41,55,.24)] sm:rounded-[24px] sm:p-3.5">
                 <div className="flex items-center justify-between border-b border-[#e1e2d9] pb-4"><div className="flex items-center gap-2.5"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#cce9df] text-[#176559]"><Search size={17} /></span><div><p className="text-sm font-bold">Öğrenme yolu</p><p className="text-[11px] text-[#75838a]">Adım adım keşfet</p></div></div><span className="rounded-full bg-[#f5e4b6] px-3 py-1 text-[10px] font-bold text-[#855f20]">AKILLI SEÇİM</span></div>
                 <div className="mt-3 rounded-[20px] bg-[#172c74] p-4 text-white sm:mt-4 sm:rounded-[22px] sm:p-5"><p className="text-[10px] font-bold tracking-[.16em] text-[#a9c9c4] uppercase">Eğitim kategorisi</p><p className="mt-2 text-xl font-semibold tracking-[-.03em]">Türkçe · 1. Sınıf</p><div className="mt-5 flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-[#e7eff0]"><span className="rounded-md bg-white/10 px-2 py-1">Ders</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-white/10 px-2 py-1">Ünite</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-[#e8b75e] px-2 py-1 text-[#19384f]">Kazanım</span></div></div>
                 <div className="mt-2 grid grid-cols-3 gap-1.5 sm:mt-3 sm:gap-2"><MiniTile icon={FileText} label="Doküman" tone="bg-[#e6f1ec] text-[#286b5e]" /><MiniTile icon={Target} label="Test" tone="bg-[#fbefd3] text-[#8f6621]" /><MiniTile icon={BrainCircuit} label="AI çalışma" tone="bg-[#ece8f7] text-[#604985]" /></div>
                 <div className="mt-2 flex items-center justify-between rounded-2xl sm:mt-3 border border-[#e3e5dc] bg-white px-4 py-3"><div><p className="text-xs font-bold">Sıradaki çalışma</p><p className="mt-0.5 text-[11px] text-[#77858a]">Okuduğunu anlama</p></div><ArrowRight size={17} className="text-[#739b90]" /></div>
               </div>
               {(user?.role === "admin" || user?.role === "teacher") && <QuestionProductionDashboard compact className="mt-4 lg:absolute lg:-bottom-24 lg:-left-8 lg:w-[280px] lg:shadow-[0_20px_55px_rgba(0,0,0,.22)]" />}
-              <div className="absolute -bottom-3 -right-3 rounded-2xl bg-[#ffd21a] px-4 py-3 text-[#111827] shadow-xl sm:-right-9"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div>
+              <div className="absolute -bottom-2 -right-2 rounded-xl bg-[#ffd21a] px-3 py-2 text-[#111827] shadow-xl sm:-right-5"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div>
             </div>
           </div>
         </section>
