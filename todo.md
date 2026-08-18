@@ -711,22 +711,22 @@
 
 ## Tüm İçerik Sayfalarında Eğitim Kategorisi Hiyerarşisi
 
-- [ ] Ortak kategori hiyerarşisini tanımlamak: İlkokul → Sınıf → Ders → Ünite → Kazanım
-- [ ] Kategori seçimlerini kademeli ve bağımlı hale getirmek
-- [ ] Seçilen kategori yolunu URL parametreleriyle paylaşılabilir yapmak
-- [ ] Testler sayfasını kategori filtreleriyle hazırlamak
-- [ ] Dokümanlar sayfasını kategori filtreleriyle hazırlamak
-- [ ] Videolar sayfasını kategori filtreleriyle hazırlamak
-- [ ] Oyunlar sayfasını kategori filtreleriyle hazırlamak
-- [ ] Simülasyonlar sayfasını kategori filtreleriyle hazırlamak
-- [ ] Haberler sayfasını kategori ve haber filtreleriyle hazırlamak
-- [ ] Soru-Cevap sayfasını aynı hiyerarşiyle eşleştirmek
-- [ ] Ana Sayfa kartlarını ilgili kategori ve içerik türü sayfalarına bağlamak
-- [ ] Ders, ünite ve kazanım seçimine göre içerik sorgularını filtrelemek
-- [ ] Tüm sayfalarda boş, yükleniyor ve hata durumlarını göstermek
-- [ ] Yeni kategori akışları için Vitest testleri yazmak
-- [ ] Masaüstü ve mobil responsive doğrulama yapmak
-- [ ] TypeScript, Vitest ve production build kontrollerini çalıştırmak
-- [ ] Kapsamlı kategori sürümü için yeni checkpoint oluşturmak
+- [x] Ortak kategori hiyerarşisini tanımlamak: İlkokul → Sınıf → Ders → Ünite → Kazanım
+- [x] Kategori seçimlerini kademeli ve bağımlı hale getirmek
+- [x] Seçilen kategori yolunu URL parametreleriyle paylaşılabilir yapmak
+- [x] Testler sayfasını kategori filtreleriyle hazırlamak
+- [x] Dokümanlar sayfasını kategori filtreleriyle hazırlamak
+- [x] Videolar sayfasını kategori filtreleriyle hazırlamak
+- [x] Oyunlar sayfasını kategori filtreleriyle hazırlamak
+- [x] Simülasyonlar sayfasını kategori filtreleriyle hazırlamak
+- [x] Haberler sayfasını kategori ve haber filtreleriyle hazırlamak
+- [x] Soru-Cevap sayfasını aynı hiyerarşiyle eşleştirmek
+- [x] Ana Sayfa kartlarını ilgili kategori ve içerik türü sayfalarına bağlamak
+- [x] Ders, ünite ve kazanım seçimine göre içerik sorgularını filtrelemek
+- [x] Tüm sayfalarda boş, yükleniyor ve hata durumlarını göstermek
+- [x] Yeni kategori akışları için Vitest testleri yazmak
+- [x] Masaüstü ve mobil responsive doğrulama yapmak
+- [x] TypeScript, Vitest ve production build kontrollerini çalıştırmak
+- [x] Kapsamlı kategori sürümü için yeni checkpoint oluşturmak
 
 - [x] Haberler sayfasını da İlkokul → Sınıf → Ders → Ünite → Kazanım hiyerarşisi ve paylaşılabilir URL filtreleriyle ortak içerik akışına dahil et

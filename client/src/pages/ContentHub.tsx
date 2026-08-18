@@ -3,7 +3,7 @@ import { useLocation, useRoute } from "wouter";
 import { ArrowRight, CheckCircle2, FileText, Gamepad2, GraduationCap, Layers3, Newspaper, PlayCircle, Target } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
-const contentTypes = {
+export const contentTypes = {
   test: { label: "Testler", eyebrow: "Ölçme ve değerlendirme", description: "Sınıf, ders, ünite ve kazanım seçerek uygun testleri keşfedin.", icon: Target, accent: "#e7b354" },
   document: { label: "Dokümanlar", eyebrow: "Düzenli kaynak arşivi", description: "Ders çalışma notlarını ve kaynak dokümanlarını eğitim yoluna göre bulun.", icon: FileText, accent: "#b8ddd4" },
   video: { label: "Videolar", eyebrow: "Odaklı anlatımlar", description: "Konuyu doğru bağlamda anlatan eğitim videolarına ulaşın.", icon: PlayCircle, accent: "#f3c7bd" },
@@ -15,12 +15,12 @@ const contentTypes = {
 type ContentType = keyof typeof contentTypes;
 type CategoryNode = { id: number; name: string; level: string; parentId: number | null; categoryType: string; isActive: boolean };
 
-function getTypeFromPath(path: string): ContentType {
+export function getTypeFromPath(path: string): ContentType {
   const value = path.split("/").filter(Boolean).at(-1) as ContentType | undefined;
   return value && value in contentTypes ? value : "test";
 }
 
-function categoryIdsForSelection(nodes: CategoryNode[], selectedId: number | null) {
+export function categoryIdsForSelection(nodes: CategoryNode[], selectedId: number | null) {
   if (!selectedId) return null;
   const ids = new Set<number>([selectedId]);
   let changed = true;
