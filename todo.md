@@ -861,3 +861,19 @@
 - [x] Tümünü Gör hedefinde sınıfı koruyan tüm içerik URL modunu oluştur
 - [x] Video, test, doküman, simülasyon, oyun ve haber sayaçlarına küçük ikonlar ekle
 - [x] CTA URL’si için regresyon testi, TypeScript, build ve responsive görsel kontrol yap
+
+## Yeni istek: son görsel güncelleme önizlemesi
+- [ ] İlkokul, Ortaokul ve Lise sınıf kartlarına özel kapak illüstrasyonları ekle
+- [ ] Mobil hero slider metin ve ok taşmasını düzelt
+- [ ] Üst menü yazı boyutlarını mobil ve masaüstünde okunabilir hale getir
+- [ ] Hover önizlemede Tümünü Gör butonu ve içerik türü ikonlarını görünür/doğrulanabilir yap
+- [ ] Son güncellemeleri gösteren paylaşılabilir yeni önizleme sayfası oluştur
+- [ ] Yeni önizleme sayfasını test, build ve responsive görsel kontrolleriyle doğrula
+
+## Son görsel güncelleme önizlemesi
+- [x] İlkokul, Ortaokul ve Lise sınıf kartlarına özel kapak illüstrasyonları ekle
+- [x] Mobil hero slider metin ve ok taşmasını düzelt
+- [x] Üst menü yazı boyutlarını mobil ve masaüstünde okunabilir hale getir
+- [x] Hover önizlemede Tümünü Gör butonu ve içerik türü ikonlarını görünür/doğrulanabilir yap
+- [x] /onizleme/guncel paylaşılabilir güncelleme önizleme sayfasını oluştur
+- [x] Yeni önizleme sayfasını 130 test, TypeScript, build ve responsive görsel kontrolleriyle doğrula

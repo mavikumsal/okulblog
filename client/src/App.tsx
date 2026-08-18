@@ -10,11 +10,13 @@ import TestRunner from "./pages/TestRunner";
 import QA from "./pages/QA";
 import ContentHub from "./pages/ContentHub";
 import ContentDetail from "./pages/ContentDetail";
+import LatestPreview from "./pages/LatestPreview";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/onizleme/guncel" component={LatestPreview} />
       <Route path="/panel" component={Panel} />
       <Route path="/test/:id" component={TestRunner} />
       <Route path="/soru-cevap" component={QA} />
