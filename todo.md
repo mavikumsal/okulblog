@@ -807,3 +807,19 @@
 - [x] Ana sayfadaki sınıf kartlarının yanlış Admin paneli rotasına gitmesini düzeltmek
 - [x] Sınıf kartlarını seçilen sınıfı taşıyan public kategori/içerik rotasına bağlamak
 - [x] Sınıf kartı yönlendirmesi için test, responsive doğrulama ve checkpoint tamamlamak
+
+## Sınıf Sayfası Ders ve İçerik Filtreleri
+
+- [ ] Seçilen sınıfa ait dersleri görsel kartlar halinde listelemek
+- [ ] Sınıf adını sayfa başlığına ve breadcrumb alanına eklemek
+- [ ] Sınıf sayfasında Testler, Videolar ve Dokümanlar için hızlı filtre butonları eklemek
+- [ ] Filtre seçimlerini URL parametreleriyle paylaşılabilir yapmak
+- [ ] Sınıf sayfası akışı için test, responsive doğrulama ve checkpoint tamamlamak
+
+## Devam oturumu: sınıf landing sayfaları
+- [x] Sınıf özel landing sayfasında sınıf adını başlık ve breadcrumb alanında görünür kıl
+- [x] Sınıf sayfasındaki ders kartlarını seçilen derse göre URL ile içerik listesine bağla
+- [x] Tümünü Aç/Kapat accordion kontrolünün klavye erişilebilirliğini doğrula
+- [x] Öğrendim/Tamamladım durumunun kalıcılığını ve dashboard ilerleme yüzdelerini doğrula
+- [x] Sınıf landing ve public içerik sayfalarında masaüstü/mobil responsive denetim yap
+- [x] Sınıf landing düzeltmeleri için test, TypeScript, build ve checkpoint işlemlerini tamamla
