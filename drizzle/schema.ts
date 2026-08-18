@@ -18,6 +18,7 @@ export const categoryNodes = mysqlTable("category_nodes", {
   categoryType: mysqlEnum("categoryType", ["education", "institution"]).notNull(),
   level: mysqlEnum("level", ["ana-grup", "school-level", "class", "subject", "unit", "outcome", "institution-root", "institution-child"]).notNull(),
   parentId: int("parentId"),
+  sortOrder: int("sortOrder").default(0).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   createdBy: int("createdBy"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

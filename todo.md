@@ -828,3 +828,10 @@
 - [x] Sınıf landing sayfasına video, test, doküman, simülasyon, oyun ve haber içerik türü filtreleri ekle
 - [x] İçerik türü filtresini sınıf ve ders query parametreleriyle birlikte URL’ye senkronize et
 - [x] İçerik türü filtreleme için Vitest, TypeScript ve responsive doğrulama yap
+
+## Yeni istek: MEB kategori sıralamasını özgün listeye göre düzeltme
+- [x] Gönderilen MEB sırasını mevcut kategori ağacındaki alfabetik sıralamadan ayır ve resmi sıra alanını tanımla
+- [x] İlkokul 1–4, Ortaokul 5–8 ve Lise 9–12 sınıf sırasını gönderilen düzene göre uygula
+- [x] Ders, ünite ve kazanım çocuklarını da gönderilen metindeki sırayla göster
+- [x] Admin ve public kategori ağaçlarının aynı özgün sıralamayı kullanmasını sağla
+- [x] Sıralama için veri doğrulama, Vitest, TypeScript, build ve responsive kontrol yap

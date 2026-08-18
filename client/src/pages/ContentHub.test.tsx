@@ -45,6 +45,16 @@ describe("ContentHub public kategori akışı", () => {
     expect(buildClassBreadcrumb("1. Sınıf", "Türkçe")).toEqual(["Ana Sayfa", "Eğitim", "1. Sınıf", "Türkçe"]);
   });
 
+  it("dersleri alfabetik değil, Admin tarafından saklanan özgün sortOrder ile listeler", () => {
+    const orderedNodes = [
+      { ...nodes[0], id: 10 },
+      { ...nodes[1], id: 20, parentId: 10 },
+      { id: 21, name: "Türkçe", level: "subject", parentId: 20, categoryType: "education", sortOrder: 1, isActive: true },
+      { id: 22, name: "Matematik", level: "subject", parentId: 20, categoryType: "education", sortOrder: 0, isActive: true },
+    ];
+    expect(getSubjectNodesForClass(orderedNodes, "1. Sınıf").map(node => node.name)).toEqual(["Matematik", "Türkçe"]);
+  });
+
   it("içerik türü filtresi sınıf ve ders bağlamını paylaşılabilir URL’de korur", () => {
     expect(buildContentTypeUrl("video", "1. Sınıf", 3)).toBe("/icerik/video?class=1.+S%C4%B1n%C4%B1f&subject=3");
     expect(buildContentTypeUrl("test", null)).toBe("/icerik/test");

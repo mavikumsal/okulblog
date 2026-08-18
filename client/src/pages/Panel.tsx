@@ -89,6 +89,7 @@ type CategoryOption = {
   categoryType: "education" | "institution";
   isActive: boolean;
   level: string;
+  sortOrder?: number | null;
 };
 function categoryPath(node: CategoryOption, nodes: CategoryOption[]) {
   const names: string[] = [];
@@ -101,7 +102,29 @@ function categoryPath(node: CategoryOption, nodes: CategoryOption[]) {
       ? nodes.find(item => item.id === current?.parentId)
       : undefined;
   }
-  return names.join(" → ");
+  return names.join(" / ");
+}
+
+function categoryOrderPath(node: CategoryOption, nodes: CategoryOption[]) {
+  const order: number[] = [];
+  let current: CategoryOption | undefined = node;
+  const visited = new Set<number>();
+  while (current && !visited.has(current.id)) {
+    visited.add(current.id);
+    order.unshift(current.sortOrder ?? 0, current.id);
+    current = current.parentId ? nodes.find(item => item.id === current?.parentId) : undefined;
+  }
+  return order;
+}
+
+function compareCategoryOrder(a: CategoryOption, b: CategoryOption, nodes: CategoryOption[]) {
+  const left = categoryOrderPath(a, nodes);
+  const right = categoryOrderPath(b, nodes);
+  for (let index = 0; index < Math.max(left.length, right.length); index += 1) {
+    const difference = (left[index] ?? -1) - (right[index] ?? -1);
+    if (difference !== 0) return difference;
+  }
+  return a.id - b.id;
 }
 
 function PanelContent() {
@@ -264,20 +287,10 @@ function PanelContent() {
   }, [categoryOptions, categorySearch, categoryLevelFilter]);
   const educationCategoryOptions = categoryOptions
     .filter(item => item.categoryType === "education" && item.isActive)
-    .sort((a, b) =>
-      categoryPath(a, categoryOptions).localeCompare(
-        categoryPath(b, categoryOptions),
-        "tr"
-      )
-    );
+    .sort((a, b) => compareCategoryOrder(a, b, categoryOptions));
   const institutionCategoryOptions = categoryOptions
     .filter(item => item.categoryType === "institution" && item.isActive)
-    .sort((a, b) =>
-      categoryPath(a, categoryOptions).localeCompare(
-        categoryPath(b, categoryOptions),
-        "tr"
-      )
-    );
+    .sort((a, b) => compareCategoryOrder(a, b, categoryOptions));
   const availableParents = categoryOptions.filter(
     item => item.categoryType === categoryMode
   );

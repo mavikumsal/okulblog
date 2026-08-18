@@ -13,7 +13,7 @@ export const contentTypes = {
 } as const;
 
 type ContentType = keyof typeof contentTypes;
-export type CategoryNode = { id: number; name: string; level: string; parentId: number | null; categoryType: string; isActive: boolean };
+export type CategoryNode = { id: number; name: string; level: string; parentId: number | null; categoryType: string; sortOrder?: number | null; isActive: boolean };
 
 export function categoryIdsForSelection(nodes: CategoryNode[], selectedId: number | null) {
   if (!selectedId) return null;
@@ -49,7 +49,7 @@ export function getSubjectNodesForClass(nodes: CategoryNode[], className: string
   if (!className) return [];
   const classNode = findClassNode(nodes, className);
   if (!classNode) return [];
-  return nodes.filter(node => node.level === "subject" && node.parentId === classNode.id).sort((a, b) => a.name.localeCompare(b.name, "tr"));
+  return nodes.filter(node => node.level === "subject" && node.parentId === classNode.id).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id - b.id);
 }
 
 export function filterContentBySubject<T extends { categoryId?: number | null }>(items: T[], nodes: CategoryNode[], subjectId: number | null) {
@@ -97,7 +97,7 @@ function CategoryTree({ nodes, contentByCategory }: { nodes: CategoryNode[]; con
   const childrenByParent = useMemo(() => {
     const map = new Map<number | null, CategoryNode[]>();
     nodes.forEach(node => map.set(node.parentId, [...(map.get(node.parentId) ?? []), node]));
-    map.forEach(children => children.sort((a, b) => a.name.localeCompare(b.name, "tr")));
+    map.forEach(children => children.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id - b.id));
     return map;
   }, [nodes]);
   const expandableIds = useMemo(() => nodes.filter(node => (childrenByParent.get(node.id) ?? []).length > 0).map(node => node.id), [childrenByParent, nodes]);

@@ -20,7 +20,7 @@ const navItems = [
   ["Soru-Cevap", "/soru-cevap"],
 ] as const;
 
-type CategoryNode = { id: number; name: string; level: string; parentId: number | null };
+type CategoryNode = { id: number; name: string; level: string; parentId: number | null; sortOrder?: number | null };
 
 function childrenOf(nodes: CategoryNode[], parentId: number | null, level?: string) {
   return nodes.filter(node => node.parentId === parentId && (!level || node.level === level));
@@ -50,7 +50,7 @@ function QuestionCategoryTree({ nodes, selectedId, onSelect }: { nodes: Category
   const childrenByParent = useMemo(() => {
     const map = new Map<number | null, CategoryNode[]>();
     nodes.forEach(node => map.set(node.parentId, [...(map.get(node.parentId) ?? []), node]));
-    map.forEach(children => children.sort((a, b) => a.name.localeCompare(b.name, "tr")));
+    map.forEach(children => children.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id - b.id));
     return map;
   }, [nodes]);
   const renderBranch = (node: CategoryNode, depth = 0): React.ReactNode => {

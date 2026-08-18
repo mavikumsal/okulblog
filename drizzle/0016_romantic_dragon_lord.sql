@@ -1,0 +1,1 @@
+ALTER TABLE `category_nodes` ADD `sortOrder` int DEFAULT 0 NOT NULL;

@@ -53,8 +53,8 @@ export async function listCategoryNodes(categoryType?: "education" | "institutio
   if (!db) return [];
   const query = db.select().from(categoryNodes);
   const result = categoryType
-    ? await query.where(eq(categoryNodes.categoryType, categoryType)).orderBy(asc(categoryNodes.name))
-    : await query.orderBy(asc(categoryNodes.name));
+    ? await query.where(eq(categoryNodes.categoryType, categoryType)).orderBy(asc(categoryNodes.sortOrder), asc(categoryNodes.id))
+    : await query.orderBy(asc(categoryNodes.sortOrder), asc(categoryNodes.id));
   return result;
 }
 
@@ -100,13 +100,21 @@ export async function importEducationCurriculum(input: { createdBy: number }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
 
+  const nextOrderByParent = new Map<number | null, number>();
+  const assignedOrder = new Map<string, number>();
   const getOrCreate = async (name: string, level: "ana-grup" | "school-level" | "class" | "subject" | "unit" | "outcome", parentId: number | null) => {
+    const key = `${parentId ?? "root"}:${level}:${name}`;
+    const sortOrder = assignedOrder.get(key) ?? nextOrderByParent.get(parentId) ?? 0;
+    if (!assignedOrder.has(key)) {
+      assignedOrder.set(key, sortOrder);
+      nextOrderByParent.set(parentId, sortOrder + 1);
+    }
     const existing = await db.select().from(categoryNodes).where(and(eq(categoryNodes.name, name), eq(categoryNodes.categoryType, "education"), parentId === null ? isNull(categoryNodes.parentId) : eq(categoryNodes.parentId, parentId))).limit(1);
     if (existing[0]) {
-      if (!existing[0].isActive) await db.update(categoryNodes).set({ isActive: true }).where(eq(categoryNodes.id, existing[0].id));
+      await db.update(categoryNodes).set({ isActive: true, sortOrder }).where(eq(categoryNodes.id, existing[0].id));
       return existing[0].id;
     }
-    const inserted = await db.insert(categoryNodes).values({ name, categoryType: "education", level, parentId, isActive: true, createdBy: input.createdBy });
+    const inserted = await db.insert(categoryNodes).values({ name, categoryType: "education", level, parentId, sortOrder, isActive: true, createdBy: input.createdBy });
     return Number(inserted[0].insertId);
   };
 
