@@ -620,3 +620,18 @@
 - [x] Yeni akışları masaüstü ve mobilde görsel olarak doğrulamak
 - [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Ana Sayfa Paylaşılabilir Filtre ve Sadeleştirme
+
+- [x] Ders kartı seçimini kategori URL parametresiyle senkronize etmek
+- [x] İçerik türü filtresini URL parametresiyle senkronize etmek
+- [x] Sayfa URL parametreleriyle açıldığında filtreleri otomatik geri yüklemek
+- [x] İletişim formu alanlarına istemci tarafı doğrulama uyarıları eklemek
+- [x] Başarılı gönderim sonrası şık ve erişilebilir başarı bildirimi göstermek
+- [x] İletişim formunda gönderim sonrası alanları güvenli biçimde temizlemek
+- [x] SSS alanına anlık çalışan arama kutusu eklemek
+- [x] SSS aramasında sonuç ve sonuç bulunamadı durumlarını göstermek
+- [x] Görseldeki “Daha az karmaşa. Daha çok odak.” çalışma düzeni bölümünü Home’dan kaldırmak
+- [x] Yeni akışı masaüstü ve mobilde görsel olarak doğrulamak
+- [x] Yeni davranışlar için Vitest, TypeScript ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak

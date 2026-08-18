@@ -78,6 +78,39 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     expect(screen.getByLabelText("Mesajınız")).toBeInTheDocument();
   });
 
+  it("ders ve içerik türü seçimlerini paylaşılabilir URL parametrelerine yazar", () => {
+    window.history.pushState({}, "", "/");
+    render(<Home />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Türkçe/ }));
+    expect(window.location.search).toBe("?categoryId=1");
+
+    const documentFilter = screen.getAllByRole("button", { name: /^Dokümanlar$/ }).at(-1);
+    fireEvent.click(documentFilter!);
+    expect(window.location.search).toBe("?categoryId=1&contentType=document");
+  });
+
+  it("iletişim formunda doğrulama uyarısı ve başarılı gönderim bildirimi gösterir", () => {
+    render(<Home />);
+
+    fireEvent.submit(screen.getByLabelText("Adınız").closest("form")!);
+    expect(screen.getByRole("alert")).toHaveTextContent("Lütfen formdaki alanları kontrol edin.");
+
+    fireEvent.change(screen.getByLabelText("Adınız"), { target: { value: "Ayşe Öğretmen" } });
+    fireEvent.change(screen.getAllByLabelText("E-posta")[0], { target: { value: "ayse@example.com" } });
+    fireEvent.change(screen.getByLabelText("Mesajınız"), { target: { value: "Bilgi almak istiyorum." } });
+    fireEvent.submit(screen.getByLabelText("Adınız").closest("form")!);
+    expect(screen.getByText(/Mesajınız için teşekkürler/)).toBeInTheDocument();
+  });
+
+  it("SSS aramasında sonuçları anında filtreler", () => {
+    render(<Home />);
+
+    fireEvent.change(screen.getByLabelText("SSS içinde ara"), { target: { value: "üyelik" } });
+    expect(screen.getByText("Üyelik zorunlu mu?")).toBeInTheDocument();
+    expect(screen.queryByText("Öğretmenler içerik ekleyebilir mi?")).not.toBeInTheDocument();
+  });
+
   it("oturumlu kullanıcıya Panelim ve Panele git CTA’larını gösterip Panel’e yönlendirir", () => {
     homeState.auth = { isAuthenticated: true, loading: false };
     render(<Home />);
