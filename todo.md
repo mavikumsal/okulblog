@@ -801,3 +801,9 @@
 - [x] Haberler sayfasını blog kartları ve haber detay bağlantılarıyla düzenlemek
 - [x] Haberler için artan kayıt sayısına göre 1, 2, 3 şeklinde URL senkronlu sayfalama eklemek
 - [x] Yeni Soru-Cevap ve Haberler akışları için test, responsive doğrulama ve checkpoint tamamlamak
+
+## Sınıf Kartı Public Yönlendirme Düzeltmesi
+
+- [x] Ana sayfadaki sınıf kartlarının yanlış Admin paneli rotasına gitmesini düzeltmek
+- [x] Sınıf kartlarını seçilen sınıfı taşıyan public kategori/içerik rotasına bağlamak
+- [x] Sınıf kartı yönlendirmesi için test, responsive doğrulama ve checkpoint tamamlamak

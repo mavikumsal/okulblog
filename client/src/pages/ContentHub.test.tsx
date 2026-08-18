@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryIdsForSelection, contentTypes, getTypeFromPath, paginateItems } from "./ContentHub";
+import { categoryIdsForSelection, contentTypes, filterContentByClass, getTypeFromPath, paginateItems } from "./ContentHub";
 import { categoryBreadcrumb, contentActionLabel, isProgressCompleted } from "./ContentDetail";
 
 type Node = {
@@ -31,6 +31,12 @@ describe("ContentHub public kategori akışı", () => {
     expect(Array.from(categoryIdsForSelection(nodes.filter(node => node.isActive), 3)!)).toEqual([3, 4, 5]);
     expect(Array.from(categoryIdsForSelection(nodes.filter(node => node.isActive), 5)!)).toEqual([5]);
     expect(categoryIdsForSelection(nodes, null)).toBeNull();
+  });
+
+  it("Ana sayfadaki sınıf seçimi public içerik listesini sınıf alt ağacına daraltır", () => {
+    const items = [{ id: 1, categoryId: 2 }, { id: 2, categoryId: 3 }, { id: 3, categoryId: 99 }];
+    expect(filterContentByClass(items, nodes, "1. Sınıf").map(item => item.id)).toEqual([1, 2]);
+    expect(filterContentByClass(items, nodes, null)).toEqual(items);
   });
 
   it("Haberler için sayfa numarasını güvenli biçimde sınırlar ve kayıtları böler", () => {
