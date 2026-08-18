@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactElement } from "react";
+import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { useLocation, useRoute } from "wouter";
 import { ArrowRight, CheckCircle2, ChevronDown, ChevronRight, FileText, Gamepad2, GraduationCap, Layers3, Newspaper, PlayCircle, Target } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -40,19 +40,26 @@ export function getTypeFromPath(path: string): ContentType {
 
 function CategoryTree({ nodes, contentByCategory }: { nodes: CategoryNode[]; contentByCategory: Map<number, number> }) {
   const [openIds, setOpenIds] = useState<Set<number>>(() => new Set(nodes.filter(node => node.level === "ana-grup").map(node => node.id)));
+  const [lastVisitedId, setLastVisitedId] = useState<number | null>(() => {
+    const value = window.localStorage.getItem("okulblog:last-category");
+    return value ? Number(value) : null;
+  });
   const childrenByParent = useMemo(() => {
     const map = new Map<number | null, CategoryNode[]>();
     nodes.forEach(node => map.set(node.parentId, [...(map.get(node.parentId) ?? []), node]));
     map.forEach(children => children.sort((a, b) => a.name.localeCompare(b.name, "tr")));
     return map;
   }, [nodes]);
+  const expandableIds = useMemo(() => nodes.filter(node => (childrenByParent.get(node.id) ?? []).length > 0).map(node => node.id), [childrenByParent, nodes]);
   const toggle = (id: number) => setOpenIds(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const visit = (id: number) => { setLastVisitedId(id); window.localStorage.setItem("okulblog:last-category", String(id)); };
   const renderBranch = (node: CategoryNode, depth = 0): ReactElement => {
     const children = childrenByParent.get(node.id) ?? [];
     const contentCount = contentByCategory.get(node.id) ?? 0;
     const isOpen = openIds.has(node.id);
+    const isLastVisited = lastVisitedId === node.id;
     return <div key={node.id} className={depth ? "ml-4 border-l border-[#dbe7e2] pl-4 sm:ml-6 sm:pl-5" : ""}>
-      <div className="flex items-center gap-2 rounded-2xl border border-[#e1eae6] bg-white px-3 py-3 shadow-[0_8px_22px_rgba(18,48,74,.04)]">
+      <div onClick={() => visit(node.id)} className={`flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-3 shadow-[0_8px_22px_rgba(18,48,74,.04)] transition ${isLastVisited ? "border-[#d7ae4d] bg-[#fff9e9] ring-2 ring-[#f0d98b]/40" : "border-[#e1eae6] bg-white"}`}>
         {children.length > 0 ? <button type="button" onClick={() => toggle(node.id)} aria-expanded={isOpen} aria-label={`${node.name} kategorisini ${isOpen ? "kapat" : "aç"}`} className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-[#53706b] transition hover:bg-[#eef5f0] hover:text-[#5540e8]">{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</button> : <span className="h-8 w-8 shrink-0" />}
         <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-[#12304a]">{node.name}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[.16em] text-[#82918f]">{node.level === "ana-grup" ? "Ana grup" : node.level === "school-level" ? "Okul düzeyi" : node.level === "class" ? "Sınıf" : node.level === "subject" ? "Ders" : node.level === "unit" ? "Ünite" : "Kazanım"}</p></div>
         <span className="shrink-0 rounded-full bg-[#f3f7f4] px-2.5 py-1 text-[10px] font-bold text-[#5c8279]">{contentCount} içerik</span>
@@ -61,7 +68,8 @@ function CategoryTree({ nodes, contentByCategory }: { nodes: CategoryNode[]; con
     </div>;
   };
   const roots = childrenByParent.get(null) ?? [];
-  return roots.length ? <div className="space-y-3">{roots.map(root => renderBranch(root))}</div> : <div className="rounded-3xl border border-dashed border-[#cbd9d5] bg-white p-8 text-center text-sm text-[#6b7c79]">Admin panelinde henüz aktif eğitim kategorisi oluşturulmamış.</div>;
+  useEffect(() => { if (lastVisitedId && !nodes.some(node => node.id === lastVisitedId)) { setLastVisitedId(null); window.localStorage.removeItem("okulblog:last-category"); } }, [lastVisitedId, nodes]);
+  return roots.length ? <div><div className="mb-3 flex items-center justify-between gap-3"><p className="text-xs text-[#71838b]">Son ziyaret edilen kategori vurgulanır.</p><button type="button" onClick={() => setOpenIds(previous => previous.size === expandableIds.length ? new Set() : new Set(expandableIds))} className="rounded-lg border border-[#dfe8e4] bg-white px-3 py-2 text-xs font-bold text-[#5540e8] transition hover:border-[#bdb3f4]">{openIds.size === expandableIds.length ? "Tümünü Kapat" : "Tümünü Aç"}</button></div><div className="space-y-3">{roots.map(root => renderBranch(root))}</div></div> : <div className="rounded-3xl border border-dashed border-[#cbd9d5] bg-white p-8 text-center text-sm text-[#6b7c79]">Admin panelinde henüz aktif eğitim kategorisi oluşturulmamış.</div>;
 }
 
 export default function ContentHub() {

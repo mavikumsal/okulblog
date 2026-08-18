@@ -169,6 +169,14 @@ export async function setCategoryStatus(input: { id: number; isActive: boolean }
   await db.update(categoryNodes).set({ isActive: input.isActive }).where(eq(categoryNodes.id, input.id));
 }
 
+export async function setCategoriesStatus(input: { ids: number[]; isActive: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const ids = Array.from(new Set(input.ids.filter(id => Number.isInteger(id) && id > 0)));
+  if (!ids.length) return;
+  await db.update(categoryNodes).set({ isActive: input.isActive }).where(inArray(categoryNodes.id, ids));
+}
+
 export async function getRolePermissions(role: "teacher" | "moderator") {
   const db = await getDb();
   if (!db) return [];
@@ -343,13 +351,35 @@ export async function markContentProgress(input: { userId: number; contentType: 
 
 export async function getMemberDashboard(userId: number) {
   const db = await getDb();
-  if (!db) return { favorites: [], progress: [], attempts: [] };
-  const [favoriteRows, progressRows, attemptRows] = await Promise.all([
+  if (!db) return { favorites: [], progress: [], attempts: [], subjectProgress: [] };
+  const [favoriteRows, progressRows, attemptRows, educationNodes, contentRows] = await Promise.all([
     db.select().from(favorites).where(eq(favorites.userId, userId)).orderBy(desc(favorites.createdAt)),
     db.select().from(contentProgress).where(eq(contentProgress.userId, userId)).orderBy(desc(contentProgress.updatedAt)),
     db.select().from(testAttempts).where(eq(testAttempts.userId, userId)).orderBy(desc(testAttempts.completedAt)),
+    db.select().from(categoryNodes).where(eq(categoryNodes.categoryType, "education")),
+    db.select({ id: contentItems.id, categoryId: contentItems.categoryId }).from(contentItems).where(eq(contentItems.status, "published")),
   ]);
-  return { favorites: favoriteRows, progress: progressRows, attempts: attemptRows };
+  const byId = new Map(educationNodes.map(node => [node.id, node]));
+  const subjectRows = educationNodes.filter(node => node.level === "subject" && node.isActive);
+  const subjectProgress = subjectRows.map(subject => {
+    const descendantIds = new Set<number>([subject.id]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const node of educationNodes) {
+        if (node.parentId && descendantIds.has(node.parentId) && !descendantIds.has(node.id)) {
+          descendantIds.add(node.id);
+          changed = true;
+        }
+      }
+    }
+    const subjectContentIds = new Set(contentRows.filter(item => item.categoryId && descendantIds.has(item.categoryId)).map(item => item.id));
+    const completedIds = new Set(progressRows.filter(item => item.status === "completed" && item.contentType !== "news" && subjectContentIds.has(item.contentId)).map(item => item.contentId));
+    const total = subjectContentIds.size;
+    const completed = completedIds.size;
+    return { id: subject.id, name: subject.name, total, completed, percent: total ? Math.round((completed / total) * 100) : 0, path: byId.get(subject.parentId ?? 0)?.name ?? "Eğitim" };
+  }).filter(item => item.total > 0 || item.completed > 0);
+  return { favorites: favoriteRows, progress: progressRows, attempts: attemptRows, subjectProgress };
 }
 
 export async function createTestAttempt(input: { userId: number; testId: number; correctCount: number; wrongCount: number; blankCount: number; score: number; durationSeconds: number }) {

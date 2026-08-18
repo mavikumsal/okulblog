@@ -61,6 +61,7 @@ import {
   recordSecurityEvent,
   setInstitutionCategoryStatus,
   setCategoryStatus,
+  setCategoriesStatus,
   updateCategoryNode,
   updateHomeSlide,
   deleteHomeSlide,
@@ -175,6 +176,10 @@ export const appRouter = router({
     setStatus: adminProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(async ({ input }) => {
       await setCategoryStatus(input);
       return { success: true };
+    }),
+    bulkSetStatus: adminProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(500), isActive: z.boolean() })).mutation(async ({ input }) => {
+      await setCategoriesStatus(input);
+      return { success: true, updated: input.ids.length };
     }),
   }),
   permissions: router({

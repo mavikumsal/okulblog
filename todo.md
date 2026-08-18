@@ -780,3 +780,13 @@
 - [x] Üyelerin kazanım detayında Öğrendim/Tamamladım durumunu işaretleyebilmesini sağlamak
 - [x] Kazanım tamamlanma durumunu kullanıcıya özel ve kalıcı olarak saklamak
 - [x] Yeni gezinme, arama ve ilerleme akışları için test, responsive doğrulama ve checkpoint tamamlamak
+
+## İlerleme ve Toplu Kategori Yönetimi
+
+- [x] Profil sayfasına ders bazlı tamamlanma yüzdeleri eklemek
+- [x] Profil sayfasına tamamlanan, devam eden ve toplam kazanım özet kartları eklemek
+- [x] Accordion menüsüne erişilebilir Tümünü Aç/Kapat butonu eklemek
+- [x] Kullanıcının son ziyaret ettiği kategori yolunu kalıcı olarak vurgulamak
+- [x] Admin kategori arama sonuçlarına seviye bazlı filtreleme eklemek
+- [x] Admin filtrelenmiş kategori sonuçlarında toplu aktif/pasif işlemi eklemek
+- [x] Yeni ilerleme, gezinme ve toplu yönetim akışları için test, responsive doğrulama ve checkpoint tamamlamak

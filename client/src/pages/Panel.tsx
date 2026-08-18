@@ -31,6 +31,8 @@ import {
   BrainCircuit,
   CheckCircle2,
   ChevronRight,
+  CheckSquare,
+  Search,
   CircleDotDashed,
   FileText,
   FolderPlus,
@@ -162,6 +164,8 @@ function PanelContent() {
   });
   const [categoryName, setCategoryName] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
+  const [categoryLevelFilter, setCategoryLevelFilter] = useState("all");
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
     null
   );
@@ -210,6 +214,17 @@ function PanelContent() {
     },
     onError: () => toast.error("Kategori adı güncellenemedi."),
   });
+  const bulkSetCategoryStatus = (trpc as any).categories?.bulkSetStatus?.useMutation
+    ? (trpc as any).categories.bulkSetStatus.useMutation({
+        onSuccess: (result: { updated: number }) => {
+          setSelectedCategoryIds([]);
+          utils.categories.list.invalidate();
+          utils.platform.overview.invalidate();
+          toast.success(`${result.updated} kategori durumu güncellendi.`);
+        },
+        onError: () => toast.error("Toplu kategori durumu güncellenemedi."),
+      })
+    : { mutate: () => undefined, isPending: false };
   const updateCategoryStatus = trpc.categories.setStatus.useMutation({
     onSuccess: () => {
       utils.categories.list.invalidate();
@@ -241,9 +256,12 @@ function PanelContent() {
   }, [categoryOptions, overview.data?.content]);
   const filteredCategoryOptions = useMemo(() => {
     const query = categorySearch.trim().toLocaleLowerCase("tr-TR");
-    if (!query) return categoryOptions;
-    return categoryOptions.filter(item => categoryPath(item, categoryOptions).toLocaleLowerCase("tr-TR").includes(query));
-  }, [categoryOptions, categorySearch]);
+    return categoryOptions.filter(item => {
+      const matchesLevel = categoryLevelFilter === "all" || item.level === categoryLevelFilter;
+      const matchesQuery = !query || categoryPath(item, categoryOptions).toLocaleLowerCase("tr-TR").includes(query);
+      return matchesLevel && matchesQuery;
+    });
+  }, [categoryOptions, categorySearch, categoryLevelFilter]);
   const educationCategoryOptions = categoryOptions
     .filter(item => item.categoryType === "education" && item.isActive)
     .sort((a, b) =>
@@ -1197,6 +1215,27 @@ function PanelContent() {
               tone="bg-[#e7e5f8] text-[#62538d]"
             />
           </div>
+          <section className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold tracking-[.14em] text-[#7b928f] uppercase">Ders bazlı ilerleme</p>
+                <h2 className="mt-2 text-xl font-bold text-[#29465a]">Öğrenme yolundaki durumun</h2>
+              </div>
+              <Badge variant="outline">{(memberDashboard.data?.subjectProgress ?? []).length} ders</Badge>
+            </div>
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {(memberDashboard.data?.subjectProgress ?? []).length ? memberDashboard.data?.subjectProgress.map((subject: { id: number; name: string; completed: number; total: number; percent: number; path: string }) => (
+                <div key={subject.id} className="rounded-2xl bg-[#f7f8f4] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0"><p className="truncate text-sm font-bold text-[#365368]">{subject.name}</p><p className="mt-1 text-xs text-[#82918f]">{subject.path}</p></div>
+                    <span className="text-lg font-bold text-[#5540e8]">%{subject.percent}</span>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e5e9e3]"><div className="h-full rounded-full bg-gradient-to-r from-[#5540e8] to-[#f0c75e] transition-all" style={{ width: `${subject.percent}%` }} /></div>
+                  <p className="mt-2 text-xs text-[#71838b]">{subject.completed} / {subject.total} içerik tamamlandı</p>
+                </div>
+              )) : <p className="rounded-xl bg-[#f7f8f4] p-4 text-sm text-[#71838b] md:col-span-2">İlerleme yüzdesi oluşturmak için içeriklerden birini tamamlandı olarak işaretle.</p>}
+            </div>
+          </section>
           <div className="grid gap-5 lg:grid-cols-2">
             <section className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
               <div className="flex items-center justify-between">
@@ -1528,20 +1567,37 @@ function PanelContent() {
                 Kayıtlı kategoriler
               </p>
               <div className="mt-3 space-y-3">
-                <div className="relative">
-                  <Input
-                    value={categorySearch}
-                    onChange={event => setCategorySearch(event.target.value)}
-                    placeholder="Ders veya kazanım ara..."
-                    aria-label="Kategori ağacında ders veya kazanım ara"
-                    className="h-10 rounded-xl bg-white pr-20"
-                  />
-                  {categorySearch && <button type="button" onClick={() => setCategorySearch("")} aria-label="Kategori aramasını temizle" className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#82918f] hover:text-[#5540e8]">Temizle</button>}
+                <div className="grid gap-2 sm:grid-cols-[1fr_180px]">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#82918f]" />
+                    <Input
+                      value={categorySearch}
+                      onChange={event => setCategorySearch(event.target.value)}
+                      placeholder="Ders veya kazanım ara..."
+                      aria-label="Kategori ağacında ders veya kazanım ara"
+                      className="h-10 rounded-xl bg-white pl-9 pr-20"
+                    />
+                    {categorySearch && <button type="button" onClick={() => setCategorySearch("")} aria-label="Kategori aramasını temizle" className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#82918f] hover:text-[#5540e8]">Temizle</button>}
+                  </div>
+                  <select value={categoryLevelFilter} onChange={event => setCategoryLevelFilter(event.target.value)} aria-label="Kategori seviyesine göre filtrele" className="h-10 rounded-xl border border-[#e2e9e5] bg-white px-3 text-sm text-[#456073] outline-none focus:ring-2 focus:ring-[#5540e8]/30">
+                    <option value="all">Tüm seviyeler</option>
+                    <option value="ana-grup">Ana grup</option>
+                    <option value="school-level">Okul düzeyi</option>
+                    <option value="class">Sınıf</option>
+                    <option value="subject">Ders</option>
+                    <option value="unit">Ünite</option>
+                    <option value="outcome">Kazanım</option>
+                  </select>
                 </div>
+                {isAdmin && filteredCategoryOptions.length > 0 && <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f8f4] p-3">
+                  <button type="button" onClick={() => setSelectedCategoryIds(selectedCategoryIds.length === filteredCategoryOptions.length ? [] : filteredCategoryOptions.map(item => item.id))} className="inline-flex items-center gap-2 text-xs font-bold text-[#456073] hover:text-[#5540e8]"><CheckSquare className="h-4 w-4" />{selectedCategoryIds.length === filteredCategoryOptions.length ? "Seçimi kaldır" : "Sonuçları seç"}</button>
+                  <span className="text-xs text-[#82918f]">{selectedCategoryIds.length} seçili</span>
+                  {selectedCategoryIds.length > 0 && <><Button type="button" size="sm" disabled={bulkSetCategoryStatus.isPending} onClick={() => bulkSetCategoryStatus.mutate({ ids: selectedCategoryIds, isActive: true })} className="ml-auto h-8 rounded-lg bg-[#276e61] text-xs">Toplu aktif yap</Button><Button type="button" size="sm" variant="outline" disabled={bulkSetCategoryStatus.isPending} onClick={() => bulkSetCategoryStatus.mutate({ ids: selectedCategoryIds, isActive: false })} className="h-8 rounded-lg text-xs">Toplu pasif yap</Button></>}
+                </div>}
                 {categoryNodes.isLoading ? (
                   <p className="text-sm text-[#7d8c91]">Yükleniyor...</p>
                 ) : filteredCategoryOptions.length ? (
-                  filteredCategoryOptions.map(item => (
+                    filteredCategoryOptions.map(item => (
                     <div
                       key={item.id}
                       className="flex flex-col gap-2 rounded-xl bg-[#f7f8f4] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
