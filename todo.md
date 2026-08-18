@@ -936,3 +936,8 @@
 - [x] Sticky kategori alanına ders ve ünite adlarında çalışan hafif arama/filtreleme çubuğu ekle
 - [x] Arama sonuçları, boş durum, klavye erişilebilirliği ve accordion davranışını test et
 - [x] TypeScript, production build, mobil/masaüstü görsel doğrulama ve checkpoint tamamla
+
+## Yeni istek: tüm eğitim hiyerarşisine örnek zincir
+- [x] Tüm aktif sınıf ve derslerin eksik örnek ünite/kazanım zincirlerini çoğaltmadan oluştur
+- [x] Örnek verilerin kategori ağacı, arama ve içerik bağlantılarında görünmesini doğrula
+- [x] Veri bütünlüğü, test, build, responsive kontrol ve checkpoint tamamla
