@@ -690,3 +690,12 @@
 - [x] Masaüstü ve mobil header görünümünü doğrulamak
 - [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Kurum Kategorisi Bölümünü Kaldırma
+
+- [x] Ana sayfadaki Kurum Kategorisi / “Sınav hazırlığı, okul akışından bağımsız hareket eder.” bölümünü kaldırmak
+- [x] Bölüm kaldırıldıktan sonra Home akışındaki boşluk ve section geçişlerini düzenlemek
+- [x] Mevcut header arama çubuğunu geri eklememek ve sonraki değerlendirme notunu korumak
+- [x] Masaüstü ve mobil görünümü doğrulamak
+- [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak
