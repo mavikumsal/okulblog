@@ -555,3 +555,11 @@
 - [x] Ana sayfayı masaüstü, tablet ve mobil ölçülerde görsel olarak doğrulamak
 - [x] Ana sayfa mor-mavi tema dönüşümü için Vitest, TypeScript, production build ve erişilebilirlik doğrulaması yapmak
 - [x] Ana sayfa mor-mavi tema dönüşümü için geri alınabilir checkpoint oluşturmak
+
+## Ana Sayfa Hero Yükseklik Kompaktlaştırması
+
+- [x] Üst slider/hero alanının mevcut masaüstü ve mobil yüksekliklerini referans görselle karşılaştırmak
+- [x] Üst slider yüksekliğini azaltırken başlık, açıklama, CTA, oklar ve göstergenin görünürlüğünü korumak
+- [x] Takip eden öğrenme yolu hero alanının dikey boşluklarını azaltmak ve kart taşmasını önlemek
+- [x] Kompakt hero düzenini masaüstü, tablet ve mobil görünümde doğrulamak
+- [x] Kompakt hero düzeni için test, TypeScript, production build ve geri alınabilir checkpoint doğrulaması yapmak

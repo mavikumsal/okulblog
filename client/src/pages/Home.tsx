@@ -190,48 +190,48 @@ export default function Home() {
       <div className="border-b border-[#eef0f5] bg-[#fafaff] py-2 text-center text-xs font-medium text-[#4b5563]">Üst Reklam (Google AdSense / Firma Reklamı)</div>
 
       <main>
-        <section className="relative h-[360px] overflow-hidden bg-[#2d55d9] text-white sm:h-[470px] lg:h-[560px]" aria-label="Öne çıkan içerikler">
+        <section className="relative h-[270px] overflow-hidden bg-[#2d55d9] text-white sm:h-[340px] lg:h-[410px]" aria-label="Öne çıkan içerikler">
           <div className="absolute inset-0 bg-gradient-to-r from-[#1f5fe8] via-[#3f35c4] to-[#6322a0]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(242,200,102,.22),transparent_28%),radial-gradient(circle_at_82%_80%,rgba(184,221,212,.2),transparent_30%)]" />
-          <div className="container relative flex h-full items-center justify-center px-6 text-center">
+          <div className="container relative flex h-full items-center justify-center px-6 py-5 text-center">
             <div key={activeSlideIndex} className="max-w-3xl animate-in fade-in duration-500">
-              <p className="mb-4 text-[11px] font-bold uppercase tracking-[.18em] text-[#f6d47f]">{currentSlide.eyebrow || "OkulBlog öne çıkanları"}</p>
-              <h2 className="text-4xl font-black tracking-[-.055em] sm:text-5xl lg:text-6xl">{currentSlide.title}</h2>
-              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#d5e0df] sm:text-lg">{currentSlide.description || fallbackSlide.description}</p>
-              <Button onClick={followSlideLink} className="mt-7 rounded-xl bg-[#ffd21a] px-7 font-black text-[#111827] shadow-[0_12px_30px_rgba(0,0,0,.18)] transition hover:-translate-y-0.5 hover:bg-[#ffe45b]">{currentSlide.buttonLabel || "İçerikleri keşfet"} <ArrowRight size={17} /></Button>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[.18em] text-[#f6d47f]">{currentSlide.eyebrow || "OkulBlog öne çıkanları"}</p>
+              <h2 className="text-3xl font-black tracking-[-.055em] sm:text-4xl lg:text-5xl">{currentSlide.title}</h2>
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#d5e0df] sm:text-base">{currentSlide.description || fallbackSlide.description}</p>
+              <Button onClick={followSlideLink} className="mt-4 rounded-xl bg-[#ffd21a] px-7 font-black text-[#111827] shadow-[0_12px_30px_rgba(0,0,0,.18)] transition hover:-translate-y-0.5 hover:bg-[#ffe45b]">{currentSlide.buttonLabel || "İçerikleri keşfet"} <ArrowRight size={17} /></Button>
             </div>
           </div>
           <button type="button" onClick={() => setActiveSlideIndex(index => (index - 1 + Math.max(configuredSlides.length, 1)) % Math.max(configuredSlides.length, 1))} className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/35 focus:outline-none focus:ring-2 focus:ring-[#ffd21a]" aria-label="Önceki slayt"><ArrowRight className="rotate-180" size={20} /></button>
           <button type="button" onClick={() => setActiveSlideIndex(index => (index + 1) % Math.max(configuredSlides.length, 1))} className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/35 focus:outline-none focus:ring-2 focus:ring-[#f2c866]" aria-label="Sonraki slayt"><ArrowRight size={20} /></button>
-          <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2" aria-label="Slayt seçimi">{(configuredSlides.length ? configuredSlides : [fallbackSlide]).map((slide, index) => <button type="button" key={"slider-dot-" + ("id" in slide ? slide.id : index)} onClick={() => setActiveSlideIndex(index)} className={`h-2.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#f2c866] ${index === activeSlideIndex ? "w-8 bg-[#f2c866]" : "w-2.5 bg-white/45 hover:bg-white/80"}`} aria-label={`${index + 1}. slaytı göster`} />)}</div>
+          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2" aria-label="Slayt seçimi">{(configuredSlides.length ? configuredSlides : [fallbackSlide]).map((slide, index) => <button type="button" key={"slider-dot-" + ("id" in slide ? slide.id : index)} onClick={() => setActiveSlideIndex(index)} className={`h-2.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#f2c866] ${index === activeSlideIndex ? "w-8 bg-[#f2c866]" : "w-2.5 bg-white/45 hover:bg-white/80"}`} aria-label={`${index + 1}. slaytı göster`} />)}</div>
         </section>
 
         <section id="baslangic" className="relative overflow-hidden bg-gradient-to-br from-[#1f5fe8] via-[#3f35c4] to-[#6322a0] text-white">
           <div className="pointer-events-none absolute inset-0 opacity-[.08]" style={{ backgroundImage: "radial-gradient(#f6d881 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
           <div className="pointer-events-none absolute -right-36 top-[-13rem] h-[36rem] w-[36rem] rounded-full border-[62px] border-[#e5ae55]/20" />
-          <div className="container relative grid gap-12 py-16 sm:py-20 lg:min-h-[650px] lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:py-24">
+          <div className="container relative grid gap-5 py-7 sm:gap-8 sm:py-10 lg:min-h-[470px] lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:py-14">
             <div className="max-w-2xl">
-              <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.06] px-3.5 py-2 text-[11px] font-bold tracking-[.12em] text-[#f6d47f] uppercase"><Sparkles size={14} /> {currentSlide.eyebrow || "Eğitim için düzenli bir alan"}</div>
-              <h1 className="max-w-2xl text-[3.35rem] font-semibold leading-[.92] tracking-[-.073em] sm:text-7xl lg:text-[5.45rem]">{currentSlide.title}</h1>
-              <p className="mt-8 max-w-lg text-base leading-7 text-[#c4d1d3] sm:text-lg">{currentSlide.description || fallbackSlide.description}</p>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.06] px-3.5 py-2 text-[11px] font-bold tracking-[.12em] text-[#f6d47f] uppercase"><Sparkles size={14} /> {currentSlide.eyebrow || "Eğitim için düzenli bir alan"}</div>
+              <h1 className="max-w-2xl text-[2.15rem] font-semibold leading-[.95] tracking-[-.073em] sm:text-6xl lg:text-[4.25rem]">{currentSlide.title}</h1>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-[#c4d1d3] sm:mt-5 sm:text-base sm:leading-7">{currentSlide.description || fallbackSlide.description}</p>
+              <div className="mt-4 flex flex-col gap-2.5 sm:mt-6 sm:flex-row sm:gap-3">
                 <Button onClick={followSlideLink} size="lg" className="h-13 rounded-full bg-[#f2c866] px-6 font-bold text-[#1b354c] hover:bg-[#f7d982]">{currentSlide.buttonLabel || "İçerikleri keşfet"} <ArrowDownRight size={18} /></Button>
                 <Button onClick={() => goTo("yolculuk")} variant="outline" size="lg" className="h-13 rounded-full border-white/25 bg-white/[.03] px-6 font-bold text-white hover:bg-white/10 hover:text-white"><PlayCircle size={18} /> Nasıl çalışır?</Button>
               </div>
               {configuredSlides.length > 1 && <div className="mt-8 flex items-center gap-2" aria-label="Slider seçimi">{configuredSlides.map((slide, index) => <button key={slide.id} onClick={() => setActiveSlideIndex(index)} className={`h-2.5 rounded-full transition-all ${index === activeSlideIndex ? "w-8 bg-[#f2c866]" : "w-2.5 bg-white/35 hover:bg-white/60"}`} aria-label={`${index + 1}. slide: ${slide.title}`} />)}</div>}
-              <div className="mt-12 flex flex-wrap gap-x-7 gap-y-3 text-sm font-medium text-[#b6c7c9]"><span>• Kazanım odaklı</span><span>• Rol tabanlı</span><span>• Yapay zekâ destekli</span></div>
+              <div className="mt-4 hidden flex-wrap gap-x-7 gap-y-3 text-sm font-medium text-[#b6c7c9] sm:flex"><span>• Kazanım odaklı</span><span>• Rol tabanlı</span><span>• Yapay zekâ destekli</span></div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[510px] lg:translate-y-2">
+            <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[430px] lg:translate-y-0">
               <div className="absolute -left-5 top-20 h-48 w-48 rounded-full bg-[#c9e4dc]/20 blur-3xl" />
-              <div className="relative overflow-hidden rounded-[32px] border border-white/25 bg-white/95 p-4 text-[#15344e] shadow-[0_28px_80px_rgba(31,41,55,.24)] sm:p-5">
+              <div className="relative overflow-hidden rounded-[24px] border border-white/25 bg-white/95 p-3 text-[#15344e] shadow-[0_20px_55px_rgba(31,41,55,.24)] sm:rounded-[28px] sm:p-5">
                 <div className="flex items-center justify-between border-b border-[#e1e2d9] pb-4"><div className="flex items-center gap-2.5"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#cce9df] text-[#176559]"><Search size={17} /></span><div><p className="text-sm font-bold">Öğrenme yolu</p><p className="text-[11px] text-[#75838a]">Adım adım keşfet</p></div></div><span className="rounded-full bg-[#f5e4b6] px-3 py-1 text-[10px] font-bold text-[#855f20]">AKILLI SEÇİM</span></div>
-                <div className="mt-4 rounded-[22px] bg-[#172c74] p-5 text-white"><p className="text-[10px] font-bold tracking-[.16em] text-[#a9c9c4] uppercase">Eğitim kategorisi</p><p className="mt-2 text-xl font-semibold tracking-[-.03em]">Türkçe · 1. Sınıf</p><div className="mt-5 flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-[#e7eff0]"><span className="rounded-md bg-white/10 px-2 py-1">Ders</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-white/10 px-2 py-1">Ünite</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-[#e8b75e] px-2 py-1 text-[#19384f]">Kazanım</span></div></div>
-                <div className="mt-3 grid grid-cols-3 gap-2"><MiniTile icon={FileText} label="Doküman" tone="bg-[#e6f1ec] text-[#286b5e]" /><MiniTile icon={Target} label="Test" tone="bg-[#fbefd3] text-[#8f6621]" /><MiniTile icon={BrainCircuit} label="AI çalışma" tone="bg-[#ece8f7] text-[#604985]" /></div>
-                <div className="mt-3 flex items-center justify-between rounded-2xl border border-[#e3e5dc] bg-white px-4 py-3"><div><p className="text-xs font-bold">Sıradaki çalışma</p><p className="mt-0.5 text-[11px] text-[#77858a]">Okuduğunu anlama</p></div><ArrowRight size={17} className="text-[#739b90]" /></div>
+                <div className="mt-3 rounded-[20px] bg-[#172c74] p-4 text-white sm:mt-4 sm:rounded-[22px] sm:p-5"><p className="text-[10px] font-bold tracking-[.16em] text-[#a9c9c4] uppercase">Eğitim kategorisi</p><p className="mt-2 text-xl font-semibold tracking-[-.03em]">Türkçe · 1. Sınıf</p><div className="mt-5 flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-[#e7eff0]"><span className="rounded-md bg-white/10 px-2 py-1">Ders</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-white/10 px-2 py-1">Ünite</span><ChevronRight size={12} className="text-[#85aa9f]" /><span className="rounded-md bg-[#e8b75e] px-2 py-1 text-[#19384f]">Kazanım</span></div></div>
+                <div className="mt-2 grid grid-cols-3 gap-1.5 sm:mt-3 sm:gap-2"><MiniTile icon={FileText} label="Doküman" tone="bg-[#e6f1ec] text-[#286b5e]" /><MiniTile icon={Target} label="Test" tone="bg-[#fbefd3] text-[#8f6621]" /><MiniTile icon={BrainCircuit} label="AI çalışma" tone="bg-[#ece8f7] text-[#604985]" /></div>
+                <div className="mt-2 flex items-center justify-between rounded-2xl sm:mt-3 border border-[#e3e5dc] bg-white px-4 py-3"><div><p className="text-xs font-bold">Sıradaki çalışma</p><p className="mt-0.5 text-[11px] text-[#77858a]">Okuduğunu anlama</p></div><ArrowRight size={17} className="text-[#739b90]" /></div>
               </div>
               {(user?.role === "admin" || user?.role === "teacher") && <QuestionProductionDashboard compact className="mt-4 lg:absolute lg:-bottom-24 lg:-left-8 lg:w-[280px] lg:shadow-[0_20px_55px_rgba(0,0,0,.22)]" />}
-              <div className="absolute -bottom-5 -right-3 rounded-2xl bg-[#ffd21a] px-4 py-3 text-[#111827] shadow-xl sm:-right-9"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div>
+              <div className="absolute -bottom-3 -right-3 rounded-2xl bg-[#ffd21a] px-4 py-3 text-[#111827] shadow-xl sm:-right-9"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div>
             </div>
           </div>
         </section>
