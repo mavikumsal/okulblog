@@ -1,31 +1,112 @@
+import React, { useMemo, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
-import DashboardLayout from "@/components/DashboardLayout";
 import RichTextEditor from "@/components/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
+import { ArrowRight, BookOpen, GraduationCap, ImagePlus, MessageCircle, Search, Send, X } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
-import { ArrowLeft, ImagePlus, MessageCircle, Search, Send, X } from "lucide-react";
 import { useLocation } from "wouter";
+
+const navItems = [
+  ["Ana Sayfa", "/"],
+  ["Testler", "/panel/testler"],
+  ["Dokümanlar", "/panel/dokumanlar"],
+  ["Videolar", "/panel/videolar"],
+  ["Oyunlar", "/panel/oyunlar"],
+  ["Simülasyonlar", "/panel/simulasyonlar"],
+  ["Haberler", "/panel/haberler"],
+  ["Soru-Cevap", "/soru-cevap"],
+] as const;
+
+type CategoryNode = { id: number; name: string; level: string; parentId: number | null };
+
+function childrenOf(nodes: CategoryNode[], parentId: number | null, level?: string) {
+  return nodes.filter(node => node.parentId === parentId && (!level || node.level === level));
+}
+
+function CategoryCascade({ nodes, values, onChange, prefix }: { nodes: CategoryNode[]; values: Record<string, string>; onChange: (level: string, value: string) => void; prefix: string }) {
+  const levels = [
+    ["ana-grup", "Ana grup", null],
+    ["school-level", "Okul düzeyi", "ana-grup"],
+    ["class", "Sınıf", "school-level"],
+    ["subject", "Ders", "class"],
+    ["unit", "Ünite", "subject"],
+    ["outcome", "Kazanım", "unit"],
+  ] as const;
+  const roots = nodes.filter(node => node.level === "ana-grup" || node.parentId === null);
+  return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{levels.map(([level, label, parentLevel]) => {
+    const parentId = parentLevel ? Number(values[parentLevel] || 0) : null;
+    const options = parentLevel ? (parentId ? childrenOf(nodes, parentId, level) : []) : roots;
+    const visible = options.length > 0 || (!parentLevel && options.length > 0);
+    if (!visible) return null;
+    return <label key={`${prefix}-${level}`} className="grid gap-1.5 text-xs font-bold text-[#52666c]"><span>{label}</span><select aria-label={`${prefix} ${label}`} value={values[level] ?? ""} onChange={event => onChange(level, event.target.value)} className="h-11 rounded-xl border border-[#d8e6de] bg-white px-3 text-sm font-medium text-[#29465a] outline-none focus:border-[#5540e8] focus:ring-2 focus:ring-[#5540e8]/20"><option value="">{label} seçin</option>{options.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label>;
+  })}</div>;
+}
 
 export default function QA() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [filterCategoryId, setFilterCategoryId] = useState("");
-  const [institutionCategoryId, setInstitutionCategoryId] = useState("");
-  const [title, setTitle] = useState(""); const [body, setBody] = useState(""); const [imageUrl, setImageUrl] = useState("");
-  const [answerFor, setAnswerFor] = useState<number | null>(null); const [answerBody, setAnswerBody] = useState(""); const [answerImage, setAnswerImage] = useState("");
+  const [categoryValues, setCategoryValues] = useState<Record<string, string>>({});
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [answerFor, setAnswerFor] = useState<number | null>(null);
+  const [answerBody, setAnswerBody] = useState("");
+  const [answerImage, setAnswerImage] = useState("");
+  const [contact, setContact] = useState({ name: "", email: "", message: "" });
+  const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
+  const [contactSent, setContactSent] = useState(false);
   const categories = trpc.platform.qa.categories.useQuery();
-  const qa = trpc.platform.qa.list.useQuery({ search: search.trim() || undefined, categoryId: filterCategoryId ? Number(filterCategoryId) : undefined });
-  const upload = trpc.member.uploadQaImage.useMutation({ onError: e => toast.error(e.message) });
-  const ask = trpc.member.askQuestion.useMutation({ onSuccess: () => { toast.success("Sorunuz moderasyon kuyruğuna alındı."); setTitle(""); setBody(""); setImageUrl(""); setCategoryId(""); setInstitutionCategoryId(""); qa.refetch(); }, onError: e => toast.error(e.message) });
-  const answer = trpc.member.answerQuestion.useMutation({ onSuccess: () => { toast.success("Cevabınız moderasyon kuyruğuna alındı."); setAnswerFor(null); setAnswerBody(""); setAnswerImage(""); qa.refetch(); }, onError: e => toast.error(e.message) });
-  const handleImage = (file: File, target: "question" | "answer") => { const reader = new FileReader(); reader.onload = () => { const dataBase64 = String(reader.result).split(",")[1] ?? ""; upload.mutate({ fileName: file.name, mimeType: file.type as "image/jpeg" | "image/png" | "image/webp", dataBase64 }, { onSuccess: r => target === "question" ? setImageUrl(r.url) : setAnswerImage(r.url) }); }; reader.readAsDataURL(file); };
-  const clearFilters = () => { setSearch(""); setFilterCategoryId(""); };
-  const categoryOptions = [...(categories.data?.education ?? []).map(item => ({ ...item, source: "Eğitim" })), ...(categories.data?.institution ?? []).map(item => ({ ...item, source: "Kurum" }))];
-  return <DashboardLayout><main className="min-h-screen bg-[#fbfaf4] px-4 py-8 sm:px-8"><div className="mx-auto max-w-6xl"><button onClick={() => setLocation("/")} className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-[#47736a]"><ArrowLeft size={16}/> Ana sayfaya dön</button><div className="rounded-[28px] bg-[#18344f] p-7 text-white sm:p-10"><p className="text-xs font-bold tracking-[.2em] text-[#b8ddd4] uppercase">OkulBlog topluluğu</p><h1 className="mt-3 text-4xl font-semibold">Soru-Cevap</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-[#d2dee0]">Konuyu arayın, kategoriye göre daraltın ve doğrulanmış cevapları keşfedin.</p></div><section className="mt-6 rounded-[24px] border border-[#e6e6de] bg-white p-5"><div className="grid gap-3 md:grid-cols-[1fr_240px_auto]"><div className="relative"><Search className="absolute left-3 top-3 text-[#78908c]" size={17}/><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Başlık veya soru metninde ara..." className="h-11 rounded-xl pl-10" /></div><select value={filterCategoryId} onChange={e => setFilterCategoryId(e.target.value)} className="h-11 rounded-xl border border-input bg-background px-3 text-sm"><option value="">Tüm kategoriler</option>{categoryOptions.map(item => <option key={item.id} value={item.id}>{item.source} · {item.name}</option>)}</select><Button variant="outline" onClick={clearFilters} disabled={!search && !filterCategoryId} className="h-11 rounded-xl"><X size={15}/> Temizle</Button></div><p className="mt-3 text-xs text-[#71838b]">{qa.data?.questions.length ?? 0} soru bulundu</p></section>{!isAuthenticated ? <section className="mt-6 rounded-[24px] border border-[#e6e6de] bg-white p-7 text-center"><MessageCircle className="mx-auto text-[#47736a]" size={30}/><h2 className="mt-3 text-xl font-bold text-[#29465a]">Yazmak için üye girişi gerekli</h2><Button onClick={() => startLogin()} className="mt-5 rounded-xl bg-[#18344f]">Üye girişi yap</Button></section> : <section className="mt-6 rounded-[24px] border border-[#e6e6de] bg-white p-6"><h2 className="text-xl font-bold text-[#29465a]">Yeni soru sor</h2><div className="mt-4 space-y-4"><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Soru başlığı" className="h-11 rounded-xl"/><select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"><option value="">Eğitim kategorisi seçin (zorunlu)</option>{categoryOptions.filter(item => item.source === "Eğitim").map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select value={institutionCategoryId} onChange={e => setInstitutionCategoryId(e.target.value)} className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"><option value="">Kurum kategorisi seçmeyin (opsiyonel)</option>{categoryOptions.filter(item => item.source === "Kurum").map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><RichTextEditor value={body} onChange={setBody} label="Soru metni" ariaLabel="Soru metni" testId="qa-question-editor"/><label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold text-[#47736a]"><ImagePlus size={16}/> Görsel ekle<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f=e.target.files?.[0]; if(f) handleImage(f,"question"); }}/></label>{imageUrl && <img src={imageUrl} alt="Soru" className="h-16 w-16 rounded-lg object-cover"/>}<Button disabled={title.trim().length<3 || body.replace(/<[^>]+>/g," ").trim().length<3 || !categoryId || ask.isPending} onClick={() => ask.mutate({ title, body, imageUrl: imageUrl || undefined, categoryId: Number(categoryId), institutionCategoryId: institutionCategoryId ? Number(institutionCategoryId) : null })} className="rounded-xl bg-[#18344f]"><Send size={16}/> Soruyu gönder</Button></div></section>}<section className="mt-6 space-y-4"><h2 className="text-2xl font-bold text-[#29465a]">Yayınlanan sorular</h2>{qa.isLoading ? <div className="rounded-2xl bg-white p-6">Sorular yükleniyor...</div> : !qa.data?.questions.length ? <div className="rounded-2xl bg-white p-6 text-sm text-[#71838b]">Aramanızla eşleşen soru bulunamadı.</div> : qa.data.questions.map(question => <article key={question.id} className="rounded-2xl border border-[#e6e6de] bg-white p-6"><h3 className="text-lg font-bold text-[#29465a]">{question.title}</h3><div className="mt-3 flex flex-wrap gap-2"><span className="rounded-full bg-[#e8f2ed] px-2.5 py-1 text-[10px] font-bold text-[#397266]">Eğitim · {categoryOptions.find(item => item.id === question.categoryId)?.name ?? "Kategori"}</span>{question.institutionCategoryId ? <span className="rounded-full bg-[#f8edcf] px-2.5 py-1 text-[10px] font-bold text-[#8b681e]">Kurum · {categoryOptions.find(item => item.id === question.institutionCategoryId)?.name ?? "Kurum kategorisi"}</span> : null}</div><div className="prose prose-sm mt-3 max-w-none text-[#587079]" dangerouslySetInnerHTML={{__html:question.body}}/>{question.imageUrl && <img src={question.imageUrl} alt="" className="mt-4 max-h-64 rounded-xl object-contain"/>}<div className="mt-5 space-y-3">{(qa.data.answers ?? []).filter(item => item.questionId === question.id).map(item => <div key={item.id} className="rounded-xl bg-[#f5f7f2] p-4"><div className="prose prose-sm max-w-none text-[#587079]" dangerouslySetInnerHTML={{__html:item.body}}/></div>)}</div>{isAuthenticated && <div className="mt-5">{answerFor === question.id ? <div className="space-y-3"><RichTextEditor value={answerBody} onChange={setAnswerBody} label="Cevabınız" ariaLabel="Cevap metni" testId={`qa-answer-editor-${question.id}`}/><Button onClick={() => answer.mutate({questionId:question.id,body:answerBody,imageUrl:answerImage||undefined})} disabled={answerBody.replace(/<[^>]+>/g,"").trim().length<3 || answer.isPending} className="rounded-lg bg-[#47736a]">Cevabı gönder</Button></div> : <Button variant="outline" onClick={() => setAnswerFor(question.id)} className="rounded-lg">Cevap yaz</Button>}</div>}</article>)}</section></div></main></DashboardLayout>;
+  const siteContact = trpc.platform.siteContact.useQuery();
+  const nodes = categories.data?.education ?? [];
+  const activeCategoryId = Number(categoryValues.outcome || categoryValues.unit || categoryValues.subject || categoryValues.class || categoryValues["school-level"] || categoryValues["ana-grup"] || 0) || undefined;
+  const qa = trpc.platform.qa.list.useQuery({ search: search.trim() || undefined, categoryId: activeCategoryId });
+  const upload = trpc.member.uploadQaImage.useMutation({ onError: error => toast.error(error.message) });
+  const ask = trpc.member.askQuestion.useMutation({ onSuccess: () => { toast.success("Sorunuz moderasyon kuyruğuna alındı."); setTitle(""); setBody(""); setImageUrl(""); qa.refetch(); }, onError: error => toast.error(error.message) });
+  const answer = trpc.member.answerQuestion.useMutation({ onSuccess: () => { toast.success("Cevabınız moderasyon kuyruğuna alındı."); setAnswerFor(null); setAnswerBody(""); setAnswerImage(""); qa.refetch(); }, onError: error => toast.error(error.message) });
+  const categoryIdForQuestion = activeCategoryId;
+  const selectedCategoryLabel = useMemo(() => nodes.find(node => node.id === categoryIdForQuestion)?.name, [nodes, categoryIdForQuestion]);
+
+  const updateCategory = (level: string, value: string) => {
+    const levelOrder = ["ana-grup", "school-level", "class", "subject", "unit", "outcome"];
+    const next = { ...categoryValues };
+    const index = levelOrder.indexOf(level);
+    levelOrder.slice(index).forEach(item => { delete next[item]; });
+    if (value) next[level] = value;
+    setCategoryValues(next);
+  };
+  const handleImage = (file: File, target: "question" | "answer") => {
+    const reader = new FileReader();
+    reader.onload = () => { const dataBase64 = String(reader.result).split(",")[1] ?? ""; upload.mutate({ fileName: file.name, mimeType: file.type as "image/jpeg" | "image/png" | "image/webp", dataBase64 }, { onSuccess: result => target === "question" ? setImageUrl(result.url) : setAnswerImage(result.url) }); };
+    reader.readAsDataURL(file);
+  };
+  const submitContact = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!contact.name.trim()) errors.name = "Adınızı yazın.";
+    if (!contact.email.trim()) errors.email = "E-posta adresinizi yazın.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) errors.email = "Geçerli bir e-posta girin.";
+    if (!contact.message.trim()) errors.message = "Mesajınızı yazın.";
+    setContactErrors(errors);
+    if (Object.keys(errors).length) { setContactSent(false); return; }
+    const recipient = siteContact.data?.contact_email;
+    if (recipient) window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(`OkulBlog mesajı - ${contact.name.trim()}`)}&body=${encodeURIComponent(`${contact.message.trim()}\n\nGönderen: ${contact.name.trim()}\nE-posta: ${contact.email.trim()}`)}`;
+    setContactSent(true); setContactErrors({}); setContact({ name: "", email: "", message: "" });
+  };
+
+  return <div className="min-h-screen bg-[#fbfaf4] text-[#18344f]">
+    <header className="sticky top-0 z-50 border-b border-[#e6ebe5] bg-white/95 backdrop-blur-xl">
+      <div className="container flex min-h-[76px] items-center justify-between gap-5 py-3"><button onClick={() => setLocation("/")} className="flex shrink-0 items-center gap-2.5 text-left" aria-label="OkulBlog ana sayfa"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#5540e8] text-white shadow-[0_9px_20px_rgba(85,64,232,.22)]"><GraduationCap size={21} /></span><span className="text-[21px] font-bold tracking-[-.06em] text-[#5540e8]">okul<span className="font-serif text-[#7c3aed]">blog</span></span></button><nav className="hidden min-w-0 flex-1 items-center justify-center gap-3 text-[11px] font-bold text-[#52666c] xl:flex">{navItems.map(([label, path]) => <button key={path} onClick={() => setLocation(path)} className={`rounded-full px-2 py-2 transition hover:bg-[#f0edff] hover:text-[#5540e8] ${path === "/soru-cevap" ? "bg-[#f0edff] text-[#5540e8]" : ""}`}>{label}</button>)}</nav><Button onClick={() => isAuthenticated ? setLocation("/panel") : startLogin()} className="rounded-full bg-[#5540e8] font-bold text-white hover:bg-[#4632cf]">{isAuthenticated ? "Panelim" : "Giriş yap"}<ArrowRight size={15} /></Button></div>
+    </header>
+    <main className="container max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
+      <section className="rounded-[28px] bg-[#18344f] p-7 text-white sm:p-10"><p className="text-xs font-bold uppercase tracking-[.2em] text-[#b8ddd4]">Topluluk alanı</p><h1 className="mt-3 text-4xl font-semibold tracking-[-.04em]">Soru-Cevap</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-[#d2dee0]">Takıldığın yerde birlikte düşünelim. Dersini ve sınıfını seç, soruları keşfet veya toplulukla paylaş.</p></section>
+      <section className="mt-6 rounded-[24px] border border-[#e6e6de] bg-white p-5"><div className="grid gap-4"><div className="relative"><Search className="absolute left-3 top-3 text-[#78908c]" size={17} /><Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Sorularda ara..." className="h-11 rounded-xl pl-10" /></div><CategoryCascade nodes={nodes} values={categoryValues} onChange={updateCategory} prefix="Filtre" /><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-[#71838b]">{qa.data?.questions.length ?? 0} soru bulundu{selectedCategoryLabel ? ` · ${selectedCategoryLabel}` : ""}</p><Button variant="outline" onClick={() => { setSearch(""); setCategoryValues({}); }} disabled={!search && !activeCategoryId} className="rounded-xl"><X size={15} /> Temizle</Button></div></div></section>
+      {!isAuthenticated ? <section className="mt-6 rounded-[24px] border border-[#e6e6de] bg-white p-7 text-center"><MessageCircle className="mx-auto text-[#47736a]" size={30} /><h2 className="mt-3 text-xl font-bold text-[#29465a]">Soru sormak için giriş yapın</h2><Button onClick={() => startLogin()} className="mt-5 rounded-xl bg-[#18344f]">Üye girişi yap</Button></section> : <section className="mt-6 rounded-[24px] border border-[#e6e6de] bg-white p-6"><h2 className="text-xl font-bold text-[#29465a]">Yeni soru sor</h2><p className="mt-1 text-sm text-[#71838b]">Yukarıdan eğitim kategorisini seçin; soru bu seçimin en alt kategorisine bağlanır.</p><div className="mt-4 space-y-4"><Input value={title} onChange={event => setTitle(event.target.value)} placeholder="Soru başlığı" className="h-11 rounded-xl" /><RichTextEditor value={body} onChange={setBody} label="Soru metni" ariaLabel="Soru metni" testId="qa-question-editor" /><label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold text-[#47736a]"><ImagePlus size={16} /> Görsel ekle<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (file) handleImage(file, "question"); }} /></label>{imageUrl && <img src={imageUrl} alt="Soru önizleme" className="h-16 w-16 rounded-lg object-cover" />}<Button disabled={title.trim().length < 3 || body.replace(/<[^>]+>/g, " ").trim().length < 3 || !categoryIdForQuestion || ask.isPending} onClick={() => ask.mutate({ title, body, imageUrl: imageUrl || undefined, categoryId: categoryIdForQuestion! })} className="rounded-xl bg-[#18344f]"><Send size={16} /> Soruyu gönder</Button></div></section>}
+      <section className="mt-8 space-y-4"><h2 className="text-2xl font-bold text-[#29465a]">Yayınlanan sorular</h2>{qa.isLoading ? <div className="rounded-2xl bg-white p-6">Sorular yükleniyor...</div> : !qa.data?.questions.length ? <div className="rounded-2xl bg-white p-6 text-sm text-[#71838b]">Aramanızla eşleşen soru bulunamadı.</div> : qa.data.questions.map(question => <article key={question.id} className="rounded-2xl border border-[#e6e6de] bg-white p-6"><h3 className="text-lg font-bold text-[#29465a]">{question.title}</h3><div className="prose prose-sm mt-3 max-w-none text-[#587079]" dangerouslySetInnerHTML={{ __html: question.body }} />{question.imageUrl && <img src={question.imageUrl} alt="" className="mt-4 max-h-64 rounded-xl object-contain" />}<div className="mt-5 space-y-3">{(qa.data.answers ?? []).filter(item => item.questionId === question.id).map(item => <div key={item.id} className="rounded-xl bg-[#f5f7f2] p-4"><div className="prose prose-sm max-w-none text-[#587079]" dangerouslySetInnerHTML={{ __html: item.body }} /></div>)}</div>{isAuthenticated && <div className="mt-5">{answerFor === question.id ? <div className="space-y-3"><RichTextEditor value={answerBody} onChange={setAnswerBody} label="Cevabınız" ariaLabel="Cevap metni" testId={`qa-answer-editor-${question.id}`} /><Button onClick={() => answer.mutate({ questionId: question.id, body: answerBody, imageUrl: answerImage || undefined })} disabled={answerBody.replace(/<[^>]+>/g, "").trim().length < 3 || answer.isPending} className="rounded-lg bg-[#47736a]">Cevabı gönder</Button></div> : <Button variant="outline" onClick={() => setAnswerFor(question.id)} className="rounded-lg">Cevap yaz</Button>}</div>}</article>)}</section>
+      <section id="iletisim" className="mt-8 rounded-[24px] border border-[#e6e6de] bg-white p-6 sm:p-8"><div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-start"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#47736a]">İletişim</p><h2 className="mt-3 text-3xl font-bold tracking-[-.04em] text-[#29465a]">OkulBlog ekibi burada.</h2><p className="mt-3 text-sm leading-6 text-[#71838b]">Öneri, iş birliği ve destek talepleriniz için bize ulaşın.</p></div><form onSubmit={submitContact} className="grid gap-4" noValidate><label className="grid gap-1.5 text-xs font-bold text-[#52666c]">Adınız<input aria-label="Adınız" value={contact.name} onChange={event => setContact({ ...contact, name: event.target.value })} className="h-11 rounded-xl border border-[#d8e6de] px-3 text-sm font-normal outline-none focus:border-[#5540e8]" />{contactErrors.name && <span className="text-[11px] text-[#b45545]">{contactErrors.name}</span>}</label><label className="grid gap-1.5 text-xs font-bold text-[#52666c]">E-posta<input aria-label="E-posta" value={contact.email} onChange={event => setContact({ ...contact, email: event.target.value })} className="h-11 rounded-xl border border-[#d8e6de] px-3 text-sm font-normal outline-none focus:border-[#5540e8]" />{contactErrors.email && <span className="text-[11px] text-[#b45545]">{contactErrors.email}</span>}</label><label className="grid gap-1.5 text-xs font-bold text-[#52666c]">Mesajınız<textarea aria-label="Mesajınız" rows={4} value={contact.message} onChange={event => setContact({ ...contact, message: event.target.value })} className="rounded-xl border border-[#d8e6de] px-3 py-2 text-sm font-normal outline-none focus:border-[#5540e8]" />{contactErrors.message && <span className="text-[11px] text-[#b45545]">{contactErrors.message}</span>}</label>{contactSent && <p role="status" className="rounded-xl bg-[#e5f5ec] px-4 py-3 text-sm font-semibold text-[#247052]">Mesajınız hazırlandı. E-posta uygulamanız açılmadıysa lütfen site yöneticisiyle iletişime geçin.</p>}<Button type="submit" className="w-fit rounded-xl bg-[#5540e8] font-bold hover:bg-[#4632cf]"><Send size={15} /> Mesaj gönder</Button></form></div></section>
+    </main>
+  </div>;
 }

@@ -46,11 +46,11 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
 
     const menuButton = screen.getByRole("button", { name: "Menüyü aç" });
     fireEvent.click(menuButton);
-    expect(screen.getAllByRole("button", { name: "İçerikler" }).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByRole("button", { name: "Ana Sayfa" }).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByRole("button", { name: "Giriş yap" }).length).toBeGreaterThanOrEqual(2);
 
     fireEvent.click(menuButton);
-    expect(screen.getAllByRole("button", { name: "İçerikler" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Ana Sayfa" })).toHaveLength(1);
     fireEvent.click(screen.getAllByRole("button", { name: "Giriş yap" })[0]);
     expect(homeState.startLogin).toHaveBeenCalledTimes(1);
   });
@@ -69,13 +69,12 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     expect(screen.queryByText("Türkçe çalışma testi")).not.toBeInTheDocument();
   });
 
-  it("iletişim formunu ve SSS alanını ana sayfada gösterir", () => {
+  it("iletişim ve Soru-Cevap alanlarını ayrı sayfaya taşır; Home’da yalnızca SSS alanını gösterir", () => {
     render(<Home />);
 
     expect(screen.getByText("Sıkça sorulan sorular")).toBeInTheDocument();
-    expect(screen.getByLabelText("Adınız")).toBeInTheDocument();
-    expect(screen.getAllByLabelText("E-posta").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByLabelText("Mesajınız")).toBeInTheDocument();
+    expect(screen.queryByText("OkulBlog ekibi burada.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Takıldığın yerde birlikte düşünelim.")).not.toBeInTheDocument();
   });
 
   it("ders ve içerik türü seçimlerini paylaşılabilir URL parametrelerine yazar", () => {
@@ -88,19 +87,6 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     const documentFilter = screen.getAllByRole("button", { name: /^Dokümanlar$/ }).at(-1);
     fireEvent.click(documentFilter!);
     expect(window.location.search).toBe("?categoryId=1&contentType=document");
-  });
-
-  it("iletişim formunda doğrulama uyarısı ve başarılı gönderim bildirimi gösterir", () => {
-    render(<Home />);
-
-    fireEvent.submit(screen.getByLabelText("Adınız").closest("form")!);
-    expect(screen.getByRole("alert")).toHaveTextContent("Lütfen formdaki alanları kontrol edin.");
-
-    fireEvent.change(screen.getByLabelText("Adınız"), { target: { value: "Ayşe Öğretmen" } });
-    fireEvent.change(screen.getAllByLabelText("E-posta")[0], { target: { value: "ayse@example.com" } });
-    fireEvent.change(screen.getByLabelText("Mesajınız"), { target: { value: "Bilgi almak istiyorum." } });
-    fireEvent.submit(screen.getByLabelText("Adınız").closest("form")!);
-    expect(screen.getByText(/Mesajınız için teşekkürler/)).toBeInTheDocument();
   });
 
   it("SSS aramasında sonuçları anında filtreler", () => {

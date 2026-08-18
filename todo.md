@@ -635,3 +635,19 @@
 - [x] Yeni akışı masaüstü ve mobilde görsel olarak doğrulamak
 - [x] Yeni davranışlar için Vitest, TypeScript ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Ayrı Soru-Cevap Sayfası ve Üst Navigasyon
+
+- [x] Ana sayfadaki Soru-Cevap çağrı alanını kaldırmak
+- [x] Ana sayfadaki iletişim formu alanını kaldırmak
+- [x] Ayrı Soru-Cevap sayfası ve rotası oluşturmak
+- [x] Soru-Cevap sayfasında Ana Grup → sınıf → ders hiyerarşisine dayalı kategori seçimleri eklemek
+- [x] Seçilen kategoriye göre soru listesini filtrelemek
+- [x] Soru-Cevap sayfasında arama, boş durum ve hata durumlarını göstermek
+- [x] Soru-Cevap sayfasına iletişim formunu taşımak
+- [x] Üst navigasyona Ana Sayfa, Testler, Dokümanlar, Videolar, Oyunlar, Simülasyonlar, Haberler ve Soru-Cevap bağlantılarını eklemek
+- [x] Navigasyon bağlantılarını masaüstü ve mobil menüde tutarlı hale getirmek
+- [x] Yeni rota ve kategori filtreleri için Vitest testleri yazmak
+- [x] Masaüstü ve mobil responsive doğrulama yapmak
+- [x] TypeScript, Vitest ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak
