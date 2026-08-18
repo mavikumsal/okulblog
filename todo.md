@@ -919,3 +919,9 @@
 - [x] Hero kategori seçimini kullanıcı tıklamasıyla anlık güncelle ve seçimi görünür kıl
 - [x] Tablet ekranlarda sınıf kartlarını üç sütunlu responsive grid yap
 - [x] Dinamik sayaç, hero seçim ve tablet grid için test, TypeScript, build ve responsive doğrulama yap
+
+## Yeni istek: belirgin accordion kontrolleri
+- [x] Accordion oklarını büyük, renkli ve anlaşılır açılır-kapanır kontrol alanlarına dönüştür
+- [x] Aktif kategori satırında güçlü vurgu, durum metni ve görünür açık/kapalı işareti ekle
+- [x] Kartın ve ikon alanının klavye/touch erişilebilirliğini koru
+- [x] Accordion görünümünü masaüstü/mobil test, TypeScript, build ve responsive kontrolle doğrula
