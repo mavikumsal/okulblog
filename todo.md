@@ -542,3 +542,16 @@
 - [x] Ana sayfa referans uyarlamasını masaüstü, tablet ve mobil görünümde doğrulamak
 - [x] Ana sayfa referans uyarlaması için Vitest, TypeScript, production build ve erişilebilirlik doğrulaması yapmak
 - [x] Ana sayfa referans uyarlaması için geri alınabilir checkpoint oluşturmak
+
+## Ana Sayfa Mor-Mavi ve Sarı Referans Uyarlaması
+
+- [x] Ekran görüntülerindeki beyaz üst menü, lila gölge ve mor logo vurgusunu OkulBlog markasıyla eşleştirmek
+- [x] Ana hero/slider için mavi-mor gradyan, beyaz tipografi ve sarı CTA renk sistemini uygulamak
+- [x] Hero’da solda başlık/iki CTA ve sağda görsel/öğrenme kompozisyonunu referans düzenine taşımak
+- [x] Gerçek içerik istatistiklerini beyaz yüzen kartlar olarak hero altına yerleştirmek
+- [x] Sınıf seçimi, ders keşfi ve duyurular bölümlerini referans kart düzeniyle yeniden oluşturmak
+- [x] Soru-cevap çağrı bannerı ve koyu lacivert footer’ı OkulBlog bağlantılarıyla uygulamak
+- [x] Sabit Testlig metinlerini, sahte/demo değerleri ve dış bağımlı görselleri kullanmamak
+- [x] Ana sayfayı masaüstü, tablet ve mobil ölçülerde görsel olarak doğrulamak
+- [x] Ana sayfa mor-mavi tema dönüşümü için Vitest, TypeScript, production build ve erişilebilirlik doğrulaması yapmak
+- [x] Ana sayfa mor-mavi tema dönüşümü için geri alınabilir checkpoint oluşturmak
