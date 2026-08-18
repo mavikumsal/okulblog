@@ -823,3 +823,8 @@
 - [x] Öğrendim/Tamamladım durumunun kalıcılığını ve dashboard ilerleme yüzdelerini doğrula
 - [x] Sınıf landing ve public içerik sayfalarında masaüstü/mobil responsive denetim yap
 - [x] Sınıf landing düzeltmeleri için test, TypeScript, build ve checkpoint işlemlerini tamamla
+
+## Yeni istek: sınıf landing içerik türü filtreleri
+- [x] Sınıf landing sayfasına video, test, doküman, simülasyon, oyun ve haber içerik türü filtreleri ekle
+- [x] İçerik türü filtresini sınıf ve ders query parametreleriyle birlikte URL’ye senkronize et
+- [x] İçerik türü filtreleme için Vitest, TypeScript ve responsive doğrulama yap

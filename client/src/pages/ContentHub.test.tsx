@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildClassBreadcrumb, categoryIdsForSelection, contentTypes, filterContentByClass, filterContentBySubject, findClassNode, getSubjectNodesForClass, getTypeFromPath, paginateItems } from "./ContentHub";
+import { buildClassBreadcrumb, buildContentTypeUrl, categoryIdsForSelection, contentTypes, filterContentByClass, filterContentBySubject, findClassNode, getSubjectNodesForClass, getTypeFromPath, paginateItems } from "./ContentHub";
 import { categoryBreadcrumb, contentActionLabel, isProgressCompleted } from "./ContentDetail";
 
 type Node = {
@@ -43,6 +43,11 @@ describe("ContentHub public kategori akışı", () => {
     expect(findClassNode(nodes, " 1. SINIF ")?.id).toBe(2);
     expect(getSubjectNodesForClass(nodes, "1. Sınıf").map(node => node.name)).toEqual(["Türkçe"]);
     expect(buildClassBreadcrumb("1. Sınıf", "Türkçe")).toEqual(["Ana Sayfa", "Eğitim", "1. Sınıf", "Türkçe"]);
+  });
+
+  it("içerik türü filtresi sınıf ve ders bağlamını paylaşılabilir URL’de korur", () => {
+    expect(buildContentTypeUrl("video", "1. Sınıf", 3)).toBe("/icerik/video?class=1.+S%C4%B1n%C4%B1f&subject=3");
+    expect(buildContentTypeUrl("test", null)).toBe("/icerik/test");
   });
 
   it("ders seçildiğinde yalnızca dersin alt ağacındaki içerikleri gösterir", () => {
