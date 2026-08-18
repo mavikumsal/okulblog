@@ -708,3 +708,25 @@
 - [x] Masaüstü ve mobil viewport’larda yatay/dikey taşma olmadığını doğrulamak
 - [x] Vitest, TypeScript ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Tüm İçerik Sayfalarında Eğitim Kategorisi Hiyerarşisi
+
+- [ ] Ortak kategori hiyerarşisini tanımlamak: İlkokul → Sınıf → Ders → Ünite → Kazanım
+- [ ] Kategori seçimlerini kademeli ve bağımlı hale getirmek
+- [ ] Seçilen kategori yolunu URL parametreleriyle paylaşılabilir yapmak
+- [ ] Testler sayfasını kategori filtreleriyle hazırlamak
+- [ ] Dokümanlar sayfasını kategori filtreleriyle hazırlamak
+- [ ] Videolar sayfasını kategori filtreleriyle hazırlamak
+- [ ] Oyunlar sayfasını kategori filtreleriyle hazırlamak
+- [ ] Simülasyonlar sayfasını kategori filtreleriyle hazırlamak
+- [ ] Haberler sayfasını kategori ve haber filtreleriyle hazırlamak
+- [ ] Soru-Cevap sayfasını aynı hiyerarşiyle eşleştirmek
+- [ ] Ana Sayfa kartlarını ilgili kategori ve içerik türü sayfalarına bağlamak
+- [ ] Ders, ünite ve kazanım seçimine göre içerik sorgularını filtrelemek
+- [ ] Tüm sayfalarda boş, yükleniyor ve hata durumlarını göstermek
+- [ ] Yeni kategori akışları için Vitest testleri yazmak
+- [ ] Masaüstü ve mobil responsive doğrulama yapmak
+- [ ] TypeScript, Vitest ve production build kontrollerini çalıştırmak
+- [ ] Kapsamlı kategori sürümü için yeni checkpoint oluşturmak
+
+- [x] Haberler sayfasını da İlkokul → Sınıf → Ders → Ünite → Kazanım hiyerarşisi ve paylaşılabilir URL filtreleriyle ortak içerik akışına dahil et
