@@ -1,6 +1,6 @@
-import { useMemo, type ReactElement } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 import { useLocation, useRoute } from "wouter";
-import { ArrowRight, CheckCircle2, FileText, Gamepad2, GraduationCap, Layers3, Newspaper, PlayCircle, Target } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, ChevronRight, FileText, Gamepad2, GraduationCap, Layers3, Newspaper, PlayCircle, Target } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 export const contentTypes = {
@@ -39,25 +39,27 @@ export function getTypeFromPath(path: string): ContentType {
 }
 
 function CategoryTree({ nodes, contentByCategory }: { nodes: CategoryNode[]; contentByCategory: Map<number, number> }) {
+  const [openIds, setOpenIds] = useState<Set<number>>(() => new Set(nodes.filter(node => node.level === "ana-grup").map(node => node.id)));
   const childrenByParent = useMemo(() => {
     const map = new Map<number | null, CategoryNode[]>();
     nodes.forEach(node => map.set(node.parentId, [...(map.get(node.parentId) ?? []), node]));
     map.forEach(children => children.sort((a, b) => a.name.localeCompare(b.name, "tr")));
     return map;
   }, [nodes]);
-
+  const toggle = (id: number) => setOpenIds(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; });
   const renderBranch = (node: CategoryNode, depth = 0): ReactElement => {
     const children = childrenByParent.get(node.id) ?? [];
     const contentCount = contentByCategory.get(node.id) ?? 0;
+    const isOpen = openIds.has(node.id);
     return <div key={node.id} className={depth ? "ml-4 border-l border-[#dbe7e2] pl-4 sm:ml-6 sm:pl-5" : ""}>
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#e1eae6] bg-white px-4 py-3 shadow-[0_8px_22px_rgba(18,48,74,.04)]">
-        <div className="min-w-0"><p className="truncate text-sm font-semibold text-[#12304a]">{node.name}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[.16em] text-[#82918f]">{node.level === "ana-grup" ? "Ana grup" : node.level === "school-level" ? "Okul düzeyi" : node.level === "class" ? "Sınıf" : node.level === "subject" ? "Ders" : node.level === "unit" ? "Ünite" : "Kazanım"}</p></div>
+      <div className="flex items-center gap-2 rounded-2xl border border-[#e1eae6] bg-white px-3 py-3 shadow-[0_8px_22px_rgba(18,48,74,.04)]">
+        {children.length > 0 ? <button type="button" onClick={() => toggle(node.id)} aria-expanded={isOpen} aria-label={`${node.name} kategorisini ${isOpen ? "kapat" : "aç"}`} className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-[#53706b] transition hover:bg-[#eef5f0] hover:text-[#5540e8]">{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</button> : <span className="h-8 w-8 shrink-0" />}
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-[#12304a]">{node.name}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[.16em] text-[#82918f]">{node.level === "ana-grup" ? "Ana grup" : node.level === "school-level" ? "Okul düzeyi" : node.level === "class" ? "Sınıf" : node.level === "subject" ? "Ders" : node.level === "unit" ? "Ünite" : "Kazanım"}</p></div>
         <span className="shrink-0 rounded-full bg-[#f3f7f4] px-2.5 py-1 text-[10px] font-bold text-[#5c8279]">{contentCount} içerik</span>
       </div>
-      {children.length > 0 && <div className="mt-2 space-y-2">{children.map(child => renderBranch(child, depth + 1))}</div>}
+      {children.length > 0 && isOpen && <div className="mt-2 space-y-2">{children.map(child => renderBranch(child, depth + 1))}</div>}
     </div>;
   };
-
   const roots = childrenByParent.get(null) ?? [];
   return roots.length ? <div className="space-y-3">{roots.map(root => renderBranch(root))}</div> : <div className="rounded-3xl border border-dashed border-[#cbd9d5] bg-white p-8 text-center text-sm text-[#6b7c79]">Admin panelinde henüz aktif eğitim kategorisi oluşturulmamış.</div>;
 }

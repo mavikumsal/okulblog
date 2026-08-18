@@ -770,3 +770,13 @@
 - [x] Aktarımın tekrar çalıştırıldığında duplicate kategori oluşturmamasını sağlamak
 - [x] Admin ve public sayfalarda kalıcı eğitim kategorilerini doğrulamak
 - [x] Kategori aktarımı için test, migration doğrulaması ve checkpoint tamamlamak
+
+## Eğitim Kategorisi Gezinme ve Öğrenme İlerlemesi
+
+- [x] Public eğitim içerik sayfalarında sol tarafta açılır-kapanır kategori ağacı göstermek
+- [x] Accordion menüsünde sınıf, ders, ünite ve kazanım seviyelerini erişilebilir şekilde açıp kapatmak
+- [x] Admin kategori ağacına ders ve kazanım adlarında anlık çalışan arama eklemek
+- [x] Arama sonucunda eşleşen kategori yolunu ve bağlı üst kategorileri görünür tutmak
+- [x] Üyelerin kazanım detayında Öğrendim/Tamamladım durumunu işaretleyebilmesini sağlamak
+- [x] Kazanım tamamlanma durumunu kullanıcıya özel ve kalıcı olarak saklamak
+- [x] Yeni gezinme, arama ve ilerleme akışları için test, responsive doğrulama ve checkpoint tamamlamak

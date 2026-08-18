@@ -161,6 +161,7 @@ function PanelContent() {
     onError: () => toast.error("Erişim ayarı güncellenemedi."),
   });
   const [categoryName, setCategoryName] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
     null
   );
@@ -238,6 +239,11 @@ function PanelContent() {
     categoryOptions.forEach(node => totalFor(node.id));
     return totals;
   }, [categoryOptions, overview.data?.content]);
+  const filteredCategoryOptions = useMemo(() => {
+    const query = categorySearch.trim().toLocaleLowerCase("tr-TR");
+    if (!query) return categoryOptions;
+    return categoryOptions.filter(item => categoryPath(item, categoryOptions).toLocaleLowerCase("tr-TR").includes(query));
+  }, [categoryOptions, categorySearch]);
   const educationCategoryOptions = categoryOptions
     .filter(item => item.categoryType === "education" && item.isActive)
     .sort((a, b) =>
@@ -1521,11 +1527,21 @@ function PanelContent() {
               <p className="text-xs font-bold tracking-[.14em] text-[#70877e] uppercase">
                 Kayıtlı kategoriler
               </p>
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-3">
+                <div className="relative">
+                  <Input
+                    value={categorySearch}
+                    onChange={event => setCategorySearch(event.target.value)}
+                    placeholder="Ders veya kazanım ara..."
+                    aria-label="Kategori ağacında ders veya kazanım ara"
+                    className="h-10 rounded-xl bg-white pr-20"
+                  />
+                  {categorySearch && <button type="button" onClick={() => setCategorySearch("")} aria-label="Kategori aramasını temizle" className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#82918f] hover:text-[#5540e8]">Temizle</button>}
+                </div>
                 {categoryNodes.isLoading ? (
                   <p className="text-sm text-[#7d8c91]">Yükleniyor...</p>
-                ) : (categoryNodes.data ?? []).length ? (
-                  categoryNodes.data?.map(item => (
+                ) : filteredCategoryOptions.length ? (
+                  filteredCategoryOptions.map(item => (
                     <div
                       key={item.id}
                       className="flex flex-col gap-2 rounded-xl bg-[#f7f8f4] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
@@ -1652,8 +1668,7 @@ function PanelContent() {
                   ))
                 ) : (
                   <p className="text-sm leading-6 text-[#7d8c91]">
-                    Henüz kategori bulunmuyor. İlk yapıyı soldaki formdan
-                    ekleyin.
+                    {categorySearch ? "Aramanızla eşleşen kategori bulunamadı." : "Henüz kategori bulunmuyor. İlk yapıyı soldaki formdan ekleyin."}
                   </p>
                 )}
               </div>

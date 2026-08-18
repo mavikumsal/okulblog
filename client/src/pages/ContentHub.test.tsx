@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { categoryIdsForSelection, contentTypes, getTypeFromPath } from "./ContentHub";
-import { categoryBreadcrumb, contentActionLabel } from "./ContentDetail";
+import { categoryBreadcrumb, contentActionLabel, isProgressCompleted } from "./ContentDetail";
 
 type Node = {
   id: number;
@@ -43,5 +43,12 @@ describe("ContentHub public kategori akışı", () => {
     expect(contentActionLabel("video")).toBe("Videoyu izle");
     expect(contentActionLabel("document")).toBe("Dokümanı indir");
     expect(contentActionLabel("news")).toBe("Haberi oku");
+  });
+
+  it("tamamlanma durumunu içerik türü ve kimliğine göre bulur", () => {
+    const progress = [{ contentType: "document", contentId: 12, status: "completed" }, { contentType: "video", contentId: 12, status: "started" }];
+    expect(isProgressCompleted(progress, "document", 12)).toBe(true);
+    expect(isProgressCompleted(progress, "video", 12)).toBe(false);
+    expect(isProgressCompleted(progress, "document", 99)).toBe(false);
   });
 });
