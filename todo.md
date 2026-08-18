@@ -883,3 +883,17 @@
 - [x] Sınıf bağlamına göre yeni eklenen gerçek içerikleri getir ve göster
 - [x] Dinamik veri yokken erişilebilir ve açıklayıcı boş durum göster
 - [x] Dinamik önizleme için test, TypeScript, build ve responsive doğrulama yap
+
+## Yeni istek: hero kartı ve butonlar
+- [x] Hero sağındaki Öğrenme yolu / Akıllı seçim kartını küçült ve taşmayı düzelt
+- [x] “İçerikleri keşfet” butonunu gerçek içerik sayfasına bağla
+- [x] “Nasıl çalışır?” butonunu erişilebilir açıklama akışına bağla
+- [x] Hero düzeltmeleri için test, TypeScript, build ve masaüstü/mobil görsel kontrol yap
+
+## Hero kartı ve CTA düzeltmesi
+- [x] Sağdaki Öğrenme yolu / Akıllı seçim kartını hero alanına uyacak şekilde küçült
+- [x] Mobil hero slider metin ve ok taşmasını düzelt
+- [x] Üst menü yazı boyutlarını okunabilir hale getir
+- [x] İçerikleri keşfet butonunu icerikler bölümüne çalışan kaydırma akışına bağla
+- [x] Nasıl çalışır butonunu erişilebilir açıklama modalına bağla
+- [x] Hero CTA ve modal davranışı için 133 test, TypeScript, production build ve responsive kontrol yap

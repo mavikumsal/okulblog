@@ -55,6 +55,21 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     expect(homeState.startLogin).toHaveBeenCalledTimes(1);
   });
 
+  it("hero içerik CTA’sı derslere kaydırır ve Nasıl çalışır modalı açılır", () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: scrollIntoView });
+    render(<Home />);
+
+    fireEvent.click(screen.getAllByRole("button", { name: /İçerikleri keşfet/ })[0]);
+    expect(scrollIntoView).toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: /Nasıl çalışır/ }));
+    expect(screen.getByRole("dialog", { name: "Nasıl çalışır?" })).toBeInTheDocument();
+    const modalExploreButtons = screen.getAllByRole("button", { name: /İçerikleri keşfet/ });
+    fireEvent.click(modalExploreButtons[modalExploreButtons.length - 1]);
+    expect(screen.queryByRole("dialog", { name: "Nasıl çalışır?" })).not.toBeInTheDocument();
+  });
+
   it("Ders kartını seçili kategori sonuçlarına taşır ve içerik türü filtresini uygular", () => {
     render(<Home />);
 
