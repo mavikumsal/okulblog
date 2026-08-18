@@ -810,11 +810,11 @@
 
 ## Sınıf Sayfası Ders ve İçerik Filtreleri
 
-- [ ] Seçilen sınıfa ait dersleri görsel kartlar halinde listelemek
-- [ ] Sınıf adını sayfa başlığına ve breadcrumb alanına eklemek
-- [ ] Sınıf sayfasında Testler, Videolar ve Dokümanlar için hızlı filtre butonları eklemek
-- [ ] Filtre seçimlerini URL parametreleriyle paylaşılabilir yapmak
-- [ ] Sınıf sayfası akışı için test, responsive doğrulama ve checkpoint tamamlamak
+- [x] Seçilen sınıfa ait dersleri görsel kartlar halinde listelemek
+- [x] Sınıf adını sayfa başlığına ve breadcrumb alanına eklemek
+- [x] Sınıf sayfasında Testler, Videolar ve Dokümanlar için hızlı filtre butonları eklemek
+- [x] Filtre seçimlerini URL parametreleriyle paylaşılabilir yapmak
+- [x] Sınıf sayfası akışı için test, responsive doğrulama ve checkpoint tamamlamak
 
 ## Devam oturumu: sınıf landing sayfaları
 - [x] Sınıf özel landing sayfasında sınıf adını başlık ve breadcrumb alanında görünür kıl
