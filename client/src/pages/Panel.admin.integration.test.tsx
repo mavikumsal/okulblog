@@ -21,7 +21,7 @@ vi.mock("@/lib/trpc", () => ({
     panel: { accessibleSections: hook(["Ayarlar", "Testler"]) },
     platform: { overview: hook({ content: [], educationCategories: [] }) },
     permissions: { forRole: hook([]), update: hook() },
-    categories: { list: hook([]), create: hook(), setInstitutionStatus: hook(), update: hook(), setStatus: hook() },
+    categories: { list: hook([]), create: hook(), importCurriculum: hook(), setInstitutionStatus: hook(), update: hook(), setStatus: hook() },
     questions: { list: hook([]), create: hook() },
     ai: { generateQuestion: hook(), generateTest: hook() },
     files: { parseQuestionPdf: hook() },

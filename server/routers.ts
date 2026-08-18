@@ -6,6 +6,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   createCategoryNode,
+  importEducationCurriculum,
   createContentItem,
   createHomeSlide,
   createNewsCategory,
@@ -162,6 +163,7 @@ export const appRouter = router({
       await createCategoryNode({ ...input, createdBy: ctx.user.id });
       return { success: true };
     }),
+    importCurriculum: adminProcedure.mutation(({ ctx }) => importEducationCurriculum({ createdBy: ctx.user.id })),
     setInstitutionStatus: adminProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(async ({ input }) => {
       await setInstitutionCategoryStatus(input);
       return { success: true };

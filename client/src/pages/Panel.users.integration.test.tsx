@@ -19,7 +19,7 @@ const trpcMock = vi.hoisted(() => {
   panel: { accessibleSections: hook(["Üye Yönetimi"]) },
   platform: { overview: hook({ content: [], educationCategories: [] }) },
   permissions: { forRole: hook([]), update: hook() },
-  categories: { list: hook([]), create: hook(), setInstitutionStatus: hook(), update: hook(), setStatus: hook() },
+  categories: { list: hook([]), create: hook(), importCurriculum: hook(), setInstitutionStatus: hook(), update: hook(), setStatus: hook() },
   questions: { list: hook([]), create: hook() },
   ai: { generateQuestion: hook() },
   contents: { list: hook([]), create: hook(), archive: hook() },

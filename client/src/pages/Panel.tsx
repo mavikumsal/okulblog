@@ -182,6 +182,14 @@ function PanelContent() {
     },
     onError: () => toast.error("Kategori oluşturulamadı."),
   });
+  const importCurriculum = trpc.categories.importCurriculum.useMutation({
+    onSuccess: result => {
+      utils.categories.list.invalidate();
+      utils.platform.overview.invalidate();
+      toast.success(`${result.entries} müfredat kaydı Eğitim Kategorisine aktarıldı.`);
+    },
+    onError: error => toast.error(error.message || "Müfredat aktarılamadı."),
+  });
   const updateInstitutionStatus =
     trpc.categories.setInstitutionStatus.useMutation({
       onSuccess: () => {
@@ -1381,6 +1389,24 @@ function PanelContent() {
             </div>
             {isAdmin ? (
               <div className="mt-6 space-y-4">
+                <div className="rounded-xl border border-[#ead9a4] bg-[#fffaf0] p-4">
+                  <div className="flex items-start gap-3">
+                    <GraduationCap className="mt-0.5 shrink-0 text-[#a07825]" size={18} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-[#6d5320]">MEB K-12 Eğitim Müfredatı</p>
+                      <p className="mt-1 text-xs leading-5 text-[#7b6a45]">İlkokul, Ortaokul ve Lise kademelerinin ders, ünite ve kazanım ağacını kalıcı Eğitim Kategorisine ekler.</p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={importCurriculum.isPending}
+                    onClick={() => importCurriculum.mutate()}
+                    className="mt-3 w-full rounded-xl border-[#d8bd6f] bg-white text-[#6d5320] hover:bg-[#fff4d8]"
+                  >
+                    {importCurriculum.isPending ? "Müfredat aktarılıyor..." : "Müfredatı Eğitim Kategorisine yükle"}
+                  </Button>
+                </div>
                 <div className="grid grid-cols-2 rounded-xl bg-[#f2f5ef] p-1">
                   <button
                     onClick={() => {

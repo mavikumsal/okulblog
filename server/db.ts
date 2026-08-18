@@ -1,7 +1,8 @@
-import { and, eq, asc, desc, inArray } from "drizzle-orm";
+import { and, eq, asc, desc, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { categoryNodes, contentItems, contentProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { educationCurriculum } from "./educationCurriculum";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -93,6 +94,51 @@ export async function createCategoryNode(input: {
     }
   }
   await db.insert(categoryNodes).values({ ...input, parentId: input.parentId ?? null });
+}
+
+export async function importEducationCurriculum(input: { createdBy: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+
+  const getOrCreate = async (name: string, level: "ana-grup" | "school-level" | "class" | "subject" | "unit" | "outcome", parentId: number | null) => {
+    const existing = await db.select().from(categoryNodes).where(and(eq(categoryNodes.name, name), eq(categoryNodes.categoryType, "education"), parentId === null ? isNull(categoryNodes.parentId) : eq(categoryNodes.parentId, parentId))).limit(1);
+    if (existing[0]) {
+      if (!existing[0].isActive) await db.update(categoryNodes).set({ isActive: true }).where(eq(categoryNodes.id, existing[0].id));
+      return existing[0].id;
+    }
+    const inserted = await db.insert(categoryNodes).values({ name, categoryType: "education", level, parentId, isActive: true, createdBy: input.createdBy });
+    return Number(inserted[0].insertId);
+  };
+
+  const rootId = await getOrCreate("MEB K-12 Eğitim Müfredatı", "ana-grup", null);
+  const schoolLevelIds = new Map<string, number>();
+  const classIds = new Map<string, number>();
+  const subjectIds = new Map<string, number>();
+  const unitIds = new Map<string, number>();
+
+  for (const entry of educationCurriculum) {
+    const schoolLevelId = schoolLevelIds.get(entry.schoolLevel) ?? await getOrCreate(entry.schoolLevel, "school-level", rootId);
+    schoolLevelIds.set(entry.schoolLevel, schoolLevelId);
+    const classKey = `${entry.schoolLevel}:${entry.className}`;
+    const classId = classIds.get(classKey) ?? await getOrCreate(entry.className, "class", schoolLevelId);
+    classIds.set(classKey, classId);
+    const subjectKey = `${classKey}:${entry.subject}`;
+    const subjectId = subjectIds.get(subjectKey) ?? await getOrCreate(entry.subject, "subject", classId);
+    subjectIds.set(subjectKey, subjectId);
+    const unitKey = `${subjectKey}:${entry.unit}`;
+    const unitId = unitIds.get(unitKey) ?? await getOrCreate(entry.unit, "unit", subjectId);
+    unitIds.set(unitKey, unitId);
+    await getOrCreate(entry.outcome, "outcome", unitId);
+  }
+
+  return {
+    rootId,
+    entries: educationCurriculum.length,
+    schoolLevels: schoolLevelIds.size,
+    classes: classIds.size,
+    subjects: subjectIds.size,
+    units: unitIds.size,
+  };
 }
 
 export async function setInstitutionCategoryStatus(input: { id: number; isActive: boolean }) {

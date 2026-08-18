@@ -759,3 +759,14 @@
 - [x] Tıklanan kategoriye bağlı içerikleri Admin tablo görünümünde listelemek
 - [x] Yeni aksiyonlar için yetki, loading, hata, boş durum ve responsive testleri tamamlamak
 - [x] İçerik aksiyonları ve Admin kategori tablosu sürümü için checkpoint oluşturmak
+
+## Kalıcı MEB K-12 Eğitim Kategorisi
+
+- [x] Gönderilen MEB K-12 ağacını demo veri değil, kalıcı Eğitim Kategorisi içeriği olarak tanımlamak
+- [x] İlkokul, Ortaokul ve Lise kademelerini kategori ağacına eklemek
+- [x] 1–12. sınıf düğümlerini ilgili kademe altında oluşturmak
+- [x] Gönderilen ders, ünite ve kazanım eşleşmelerini kategori ağacına aktarmak
+- [x] Aynı isimli kategori düğümlerinde doğru parentId ve seviye ilişkisini korumak
+- [x] Aktarımın tekrar çalıştırıldığında duplicate kategori oluşturmamasını sağlamak
+- [x] Admin ve public sayfalarda kalıcı eğitim kategorilerini doğrulamak
+- [x] Kategori aktarımı için test, migration doğrulaması ve checkpoint tamamlamak
