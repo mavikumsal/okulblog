@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { categoryIdsForSelection, contentTypes, getTypeFromPath } from "./ContentHub";
-import { categoryBreadcrumb } from "./ContentDetail";
+import { categoryBreadcrumb, contentActionLabel } from "./ContentDetail";
 
 type Node = {
   id: number;
@@ -36,5 +36,12 @@ describe("ContentHub public kategori akışı", () => {
   it("detay sayfası için Admin kategori yolunu kökten kazanıma kadar üretir", () => {
     expect(categoryBreadcrumb(5, nodes.filter(node => node.isActive)).map(node => node.name)).toEqual(["İlkokul", "1. Sınıf", "Türkçe", "Okuma", "Sesleri tanır"]);
     expect(categoryBreadcrumb(6, nodes.filter(node => node.isActive))).toEqual([]);
+  });
+
+  it("içerik türüne göre detay aksiyon etiketini üretir", () => {
+    expect(contentActionLabel("test")).toBe("Testi çöz");
+    expect(contentActionLabel("video")).toBe("Videoyu izle");
+    expect(contentActionLabel("document")).toBe("Dokümanı indir");
+    expect(contentActionLabel("news")).toBe("Haberi oku");
   });
 });

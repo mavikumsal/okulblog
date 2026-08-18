@@ -161,7 +161,6 @@ export async function listContentByType(contentType: "test" | "document" | "simu
   const conditions = [eq(contentItems.contentType, contentType), categoryId ? eq(contentItems.categoryId, categoryId) : undefined].filter(Boolean) as Array<ReturnType<typeof eq>>;
   return db.select().from(contentItems).where(and(...conditions)).orderBy(desc(contentItems.createdAt));
 }
-
 export async function updateContentStatus(input: { id: number; status: "draft" | "pending" | "published" | "archived" }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");

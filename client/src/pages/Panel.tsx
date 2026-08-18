@@ -364,6 +364,12 @@ function PanelContent() {
         isAllowed(panelContentTypeLabels[selectedContentType]),
     }
   );
+  const categoryContentList = trpc.contents.byCategory?.useQuery
+    ? trpc.contents.byCategory.useQuery(
+        { categoryId: requestedCategoryId ?? 1 },
+        { enabled: Boolean(user) && section === "icerikler" && Boolean(requestedCategoryId) }
+      )
+    : { data: [], isLoading: false, isError: false };
   const testList = trpc.tests.list.useQuery(undefined, {
     enabled:
       Boolean(user) && (requestedSection === "testler" || section === "bulut-depolama") && isAllowed("Testler"),
@@ -1538,8 +1544,11 @@ function PanelContent() {
                             <span className="truncate text-sm font-semibold text-[#456073]">
                               {item.name}
                             </span>
-                            <p className="mt-1 text-[11px] text-[#82918f]">
-                              {categoryContentCounts.get(item.id) ?? 0} bağlı içerik · {categoryPath(item, categoryOptions)}
+                            <p className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-[#82918f]">
+                              <button type="button" onClick={() => setLocation(`/panel/icerikler?categoryId=${item.id}`)} className="font-bold text-[#5540e8] underline-offset-2 transition hover:text-[#3f2fc1] hover:underline" aria-label={`${item.name} kategorisindeki içerikleri görüntüle`}>
+                                {categoryContentCounts.get(item.id) ?? 0} bağlı içerik
+                              </button>
+                              <span aria-hidden="true">·</span><span>{categoryPath(item, categoryOptions)}</span>
                             </p>
                           </div>
                         )}
@@ -2390,6 +2399,19 @@ function PanelContent() {
               )}
             </div>
           </div>
+        </section>
+      )}
+      {section === "icerikler" && requestedCategoryId && (
+        <section className="mb-6 rounded-[24px] border border-[#e6e6de] bg-white p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.16em] text-[#7b928f]">Kategori içerik tablosu</p>
+              <h2 className="mt-2 text-xl font-bold text-[#29465a]">Seçilen kategoriye bağlı içerikler</h2>
+              <p className="mt-2 text-sm leading-6 text-[#71838b]">Bu kategoriye ait tüm içerik türlerini tek tabloda yönetin.</p>
+            </div>
+            <Badge variant="outline" className="shrink-0">{categoryContentList.data?.length ?? 0} içerik</Badge>
+          </div>
+          {categoryContentList.isLoading ? <div className="mt-5 rounded-xl bg-[#f7f8f4] p-4 text-sm text-[#728087]">Kategori içerikleri yükleniyor…</div> : categoryContentList.isError ? <div className="mt-5 rounded-xl bg-[#fff3ef] p-4 text-sm text-[#a65345]">Kategori içerikleri yüklenemedi.</div> : categoryContentList.data?.length ? <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead><tr className="border-b border-[#e8eee9] text-xs uppercase tracking-[.12em] text-[#82918f]"><th className="px-3 py-3">Başlık</th><th className="px-3 py-3">Tür</th><th className="px-3 py-3">Durum</th><th className="px-3 py-3">İşlem</th></tr></thead><tbody>{categoryContentList.data.map(item => <tr key={item.id} className="border-b border-[#f0f3ef] last:border-0"><td className="px-3 py-3 font-semibold text-[#365368]">{item.title}</td><td className="px-3 py-3 text-[#728087]">{panelContentTypeLabels[item.contentType]}</td><td className="px-3 py-3"><Badge variant="outline">{item.status}</Badge></td><td className="px-3 py-3"><Button size="sm" variant="outline" className="h-8 rounded-lg" onClick={() => setLocation(`/icerik/${item.contentType}/${item.id}`)}>Detayı aç</Button></td></tr>)}</tbody></table></div> : <div className="mt-5 rounded-xl bg-[#f7f8f4] p-4 text-sm text-[#728087]">Bu kategoride bağlı içerik bulunmuyor.</div>}
         </section>
       )}
       {section === "icerikler" && (

@@ -16,13 +16,13 @@ import {
   createQaQuestion,
   createQaAnswer,
   setQaStatus,
-  listContentByCategory,
   createQuestion,
   createStoredFile,
   createTest,
   listTests,
   getContentOverview,
   listContentByType,
+  listContentByCategory,
   updateContentStatus,
   getRolePermissions,
   listActiveHomeSlides,
@@ -231,6 +231,10 @@ export const appRouter = router({
       const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;
       await assertSectionAccess(ctx.user, sectionMap[input.contentType]);
       return listContentByType(input.contentType, input.categoryId);
+    }),
+    byCategory: protectedProcedure.input(z.object({ categoryId: z.number().int().positive() })).query(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Dokümanlar");
+      return listContentByCategory(input.categoryId);
     }),
     archive: protectedProcedure.input(z.object({ id: z.number().int().positive(), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(async ({ ctx, input }) => {
       const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;

@@ -749,3 +749,13 @@
 - [x] Admin kategori ağacına hızlı düzenleme, aktif/pasif ve içerikleri görüntüleme bağlantıları eklemek
 - [x] Yeni akışlar için Vitest, TypeScript, production build ve responsive doğrulaması yapmak
 - [x] İçerik detayları ve kategori yönetimi sürümü için checkpoint oluşturmak
+
+## İçerik Aksiyonları, Favoriler ve Admin Kategori Tablosu
+
+- [x] Detay sayfasında içerik türüne göre Testi çöz, Videoyu izle, Dokümanı indir ve uygun aksiyon butonlarını göstermek
+- [x] Detay sayfasına üye favoriye ekleme/çıkarma akışını eklemek
+- [x] Detay sayfasına sosyal medya paylaşım ve bağlantı kopyalama butonları eklemek
+- [x] Admin kategori ağacındaki içerik sayılarını tıklanabilir yapmak
+- [x] Tıklanan kategoriye bağlı içerikleri Admin tablo görünümünde listelemek
+- [x] Yeni aksiyonlar için yetki, loading, hata, boş durum ve responsive testleri tamamlamak
+- [x] İçerik aksiyonları ve Admin kategori tablosu sürümü için checkpoint oluşturmak
