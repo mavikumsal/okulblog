@@ -37,18 +37,18 @@ export function QuestionProductionDashboard({ compact = false, className = "" }:
     <section className={`rounded-[28px] border border-[#dfe3da] bg-white p-5 shadow-[0_18px_45px_rgba(16,46,73,.07)] sm:p-6 ${className}`} aria-labelledby="question-production-title">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[#bd8331]"><Sparkles size={16} /><span className="text-[10px] font-black uppercase tracking-[.16em]">Üretim özeti</span></div>
-          <h2 id="question-production-title" className="mt-2 text-xl font-black tracking-[-.04em] text-[#102e49]">Soru üretim istatistikleri</h2>
+          <div className="flex items-center gap-2 text-[#b88735]"><Sparkles size={16} /><span className="text-[10px] font-black uppercase tracking-[.16em]">Üretim özeti</span></div>
+          <h2 id="question-production-title" className="mt-2 text-xl font-black tracking-[-.04em] text-[#193f59]">Soru üretim istatistikleri</h2>
           <p className="mt-1 text-sm text-[#6d7c82]">{scopeLabel} · Son 30 gün</p>
         </div>
-        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#eaf1ee] text-[#23685d]"><BarChart3 size={20} /></div>
+        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#193f59] text-[#e4b45b] shadow-sm"><BarChart3 size={20} /></div>
       </div>
 
       <div className={`mt-5 grid gap-3 ${compact ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4"}`}>
         <Metric label="Toplam soru" value={total} tone="bg-[#eaf1ee] text-[#1f6258]" />
         <Metric label="Son 30 gün" value={data?.recentCount ?? 0} tone="bg-[#fff3d7] text-[#8d621e]" />
-        {!compact && <Metric label="Onaylı" value={data?.statuses.approved ?? 0} tone="bg-[#e9eef8] text-[#315b86]" />}
-        {!compact && <Metric label="Taslak" value={data?.statuses.draft ?? 0} tone="bg-[#f4eaf5] text-[#704d78]" />}
+        {!compact && <Metric label="Onaylı" value={data?.statuses.approved ?? 0} tone="bg-[#e8f0ed] text-[#1f6258]" />}
+        {!compact && <Metric label="Taslak" value={data?.statuses.draft ?? 0} tone="bg-[#f4eee0] text-[#8d621e]" />}
       </div>
 
       {total === 0 ? (
@@ -56,17 +56,17 @@ export function QuestionProductionDashboard({ compact = false, className = "" }:
       ) : (
         <div className={`mt-5 grid gap-5 ${compact ? "" : "lg:grid-cols-[1fr_1fr]"}`}>
           <div>
-            <div className="mb-3 flex items-center gap-2 text-sm font-black text-[#27485e]"><Layers3 size={15} /> Zorluk dağılımı</div>
+            <div className="mb-3 flex items-center gap-2 text-sm font-black text-[#193f59]"><Layers3 size={15} /> Zorluk dağılımı</div>
             <div className="space-y-3">
               {(Object.entries(data?.difficulties ?? {}) as Array<[keyof typeof difficultyLabels, number]>).map(([key, value]) => (
                 <div key={key}>
                   <div className="mb-1 flex justify-between text-xs font-bold text-[#687b80]"><span>{difficultyLabels[key]}</span><span>{value}</span></div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[#edf0ea]"><div className="h-full rounded-full bg-[#e4b45b] transition-all" style={{ width: `${Math.max((value / maxDifficulty) * 100, value ? 8 : 0)}%` }} /></div>
+                  <div className="h-2 overflow-hidden rounded-full bg-[#edf0ea]"><div className="h-full rounded-full bg-[#c49a43] transition-all" style={{ width: `${Math.max((value / maxDifficulty) * 100, value ? 8 : 0)}%` }} /></div>
                 </div>
               ))}
             </div>
           </div>
-          {!compact && <div><div className="mb-3 flex items-center gap-2 text-sm font-black text-[#27485e]"><CircleHelp size={15} /> Durum özeti</div><div className="grid grid-cols-3 gap-2">{(Object.entries(data?.statuses ?? {}) as Array<[keyof typeof statusLabels, number]>).map(([key, value]) => <div key={key} className="rounded-2xl bg-[#f7f8f4] p-3 text-center"><p className="text-lg font-black text-[#24465d]">{value}</p><p className="mt-1 text-[10px] font-bold text-[#7c8b8d]">{statusLabels[key]}</p></div>)}</div><div className="mt-4 flex items-center gap-2 text-xs text-[#75868a]"><Clock3 size={14} /> Son üretimler canlı veriden okunur.</div></div>}
+          {!compact && <div><div className="mb-3 flex items-center gap-2 text-sm font-black text-[#193f59]"><CircleHelp size={15} /> Durum özeti</div><div className="grid grid-cols-3 gap-2">{(Object.entries(data?.statuses ?? {}) as Array<[keyof typeof statusLabels, number]>).map(([key, value]) => <div key={key} className="rounded-2xl bg-[#f7f8f4] p-3 text-center"><p className="text-lg font-black text-[#193f59]">{value}</p><p className="mt-1 text-[10px] font-bold text-[#7c8b8d]">{statusLabels[key]}</p></div>)}</div><div className="mt-4 flex items-center gap-2 text-xs text-[#75868a]"><Clock3 size={14} /> Son üretimler canlı veriden okunur.</div></div>}
         </div>
       )}
       {compact && <div className="mt-4 flex items-center gap-2 text-xs font-bold text-[#6e8083]"><CheckCircle2 size={14} className="text-[#3b8b78]" /> Panelden ayrıntılı dağılımı inceleyin.</div>}

@@ -21,12 +21,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
-import { useIsMobile } from "@/hooks/useMobile";
-import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList, Cloud, Megaphone, SearchCheck, Heart, MessageCircle } from "lucide-react";
+import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList, Cloud, Megaphone, SearchCheck, Heart, MessageCircle, ChevronDown, ExternalLink, Bell, Sun, Moon } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import { getPanelPathname } from "@shared/panelRoute";
 
@@ -54,6 +54,13 @@ const menuItems = [
   { icon: Settings, label: "Site Ayarları", path: "/panel/ayarlar", adminOnly: true },
   { icon: SlidersHorizontal, label: "Ana Sayfa Yönetimi", path: "/panel/ana-sayfa-yonetimi", adminOnly: true },
 ];
+
+function menuGroup(label: string) {
+  if (label === "Genel Bakış") return "Genel";
+  if (["AI Oluşturucu", "İstatistikler"].includes(label)) return "Üretim ve İçgörü";
+  if (["Üye Yönetimi", "Üye Panelim", "Güvenlik", "Bulut Depolama", "Reklam Alanı", "Google Search Console", "Site Ayarları", "Ana Sayfa Yönetimi"].includes(label)) return "Yönetim";
+  return "İçerik Merkezi";
+}
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 280;
@@ -128,13 +135,13 @@ function DashboardLayoutContent({
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === getPanelPathname(location));
-  const isMobile = useIsMobile();
   const accessibleSections = trpc.panel.accessibleSections.useQuery(undefined, { enabled: Boolean(user) });
   const visibleMenuItems = menuItems.filter(item => {
     if (item.adminOnly) return user?.role === "admin";
@@ -186,14 +193,14 @@ function DashboardLayoutContent({
   return (
     <>
       <div className="relative" ref={sidebarRef}>
-        <Sidebar
-          collapsible="icon"
-          className="border-r-0"
-          disableTransition={isResizing}
-        >
-          <SidebarHeader className="h-16 justify-center">
-            <div className="flex items-center gap-3 px-2 transition-all w-full">
-              <button
+          <Sidebar
+            collapsible="icon"
+            className="border-r border-[#dfe4e6] bg-[#f8faf9]"
+            disableTransition={isResizing}
+          >
+            <SidebarHeader className="h-[76px] justify-center border-b border-[#e7ecec] bg-[#f8faf9]">
+              <div className="flex items-center gap-3 px-3 transition-all w-full">
+                <button
                 onClick={toggleSidebar}
                 className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
                 aria-label="Toggle navigation"
@@ -212,28 +219,33 @@ function DashboardLayoutContent({
 
           <SidebarContent className="gap-0">
             <SidebarMenu className="px-2 py-1">
-              {visibleMenuItems.map(item => {
+              {visibleMenuItems.map((item, index) => {
                 const isActive = location === item.path;
+                const group = menuGroup(item.label);
+                const previousGroup = index > 0 ? menuGroup(visibleMenuItems[index - 1].label) : undefined;
                 return (
-                  <SidebarMenuItem key={item.path}>
+                  <React.Fragment key={item.path}>
+                    {group !== previousGroup && <li className="px-3 pb-2 pt-4 first:pt-2 group-data-[collapsible=icon]:hidden"><span className="text-[10px] font-black uppercase tracking-[.16em] text-[#9aa8a5]">{group}</span></li>}
+                  <SidebarMenuItem>
                     <SidebarMenuButton
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
+                      className={`h-10 rounded-xl transition-all font-medium ${isActive ? "bg-[#193f59] text-white shadow-sm hover:bg-[#193f59] hover:text-white" : "text-[#52666c] hover:bg-[#e9f0ee] hover:text-[#193f59]"}`}
                     >
                       <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
+                        className={`h-4 w-4 ${isActive ? "text-[#e4b45b]" : ""}`}
                       />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  </React.Fragment>
                 );
               })}
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="p-3">
+          <SidebarFooter className="border-t border-[#e7ecec] bg-[#f8faf9] p-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
@@ -274,22 +286,48 @@ function DashboardLayoutContent({
         />
       </div>
 
-      <SidebarInset>
-        {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "Menu"}
-                  </span>
-                </div>
-              </div>
+      <SidebarInset className="bg-[#f6f8f7]">
+        <header className="sticky top-0 z-40 flex min-h-[76px] items-center justify-between gap-4 border-b border-[#e1e7e6] bg-[#fbfcfb]/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <SidebarTrigger className="h-9 w-9 rounded-xl border border-[#e0e7e5] bg-white text-[#193f59] shadow-sm hover:bg-[#edf3f1]" />
+            <div className="hidden min-w-0 items-center gap-2 text-sm text-[#7a898c] sm:flex">
+              <span>Yönetim</span>
+              <span className="text-[#c4cecc]">/</span>
+              <span className="truncate font-semibold text-[#193f59]">{activeMenuItem?.label ?? "Genel Bakış"}</span>
+            </div>
+            <div className="flex min-w-0 flex-col sm:hidden">
+              <span className="truncate text-sm font-semibold text-[#193f59]">{activeMenuItem?.label ?? "Genel Bakış"}</span>
+              <span className="text-[11px] text-[#7a898c]">OkulBlog Yönetim Paneli</span>
             </div>
           </div>
-        )}
-        <main className="flex-1 p-4">{children}</main>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} onClick={() => toggleTheme?.()} className="hidden h-9 w-9 items-center justify-center rounded-xl border border-[#e0e7e5] bg-white text-[#65777b] transition-colors hover:bg-[#edf3f1] hover:text-[#193f59] sm:flex">
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <button aria-label="Bildirimler" className="relative hidden h-9 w-9 items-center justify-center rounded-xl border border-[#e0e7e5] bg-white text-[#65777b] transition-colors hover:bg-[#edf3f1] hover:text-[#193f59] sm:flex">
+              <Bell className="h-4 w-4" />
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#c39a3d]" />
+            </button>
+            <button onClick={() => setLocation("/")} className="hidden items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-3 py-2 text-xs font-semibold text-[#52666c] transition-colors hover:border-[#c39a3d] hover:text-[#193f59] sm:flex">
+              <ExternalLink className="h-3.5 w-3.5" />
+              Siteyi görüntüle
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-2.5 py-1.5 text-left transition-colors hover:border-[#c39a3d] sm:px-3">
+                  <Avatar className="h-8 w-8 border border-[#dfe7e3] bg-[#e9f2ef]"><AvatarFallback className="bg-[#e9f2ef] text-xs font-bold text-[#193f59]">O</AvatarFallback></Avatar>
+                  <span className="hidden max-w-28 truncate text-xs font-semibold text-[#193f59] md:block">Hesabım</span>
+                  <ChevronDown className="h-3.5 w-3.5 text-[#7a898c]" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 rounded-xl border-[#e1e7e6] bg-white p-1.5 shadow-lg">
+                <DropdownMenuItem onClick={() => setLocation("/")} className="cursor-pointer rounded-lg text-[#52666c] focus:bg-[#edf3f1] focus:text-[#193f59]"><ExternalLink className="mr-2 h-4 w-4" />Siteyi görüntüle</DropdownMenuItem>
+                <DropdownMenuItem onClick={logout} className="cursor-pointer rounded-lg text-destructive focus:text-destructive"><LogOut className="mr-2 h-4 w-4" />Çıkış yap</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </SidebarInset>
     </>
   );

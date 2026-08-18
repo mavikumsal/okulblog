@@ -505,3 +505,27 @@
 - [x] Responsive, loading, boş veri ve hata durumlarını uygulamak
 - [x] Vitest, TypeScript, production build ve responsive görsel doğrulaması yapmak
 - [x] Yeni dashboard kapsamı için geri alınabilir checkpoint oluşturmak
+
+## Admin Paneli Tasarım Dönüşümü — Testlig Referansı
+
+- [ ] Referans admin panelinin sidebar, üst bar, tema seçimi, dashboard kartları ve hızlı işlem desenlerini OkulBlog modülleriyle eşleştirmek
+- [ ] OkulBlog markasını koruyan açık/koyu tema, renk, tipografi, kart ve boşluk tasarım tokenlarını belirlemek
+- [ ] Admin shell’i referanstaki sabit sidebar, üst bar, breadcrumb ve responsive mobil açılır menü düzenine uyarlamak
+- [ ] Dashboard genel bakışını üretim istatistikleri, içerik sayıları, kullanıcı/rol özetleri ve hızlı işlemlerle yeniden düzenlemek
+- [ ] Sidebar’da mevcut OkulBlog modüllerini anlaşılır gruplar altında yeniden düzenlemek
+- [ ] Slider, reklam, haber, kategori, test, soru, doküman, video, soru-cevap, medya ve site ayarları ekranlarını ortak görsel dil ile uyumlamak
+- [ ] Admin yetkisini koruyarak Öğretmen ve Moderatör panellerinin aynı tasarım sisteminden güvenli şekilde yararlanmasını sağlamak
+- [ ] Referans tasarımındaki sabit/demo içerikleri gerçek tRPC verileriyle değiştirmek; sahte istatistik veya kullanıcı verisi kullanmamak
+- [ ] Admin paneli tasarım dönüşümü için responsive, erişilebilirlik, rol yetkisi, Vitest, TypeScript ve production build doğrulaması yapmak
+- [ ] Admin paneli tasarım dönüşümü için geri alınabilir checkpoint oluşturmak
+
+## Admin Shell, Lacivert-Altın Tema ve Üretim Dashboard Detayları
+
+- [x] Referans tasarıma göre OkulBlog admin sidebar gruplarını ve aktif modül durumunu yeniden düzenlemek
+- [x] Admin üst barına breadcrumb, tema seçimi, siteyi görüntüle ve hesap aksiyonlarını eklemek veya iyileştirmek
+- [x] Admin shell’in mevcut rol ve bölüm yetkilerini değiştirmeden çalıştığını korumak
+- [x] Lacivert-altın admin renk tokenlarını açık/koyu tema ile uyumlu hale getirmek
+- [x] Soru üretim istatistikleri için toplam, dönemsel değişim, durum ve zorluk dağılımı bilgi hiyerarşisini detaylandırmak
+- [x] Üretim dashboard’unda admin/öğretmen görünürlük kapsamını ve açıklayıcı yardımcı metinleri netleştirmek
+- [x] Yeni admin shell ve üretim dashboard görünümünü responsive ve erişilebilir biçimde doğrulamak
+- [x] Admin shell ve dashboard detaylandırması için Vitest, TypeScript, production build ve checkpoint doğrulamasını tamamlamak
