@@ -790,3 +790,14 @@
 - [x] Admin kategori arama sonuçlarına seviye bazlı filtreleme eklemek
 - [x] Admin filtrelenmiş kategori sonuçlarında toplu aktif/pasif işlemi eklemek
 - [x] Yeni ilerleme, gezinme ve toplu yönetim akışları için test, responsive doğrulama ve checkpoint tamamlamak
+
+## Soru-Cevap ve Haberler Görünüm Güncellemesi
+
+- [x] /soru-cevap sayfasına Admin eğitim kategori ağacını kullanıcı gezinmesine uygun eklemek
+- [x] Soru-Cevap sayfasında son sorulan sorular bölümünü göstermek
+- [x] Soru-Cevap sayfasında son cevaplanan sorular bölümünü göstermek
+- [x] Soru-Cevap listelerini gerçek veriye ve mevcut sıralama akışına bağlamak
+- [x] Haberler sayfasında kategori ağacını kaldırmak
+- [x] Haberler sayfasını blog kartları ve haber detay bağlantılarıyla düzenlemek
+- [x] Haberler için artan kayıt sayısına göre 1, 2, 3 şeklinde URL senkronlu sayfalama eklemek
+- [x] Yeni Soru-Cevap ve Haberler akışları için test, responsive doğrulama ve checkpoint tamamlamak

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryIdsForSelection, contentTypes, getTypeFromPath } from "./ContentHub";
+import { categoryIdsForSelection, contentTypes, getTypeFromPath, paginateItems } from "./ContentHub";
 import { categoryBreadcrumb, contentActionLabel, isProgressCompleted } from "./ContentDetail";
 
 type Node = {
@@ -31,6 +31,14 @@ describe("ContentHub public kategori akışı", () => {
     expect(Array.from(categoryIdsForSelection(nodes.filter(node => node.isActive), 3)!)).toEqual([3, 4, 5]);
     expect(Array.from(categoryIdsForSelection(nodes.filter(node => node.isActive), 5)!)).toEqual([5]);
     expect(categoryIdsForSelection(nodes, null)).toBeNull();
+  });
+
+  it("Haberler için sayfa numarasını güvenli biçimde sınırlar ve kayıtları böler", () => {
+    const result = paginateItems(Array.from({ length: 13 }, (_, index) => index + 1), 3, 6);
+    expect(result.currentPage).toBe(3);
+    expect(result.totalPages).toBe(3);
+    expect(result.items).toEqual([13]);
+    expect(paginateItems([1, 2], 0, 6).currentPage).toBe(1);
   });
 
   it("detay sayfası için Admin kategori yolunu kökten kazanıma kadar üretir", () => {
