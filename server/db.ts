@@ -149,6 +149,77 @@ export async function importEducationCurriculum(input: { createdBy: number }) {
   };
 }
 
+export function buildCurriculumExampleQuestion(outcome: { id: number; name: string }, className: string, marker = `[OkulBlog örnek kazanım ${outcome.id}]`) {
+  return {
+    questionType: "multiple-choice" as const,
+    prompt: `${marker} ${outcome.name} kazanımını ölçen aşağıdaki seçeneklerden hangisi doğrudur?`,
+    options: [outcome.name, "Kazanımla ilgisi olmayan bir ifade.", "Sadece ezber yapmayı gerektiren bir ifade.", "Konu dışı bir ifade."],
+    answer: outcome.name,
+    explanation: `Bu soruda doğru cevap, “${outcome.name}” kazanımını doğrudan ifade eden seçenektir.`,
+    topicTag: marker,
+    gradeLevel: className,
+    difficulty: "easy" as const,
+    status: "approved" as const,
+  };
+}
+
+export function buildCurriculumExampleDocument(outcome: { id: number; name: string }, className: string, subjectName: string, unitName: string) {
+  const title = `Çalışma Notu: ${unitName} · ${outcome.name}`;
+  return {
+    title,
+    contentType: "document" as const,
+    summary: `${className} ${subjectName} dersi için ${outcome.name} kazanımına yönelik kısa çalışma notu.`,
+    body: `# ${outcome.name}\n\n## Hedef\nBu çalışma notu, ${outcome.name} kazanımını pekiştirmek için hazırlanmıştır.\n\n## Çalışma önerisi\nKazanımı kendi cümlelerinizle açıklayın, ardından bir örnek verin ve konuyla ilgili kısa bir tekrar yapın.\n\n## Kontrol\nÇalışmanın sonunda bu kazanımı tamamladığınızı düşündüğünüz noktaları not edin.`,
+  };
+}
+
+export async function seedCurriculumExamples(input: { createdBy: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const outcomes = await db.select().from(categoryNodes).where(and(eq(categoryNodes.categoryType, "education"), eq(categoryNodes.level, "outcome"), eq(categoryNodes.isActive, true)));
+  let createdQuestions = 0;
+  let createdDocuments = 0;
+  for (const outcome of outcomes) {
+    const path = await categoryPathForDb(outcome.id, db);
+    const className = path.find(node => node.level === "class")?.name ?? "MEB K-12";
+    const subjectName = path.find(node => node.level === "subject")?.name ?? "Eğitim";
+    const unitName = path.find(node => node.level === "unit")?.name ?? "Örnek Ünite";
+    const marker = `[OkulBlog örnek kazanım ${outcome.id}]`;
+    const exampleQuestion = buildCurriculumExampleQuestion(outcome, className, marker);
+    const existingQuestion = await db.select({ id: questions.id }).from(questions).where(and(eq(questions.categoryId, outcome.id), eq(questions.topicTag, marker))).limit(1);
+    if (!existingQuestion[0]) {
+      await db.insert(questions).values({ ...exampleQuestion, categoryId: outcome.id, createdBy: input.createdBy });
+      createdQuestions += 1;
+    }
+    const exampleDocument = buildCurriculumExampleDocument(outcome, className, subjectName, unitName);
+    const existingDocument = await db.select({ id: contentItems.id }).from(contentItems).where(and(eq(contentItems.categoryId, outcome.id), eq(contentItems.contentType, "document"), eq(contentItems.title, exampleDocument.title))).limit(1);
+    if (!existingDocument[0]) {
+      await db.insert(contentItems).values({
+        ...exampleDocument,
+        slug: `${exampleDocument.title.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşöçıİ]+/gi, "-").replace(/(^-|-$)/g, "")}-${outcome.id}`,
+        categoryId: outcome.id,
+        status: "published",
+        createdBy: input.createdBy,
+      });
+      createdDocuments += 1;
+    }
+  }
+  return { outcomes: outcomes.length, createdQuestions, createdDocuments };
+}
+
+async function categoryPathForDb(categoryId: number, db: Awaited<ReturnType<typeof getDb>>) {
+  if (!db) return [];
+  const nodes = await db.select().from(categoryNodes).where(eq(categoryNodes.categoryType, "education"));
+  const byId = new Map(nodes.map(node => [node.id, node]));
+  const path: typeof nodes = [];
+  let current = byId.get(categoryId);
+  while (current) {
+    path.unshift(current);
+    current = current.parentId === null ? undefined : byId.get(current.parentId);
+  }
+  return path;
+}
+
 export async function setInstitutionCategoryStatus(input: { id: number; isActive: boolean }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
@@ -318,11 +389,12 @@ export async function createContentItem(input: {
   categoryId?: number | null;
   institutionCategoryId?: number | null;
   createdBy: number;
+  status?: "draft" | "pending" | "published" | "archived";
 }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   const slug = `${input.title.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşöçıİ]+/gi, "-").replace(/(^-|-$)/g, "")}-${crypto.randomUUID().slice(0, 8)}`;
-  await db.insert(contentItems).values({ ...input, slug, categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, status: "draft" });
+  await db.insert(contentItems).values({ ...input, slug, categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, status: input.status ?? "draft" });
 }
 
 export async function createTest(input: { title: string; description?: string; coverImageUrl?: string | null; durationMinutes?: number; categoryId?: number | null; institutionCategoryId?: number | null; questionIds: number[]; createdBy: number }) {

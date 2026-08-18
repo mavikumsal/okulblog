@@ -941,3 +941,9 @@
 - [x] Tüm aktif sınıf ve derslerin eksik örnek ünite/kazanım zincirlerini çoğaltmadan oluştur
 - [x] Örnek verilerin kategori ağacı, arama ve içerik bağlantılarında görünmesini doğrula
 - [x] Veri bütünlüğü, test, build, responsive kontrol ve checkpoint tamamla
+
+## Yeni istek: kazanım içerik zenginliği
+- [x] Her aktif kazanıma en az bir örnek test sorusu bağla
+- [x] Her aktif kazanıma bir çalışma dokümanı içeriği bağla veya doküman oluşturma akışını hazırla
+- [x] Soru ve dokümanların public kategori ağacında, detay sayfasında ve Admin listelerinde görünmesini doğrula
+- [x] Veri bütünlüğü, test, build ve yarın devam edilecek checkpoint notunu tamamla
