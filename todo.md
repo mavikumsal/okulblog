@@ -925,3 +925,8 @@
 - [x] Aktif kategori satırında güçlü vurgu, durum metni ve görünür açık/kapalı işareti ekle
 - [x] Kartın ve ikon alanının klavye/touch erişilebilirliğini koru
 - [x] Accordion görünümünü masaüstü/mobil test, TypeScript, build ve responsive kontrolle doğrula
+
+## Yeni istek: mobil sticky accordion kontrolü
+- [x] Mobil kategori alanının üstüne görünür sticky “Tümünü Aç/Kapat” kontrolü ekle
+- [x] Sticky kontrolün içerik çakışması ve dokunma erişilebilirliğini doğrula
+- [x] Mobil ve masaüstü karşılaştırmalı görsel test, TypeScript, build ve checkpoint tamamla
