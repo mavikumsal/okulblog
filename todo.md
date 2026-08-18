@@ -835,3 +835,10 @@
 - [x] Ders, ünite ve kazanım çocuklarını da gönderilen metindeki sırayla göster
 - [x] Admin ve public kategori ağaçlarının aynı özgün sıralamayı kullanmasını sağla
 - [x] Sıralama için veri doğrulama, Vitest, TypeScript, build ve responsive kontrol yap
+
+## Yeni istek: hiyerarşik breadcrumb ve sınıf grubu görsel kimliği
+- [x] Public kategori, içerik hub ve detay sayfalarında tıklanabilir MEB hiyerarşi breadcrumb’ı ekle
+- [x] Breadcrumb bağlantılarını ana grup, okul düzeyi, sınıf, ders, ünite ve kazanım bağlamına göre URL ile senkronize et
+- [x] 1–4 İlkokul, 5–8 Ortaokul ve 9–12 Lise grupları için renk kodları ve eğitim ikonları tanımla
+- [x] Sınıf kartları, kategori accordion ve ilgili başlıklarda sınıf grubu görsel kimliğini uygula
+- [x] Breadcrumb ve sınıf grubu görsel sistemi için erişilebilirlik, Vitest, TypeScript, build ve responsive kontrol yap

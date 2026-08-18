@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildClassBreadcrumb, buildContentTypeUrl, categoryIdsForSelection, contentTypes, filterContentByClass, filterContentBySubject, findClassNode, getSubjectNodesForClass, getTypeFromPath, paginateItems } from "./ContentHub";
+import { buildClassBreadcrumb, buildContentTypeUrl, categoryIdsForSelection, categoryPathForNode, classGroupForName, contentTypes, filterContentByClass, filterContentBySubject, findClassNode, getSubjectNodesForClass, getTypeFromPath, paginateItems } from "./ContentHub";
 import { categoryBreadcrumb, contentActionLabel, isProgressCompleted } from "./ContentDetail";
 
 type Node = {
@@ -53,6 +53,18 @@ describe("ContentHub public kategori akışı", () => {
       { id: 22, name: "Matematik", level: "subject", parentId: 20, categoryType: "education", sortOrder: 0, isActive: true },
     ];
     expect(getSubjectNodesForClass(orderedNodes, "1. Sınıf").map(node => node.name)).toEqual(["Matematik", "Türkçe"]);
+  });
+
+  it("MEB hiyerarşi yolu kökten seçili kazanıma kadar doğru sırayı korur", () => {
+    expect(categoryPathForNode(5, nodes).map(node => node.name)).toEqual(["İlkokul", "1. Sınıf", "Türkçe", "Okuma", "Sesleri tanır"]);
+    expect(categoryPathForNode(2, nodes).map(node => node.name)).toEqual(["İlkokul", "1. Sınıf"]);
+  });
+
+  it("sınıf gruplarını 1–4, 5–8 ve 9–12 aralıklarına göre renklendirir", () => {
+    expect(classGroupForName("1. Sınıf").key).toBe("elementary");
+    expect(classGroupForName("8. Sınıf").key).toBe("middle");
+    expect(classGroupForName("12. Sınıf").key).toBe("high");
+    expect(classGroupForName("Türkçe").key).toBe("general");
   });
 
   it("içerik türü filtresi sınıf ve ders bağlamını paylaşılabilir URL’de korur", () => {
