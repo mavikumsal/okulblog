@@ -541,4 +541,4 @@
 - [x] Sabit/demo sayıları, Testlig markasını ve dış bağımlı görselleri üretim akışından kaldırmak
 - [x] Ana sayfa referans uyarlamasını masaüstü, tablet ve mobil görünümde doğrulamak
 - [x] Ana sayfa referans uyarlaması için Vitest, TypeScript, production build ve erişilebilirlik doğrulaması yapmak
-- [ ] Ana sayfa referans uyarlaması için geri alınabilir checkpoint oluşturmak
+- [x] Ana sayfa referans uyarlaması için geri alınabilir checkpoint oluşturmak
