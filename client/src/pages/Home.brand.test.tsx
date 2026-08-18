@@ -24,7 +24,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-import Home, { classSummary } from "./Home";
+import Home, { buildClassAllContentUrl, classSummary } from "./Home";
 
 describe("Home marka, mobil menü ve CTA akışı", () => {
   afterEach(() => {
@@ -112,6 +112,10 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     expect(summary.counts.test).toBe(1);
     expect(summary.counts.video).toBe(1);
     expect(summary.previews.map(item => item.title)).toEqual(["Test", "Video"]);
+  });
+
+  it("sınıfın Tümünü Gör URL’si sınıfı ve tüm içerik modunu korur", () => {
+    expect(buildClassAllContentUrl("1. Sınıf")).toBe("/icerik/test?class=1.%20S%C4%B1n%C4%B1f&contentType=all");
   });
 
   it("oturumlu kullanıcıya Panelim ve Panele git CTA’larını gösterip Panel’e yönlendirir", () => {

@@ -849,3 +849,15 @@
 - [x] Sınıf kartlarında video, test, doküman ve diğer içerik türü sayaçlarını göster
 - [x] Sınıf kartlarında hover/focus ile popüler veya yeni içerik önizlemesi göster
 - [x] QA breadcrumb ve sınıf kartı zenginleştirmesi için Vitest, TypeScript, build ve responsive kontrol yap
+
+## Yeni istek: sınıf kartı önizleme aksiyonu ve içerik ikonları
+- [x] Sınıf kartı önizlemesine sınıfın tüm içeriklerine yönlendiren “Tümünü Gör” butonu ekle
+- [x] “Tümünü Gör” bağlantısında sınıf bağlamını ve mevcut içerik türü filtre mantığını koru
+- [x] Video, test, doküman ve diğer içerik sayaçlarının yanına tür ikonları ekle
+- [x] Yeni sınıf kartı aksiyonu ve ikonları için Vitest, TypeScript, build ve responsive doğrulama yap
+
+## Yeni istek: sınıf kartı önizleme CTA ve içerik ikonları
+- [x] Önizlemenin altına sınıfın tüm içeriklerine giden “Tümünü Gör” butonunu ekle
+- [x] Tümünü Gör hedefinde sınıfı koruyan tüm içerik URL modunu oluştur
+- [x] Video, test, doküman, simülasyon, oyun ve haber sayaçlarına küçük ikonlar ekle
+- [x] CTA URL’si için regresyon testi, TypeScript, build ve responsive görsel kontrol yap
