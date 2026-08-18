@@ -581,3 +581,20 @@
 - [x] Masaüstü ve mobilde kartların kesilmesini, yatay taşmasını ve alt hero dışına çıkmasını önlemek
 - [x] Kompozisyon düzeltmesi için test, TypeScript, production build ve görsel doğrulama yapmak
 - [x] Kompozisyon düzeltmesi için geri alınabilir checkpoint oluşturmak
+
+## Dersleri Keşfet Bölüm Sırası
+
+- [x] Dersleri Keşfet başlık ve açıklamasının mevcut Home içindeki konumunu belirlemek
+- [x] Dersleri Keşfet bölümünü hero ve yüzen istatistik kartlarının hemen üstüne taşımak
+- [x] Ders kartlarının gerçek kategori/veri bağlantılarını ve görsel düzenini korumak
+- [x] Hero, dersler ve istatistik kartları arasında boşluk/örtüşme sorunlarını gidermek
+- [x] Yeni bölüm sırasını masaüstü, tablet ve mobil görünümde doğrulamak
+- [x] Dersleri Keşfet yerleşimi için test, TypeScript, production build ve checkpoint doğrulaması yapmak
+
+## Ana Sayfa Bölüm Sırası Rafinesi
+
+- [x] “Dersleri keşfet” bölümünü hero ve istatistik alanının hemen üstüne taşımak
+- [x] Taşınan bölüm sonrası hero, istatistik kartları ve yüzen dashboard kartlarının boşluk/taşma düzenini doğrulamak
+- [x] Yeni bölüm sırasını masaüstü ve mobil viewport’larda görsel olarak doğrulamak
+- [x] Bölüm sırası değişikliği sonrası Vitest, TypeScript ve production build kontrollerini çalıştırmak
+- [x] Bölüm sırası rafinesi için yeni checkpoint oluşturmak
