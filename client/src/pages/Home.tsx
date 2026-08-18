@@ -75,6 +75,7 @@ function getSlideNavigation(link: string | null | undefined) {
 export default function Home() {
   const { isAuthenticated, loading, user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [loaderStartedAt] = useState(() => Date.now());
@@ -117,6 +118,19 @@ export default function Home() {
     if (activeSlideIndex >= configuredSlides.length && configuredSlides.length) setActiveSlideIndex(0);
   }, [activeSlideIndex, configuredSlides.length]);
 
+  useEffect(() => {
+    if (configuredSlides.length < 2) return;
+    const timer = window.setInterval(() => setActiveSlideIndex(index => (index + 1) % configuredSlides.length), 6000);
+    return () => window.clearInterval(timer);
+  }, [configuredSlides.length]);
+
+  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) return goTo("icerikler");
+    setLocation(`/panel/icerikler?search=${encodeURIComponent(query)}`);
+  };
+
   const goTo = (id: string) => {
     setMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -141,11 +155,19 @@ export default function Home() {
             <span className="text-[21px] font-bold tracking-[-.06em] text-[#102e49]">okul<span className="font-serif text-[#bd8331]">blog</span></span>
           </button>
 
-          <nav className="hidden items-center gap-8 text-sm font-bold text-[#516674] md:flex">
-            <button onClick={() => goTo("icerikler")} className="transition-colors hover:text-[#102e49]">İçerikler</button>
-            <button onClick={() => goTo("yolculuk")} className="transition-colors hover:text-[#102e49]">Nasıl çalışır?</button>
-            <button onClick={() => goTo("sinavlar")} className="transition-colors hover:text-[#102e49]">Sınav hazırlığı</button>
-          </nav>
+            <form onSubmit={submitSearch} className="hidden min-w-0 flex-1 max-w-[430px] lg:block" role="search">
+              <label className="relative block">
+                <span className="sr-only">İçerik ara</span>
+                <input value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Hangi testi veya konuyu arıyorsun?" className="h-11 w-full rounded-2xl border-0 bg-[#eef0eb] pl-11 pr-4 text-sm font-medium text-[#17354d] outline-none transition placeholder:text-[#89979a] focus:ring-2 focus:ring-[#e3b75f]" />
+                <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#6e8984]" />
+              </label>
+            </form>
+            <nav className="hidden items-center gap-5 text-sm font-bold text-[#516674] xl:flex">
+              <button onClick={() => goTo("icerikler")} className="transition-colors hover:text-[#102e49]">İçerikler</button>
+              <button onClick={() => goTo("icerikler")} className="transition-colors hover:text-[#102e49]">Dokümanlar</button>
+              <button onClick={() => goTo("icerikler")} className="transition-colors hover:text-[#102e49]">Haberler</button>
+              <button onClick={() => goTo("soru-cevap")} className="transition-colors hover:text-[#102e49]">Soru-Cevap</button>
+            </nav>
 
           <div className="hidden items-center gap-2 md:flex">
             <Button onClick={accountAction} variant="ghost" className="font-bold text-[#28445a] hover:bg-[#ecece2]">{isAuthenticated ? "Panelim" : "Giriş yap"}</Button>
@@ -162,6 +184,22 @@ export default function Home() {
       </header>
 
       <main>
+        <section className="relative h-[340px] overflow-hidden bg-[#173b58] text-white sm:h-[430px] lg:h-[500px]" aria-label="Öne çıkan içerikler">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#102e49] via-[#245776] to-[#55427f]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(242,200,102,.22),transparent_28%),radial-gradient(circle_at_82%_80%,rgba(184,221,212,.2),transparent_30%)]" />
+          <div className="container relative flex h-full items-center justify-center px-6 text-center">
+            <div key={activeSlideIndex} className="max-w-3xl animate-in fade-in duration-500">
+              <p className="mb-4 text-[11px] font-bold uppercase tracking-[.18em] text-[#f6d47f]">{currentSlide.eyebrow || "OkulBlog öne çıkanları"}</p>
+              <h2 className="text-4xl font-black tracking-[-.055em] sm:text-5xl lg:text-6xl">{currentSlide.title}</h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#d5e0df] sm:text-lg">{currentSlide.description || fallbackSlide.description}</p>
+              <Button onClick={followSlideLink} className="mt-7 rounded-xl bg-[#f2c866] px-7 font-black text-[#17354d] shadow-[0_12px_30px_rgba(0,0,0,.18)] transition hover:-translate-y-0.5 hover:bg-[#f7d982]">{currentSlide.buttonLabel || "İçerikleri keşfet"} <ArrowRight size={17} /></Button>
+            </div>
+          </div>
+          <button type="button" onClick={() => setActiveSlideIndex(index => (index - 1 + Math.max(configuredSlides.length, 1)) % Math.max(configuredSlides.length, 1))} className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/35 focus:outline-none focus:ring-2 focus:ring-[#f2c866]" aria-label="Önceki slayt"><ArrowRight className="rotate-180" size={20} /></button>
+          <button type="button" onClick={() => setActiveSlideIndex(index => (index + 1) % Math.max(configuredSlides.length, 1))} className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/35 focus:outline-none focus:ring-2 focus:ring-[#f2c866]" aria-label="Sonraki slayt"><ArrowRight size={20} /></button>
+          <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2" aria-label="Slayt seçimi">{(configuredSlides.length ? configuredSlides : [fallbackSlide]).map((slide, index) => <button type="button" key={"slider-dot-" + ("id" in slide ? slide.id : index)} onClick={() => setActiveSlideIndex(index)} className={`h-2.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#f2c866] ${index === activeSlideIndex ? "w-8 bg-[#f2c866]" : "w-2.5 bg-white/45 hover:bg-white/80"}`} aria-label={`${index + 1}. slaytı göster`} />)}</div>
+        </section>
+
         <section id="baslangic" className="relative overflow-hidden bg-[#102e49] text-white">
           <div className="pointer-events-none absolute inset-0 opacity-[.08]" style={{ backgroundImage: "radial-gradient(#f6d881 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
           <div className="pointer-events-none absolute -right-36 top-[-13rem] h-[36rem] w-[36rem] rounded-full border-[62px] border-[#e5ae55]/20" />

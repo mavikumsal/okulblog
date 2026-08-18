@@ -529,3 +529,16 @@
 - [x] Üretim dashboard’unda admin/öğretmen görünürlük kapsamını ve açıklayıcı yardımcı metinleri netleştirmek
 - [x] Yeni admin shell ve üretim dashboard görünümünü responsive ve erişilebilir biçimde doğrulamak
 - [x] Admin shell ve dashboard detaylandırması için Vitest, TypeScript, production build ve checkpoint doğrulamasını tamamlamak
+
+## Ana Sayfa Referans HTML Uyarlaması
+
+- [x] `ana_sayfa.html` referansının navigasyon, hero, CTA, dashboard görseli ve içerik keşif hiyerarşisini mevcut Home ile eşleştirmek
+- [x] OkulBlog ana sayfa bilgi mimarisini gerçek slider, kategori, içerik ve istatistik verileriyle planlamak
+- [x] Referanstaki açık üst navigasyon ve mobil menü yapısını OkulBlog bağlantılarıyla uygulamak
+- [x] Referanstaki lacivert hero arka planını, büyük başlık düzenini ve sarı CTA butonlarını OkulBlog markasıyla uygulamak
+- [x] Sağ hero görselindeki öğrenme yolu ve soru üretim dashboard kompozisyonunu gerçek/uygun OkulBlog verileriyle uyarlamak
+- [x] Testler, dokümanlar, videolar, simülasyonlar, oyunlar, haberler ve soru-cevap keşif bölümlerini referans hiyerarşisinde sunmak
+- [x] Sabit/demo sayıları, Testlig markasını ve dış bağımlı görselleri üretim akışından kaldırmak
+- [x] Ana sayfa referans uyarlamasını masaüstü, tablet ve mobil görünümde doğrulamak
+- [x] Ana sayfa referans uyarlaması için Vitest, TypeScript, production build ve erişilebilirlik doğrulaması yapmak
+- [ ] Ana sayfa referans uyarlaması için geri alınabilir checkpoint oluşturmak
