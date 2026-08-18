@@ -897,3 +897,13 @@
 - [x] İçerikleri keşfet butonunu icerikler bölümüne çalışan kaydırma akışına bağla
 - [x] Nasıl çalışır butonunu erişilebilir açıklama modalına bağla
 - [x] Hero CTA ve modal davranışı için 133 test, TypeScript, production build ve responsive kontrol yap
+
+## Yeni istek: mobil ikinci hero kartı
+- [x] İkinci hero sağ kartının mobil genişlik ve konumunu ekran boyutuna uyarla
+- [x] Kart içeriği, sayaçları ve metinlerinde taşma/okunabilirlik sorunlarını düzelt
+- [x] Mobil ve masaüstü görsel doğrulama, test, TypeScript ve build kontrolü yap
+
+## Yeni istek: mobil ikinci hero kartı
+- [x] İkinci hero sağ kartını mobilde ekran genişliğine uyumlu hale getir
+- [x] Kart iç boşluklarını, başlık satırını ve küçük ekran okunabilirliğini iyileştir
+- [x] Mobil ve masaüstü görsel kontrol ile 133 test, TypeScript ve build doğrulamasını tamamla
