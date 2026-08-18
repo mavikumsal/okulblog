@@ -4,9 +4,9 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const qaState = vi.hoisted(() => ({ setLocation: vi.fn(), startLogin: vi.fn() }));
+const qaState = vi.hoisted(() => ({ setLocation: vi.fn(), startLogin: vi.fn(), isAuthenticated: false }));
 
-vi.mock("@/_core/hooks/useAuth", () => ({ useAuth: () => ({ isAuthenticated: false, loading: false }) }));
+vi.mock("@/_core/hooks/useAuth", () => ({ useAuth: () => ({ isAuthenticated: qaState.isAuthenticated, loading: false }) }));
 vi.mock("@/const", () => ({ startLogin: qaState.startLogin }));
 vi.mock("wouter", () => ({ useLocation: () => ["/soru-cevap", qaState.setLocation] }));
 vi.mock("@/components/RichTextEditor", () => ({ default: ({ label }: { label: string }) => <div>{label}</div> }));
@@ -31,7 +31,7 @@ vi.mock("@/lib/trpc", () => ({
 import QA from "./QA";
 
 describe("Soru-Cevap sayfası", () => {
-  afterEach(() => { cleanup(); qaState.setLocation.mockReset(); qaState.startLogin.mockReset(); });
+  afterEach(() => { cleanup(); qaState.setLocation.mockReset(); qaState.startLogin.mockReset(); qaState.isAuthenticated = false; window.history.replaceState(null, "", "/soru-cevap"); });
 
   it("istenen üst navigasyonu ve ayrı iletişim alanını gösterir", () => {
     render(<QA />);
@@ -41,7 +41,16 @@ describe("Soru-Cevap sayfası", () => {
     expect(screen.getByText("OkulBlog ekibi burada.")).toBeInTheDocument();
   });
 
-  it("arama ve kategori seçimini kullanıcıya sunar", () => {
+  it("giriş yapan kullanıcıya görsel eklemeli Soru Sor modalı sunar", () => {
+    qaState.isAuthenticated = true;
+    render(<QA />);
+    fireEvent.click(screen.getByRole("button", { name: "Soru Sor" }));
+    expect(screen.getByRole("dialog", { name: "Soru Sor" })).toBeInTheDocument();
+    expect(screen.getByText("Görsel ekle")).toBeInTheDocument();
+    expect(screen.getByLabelText("Soru başlığı")).toBeInTheDocument();
+  });
+
+  it("arama ve kategori seçimini kullanıcıya sunar ve URL'yi günceller", () => {
     render(<QA />);
     fireEvent.change(screen.getByPlaceholderText("Sorularda ara..."), { target: { value: "matematik" } });
     expect(screen.getByDisplayValue("matematik")).toBeInTheDocument();
@@ -49,6 +58,9 @@ describe("Soru-Cevap sayfası", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "Filtre Ana grup" }), { target: { value: "1" } });
     expect(screen.getByRole("combobox", { name: "Filtre Okul düzeyi" })).toBeInTheDocument();
     fireEvent.change(screen.getByRole("combobox", { name: "Filtre Okul düzeyi" }), { target: { value: "2" } });
-    expect(screen.getByRole("combobox", { name: "Filtre Sınıf" })).toBeInTheDocument();
+    const classSelect = screen.getByRole("combobox", { name: "Filtre Sınıf" });
+    expect(classSelect).toBeInTheDocument();
+    fireEvent.change(classSelect, { target: { value: "3" } });
+    expect(window.location.search).toContain("classId=3");
   });
 });

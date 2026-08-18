@@ -651,3 +651,19 @@
 - [x] Masaüstü ve mobil responsive doğrulama yapmak
 - [x] TypeScript, Vitest ve production build kontrollerini çalıştırmak
 - [x] Değişiklikler için yeni checkpoint oluşturmak
+
+## Soru-Cevap Etkileşim ve Paylaşılabilir Kategori İyileştirmeleri
+
+- [x] Soru-Cevap sayfasına “Soru Sor” butonu eklemek
+- [x] “Soru Sor” modalında soru metni ve görsel ekleme alanı oluşturmak
+- [x] Görsel önizleme, dosya türü/boyut doğrulaması ve kaldırma aksiyonu eklemek
+- [x] Modal için doğrulama, giriş gereksinimi, başarı ve hata durumlarını göstermek
+- [x] Üst navigasyon bağlantılarına belirgin hover ve aktif durum animasyonları eklemek
+- [x] Navigasyon animasyonlarını mobil menü ve reduced-motion ile uyumlu yapmak
+- [x] Soru-Cevap kategori seçimlerini URL parametreleriyle senkronize etmek
+- [x] URL’den sınıf/ders filtrelerini okuyup seçimleri otomatik geri yüklemek
+- [x] Kategori filtresi değişince paylaşılabilir URL’yi güncellemek
+- [x] Yeni QA modalı ve URL akışı için Vitest testleri yazmak
+- [x] Masaüstü, mobil ve erişilebilirlik doğrulaması yapmak
+- [x] TypeScript, Vitest ve production build kontrollerini çalıştırmak
+- [x] Değişiklikler için yeni checkpoint oluşturmak
