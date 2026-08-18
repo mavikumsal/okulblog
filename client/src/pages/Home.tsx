@@ -6,7 +6,7 @@ import { QuestionProductionDashboard } from "@/components/QuestionProductionDash
 import { trpc } from "@/lib/trpc";
 import { getHomeLoaderDelay } from "@/lib/homeLoading";
 import { getHomeAccountLabel, getHomePrimaryLabel } from "@shared/homeNavigation";
-import { classGroupForName } from "./ContentHub";
+import { categoryIdsForSelection, classGroupForName } from "./ContentHub";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -250,7 +250,7 @@ export default function Home() {
 
         <section className="border-b border-[#eef0f5] bg-white"><div className="container grid gap-5 py-6 sm:grid-cols-[auto_1fr_auto] sm:items-center"><p className="text-sm font-bold text-[#24435b]">Nereden başlamak istersiniz?</p><div className="hidden h-px bg-[#d9ddd5] sm:block" /><div className="flex flex-wrap gap-2"><button onClick={() => goTo("icerikler")} className="rounded-full border border-[#d8dcd5] bg-white px-4 py-2 text-xs font-bold text-[#466170] transition hover:border-[#9abbb1] hover:text-[#155e55]">Okul dersleri</button><button onClick={() => goTo("sinavlar")} className="rounded-full border border-[#d8dcd5] bg-white px-4 py-2 text-xs font-bold text-[#466170] transition hover:border-[#9abbb1] hover:text-[#155e55]">Kurum sınavları</button></div></div></section>
 
-        <section id="egitim-seviyeleri" className="bg-white py-16 sm:py-20"><div className="container"><div className="mx-auto max-w-2xl text-center"><p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#5540e8]">Kişisel başlangıç</p><h2 className="mt-3 text-3xl font-black tracking-[-.045em] text-[#111827] sm:text-4xl">Sınıfını seç, başarıya odaklan</h2><p className="mt-3 text-sm text-[#6b7280]">Sana en uygun içerikleri görmek için okuduğun sınıfı seçebilirsin.</p></div><div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-5">{["1. Sınıf","2. Sınıf","3. Sınıf","4. Sınıf","5. Sınıf","6. Sınıf","7. Sınıf","8. Sınıf","LGS"].map((grade, index) => <button key={grade} onClick={() => setLocation(`/icerik/test?class=${encodeURIComponent(grade)}`)} className={["group rounded-[22px] border border-[#e5e7eb] border-t-4", grade === "LGS" ? "border-t-[#7c3aed]" : "border-t-[#1687d9]", "bg-white p-5 text-center shadow-[0_8px_20px_rgba(31,41,55,.04)] transition duration-200 hover:-translate-y-1 hover:border-[#5540e8] hover:shadow-[0_16px_30px_rgba(85,64,232,.14)] focus:outline-none focus:ring-2 focus:ring-[#5540e8] focus:ring-offset-2"].join(" ")}><span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-[#f0f5ff] text-xl font-medium text-[#111827]">{index + 1}</span><strong className="mt-5 block text-sm font-extrabold text-[#111827]">{grade}</strong><span className="mt-2 block text-[10px] font-bold uppercase tracking-[.12em] text-[#9ca3af]">İçerikleri gör</span></button>)}</div></div></section>
+        <section id="egitim-seviyeleri" className="bg-white py-16 sm:py-20"><div className="container"><div className="mx-auto max-w-2xl text-center"><p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#5540e8]">Kişisel başlangıç</p><h2 className="mt-3 text-3xl font-black tracking-[-.045em] text-[#111827] sm:text-4xl">Sınıfını seç, başarıya odaklan</h2><p className="mt-3 text-sm text-[#6b7280]">Sana en uygun içerikleri görmek için okuduğun sınıfı seçebilirsin.</p></div><div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">{["1. Sınıf","2. Sınıf","3. Sınıf","4. Sınıf","5. Sınıf","6. Sınıf","7. Sınıf","8. Sınıf","9. Sınıf","10. Sınıf","11. Sınıf","12. Sınıf"].map((grade, index) => { const group = classGroupForName(grade); const summary = classSummary(grade, educationCategories as HomeCategoryNode[], (overview.data?.content ?? []) as HomeContentItem[]); const preview = summary.previews.length ? summary.previews : [{ id: -1, title: "Yeni içerikler burada görünecek", contentType: "test", status: "published" }]; const counts = Object.entries(summary.counts).filter(([, count]) => count > 0).slice(0, 3); return <div key={grade} className="group relative"><button type="button" onClick={() => setLocation(`/icerik/test?class=${encodeURIComponent(grade)}`)} aria-label={`${grade} içeriklerini gör`} className={`w-full rounded-[22px] border p-3 text-left shadow-[0_8px_20px_rgba(31,41,55,.04)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_16px_30px_rgba(85,64,232,.14)] focus:outline-none focus:ring-2 focus:ring-[#5540e8] focus:ring-offset-2 ${group.classes}`}><ClassCoverIllustration group={group} /><div className="px-2 pb-1 pt-3"><strong className="block text-sm font-extrabold text-[#17354d]">{grade}</strong><span className="mt-1 block text-[10px] font-bold uppercase tracking-[.1em] opacity-70">{summary.total} toplam içerik</span><div className="mt-3 flex flex-wrap gap-1.5">{counts.length ? counts.map(([type, count]) => <span key={type} className="rounded-full bg-white/70 px-2 py-1 text-[10px] font-bold">{contentTypeLabel(type)} {count}</span>) : <span className="rounded-full bg-white/70 px-2 py-1 text-[10px] font-bold">İçerik keşfet</span>}</div></div></button><div className="pointer-events-none absolute left-2 right-2 top-full z-20 mt-2 translate-y-1 rounded-2xl border border-[#e4e8e3] bg-white p-3 opacity-0 shadow-[0_16px_32px_rgba(31,41,55,.14)] transition duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100"><p className="text-[10px] font-extrabold uppercase tracking-[.12em] text-[#7b8a8d]">Yeni içerikler</p>{preview.map(item => <p key={item.id} className="mt-2 truncate text-xs font-bold text-[#29445a]">{item.title}</p>)}</div></div>; })}</div></div></section>
 
 
 
@@ -267,6 +267,26 @@ export default function Home() {
       </div>
     </>
   );
+}
+
+type HomeCategoryNode = { id: number; name: string; level: string; parentId: number | null; isActive?: boolean };
+type HomeContentItem = { id: number; title: string; categoryId?: number | null; contentType: string; status: string; createdAt?: string | number | Date };
+
+export function classSummary(className: string, nodes: HomeCategoryNode[], items: HomeContentItem[]) {
+  const classNode = nodes.find(node => node.level === "class" && node.name.toLocaleLowerCase("tr-TR") === className.toLocaleLowerCase("tr-TR"));
+  if (!classNode) return { total: 0, counts: { test: 0, video: 0, document: 0, game: 0, simulation: 0, news: 0 }, previews: [] as HomeContentItem[] };
+  const ids = categoryIdsForSelection(nodes as any, classNode.id) ?? new Set<number>();
+  const scoped = items.filter(item => (item.status === "published" || item.status === "pending") && item.categoryId != null && ids.has(item.categoryId));
+  const counts = { test: 0, video: 0, document: 0, game: 0, simulation: 0, news: 0 };
+  scoped.forEach(item => { if (item.contentType in counts) counts[item.contentType as keyof typeof counts] += 1; });
+  const previews = [...scoped].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()).slice(0, 2);
+  return { total: scoped.length, counts, previews };
+}
+
+function ClassCoverIllustration({ group }: { group: ReturnType<typeof classGroupForName> }) {
+  const Icon = group.icon === "book" ? BookOpen : group.icon === "layers" ? Layers3 : group.icon === "graduation" ? GraduationCap : Target;
+  const palette = group.key === "elementary" ? "from-[#38a98d] to-[#155d55]" : group.key === "middle" ? "from-[#3d88d8] to-[#24567b]" : group.key === "high" ? "from-[#8e5bc7] to-[#60447a]" : "from-[#d79b2b] to-[#7b4d0e]";
+  return <div className={`relative flex h-24 items-center justify-center overflow-hidden rounded-[20px] bg-gradient-to-br ${palette} text-white`} aria-hidden="true"><span className="absolute -right-4 -top-8 h-24 w-24 rounded-full border-[12px] border-white/15" /><span className="absolute -bottom-8 -left-3 h-20 w-20 rounded-full bg-white/10" /><Icon size={42} strokeWidth={1.6} /><span className="absolute bottom-2 left-3 text-[9px] font-extrabold tracking-[.12em]">{group.key === "elementary" ? "İLKOKUL 1–4" : group.key === "middle" ? "ORTAOKUL 5–8" : group.key === "high" ? "LİSE 9–12" : "EĞİTİM"}</span></div>;
 }
 
 function contentTypeLabel(type: string) {

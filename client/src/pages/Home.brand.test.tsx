@@ -24,7 +24,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-import Home from "./Home";
+import Home, { classSummary } from "./Home";
 
 describe("Home marka, mobil menü ve CTA akışı", () => {
   afterEach(() => {
@@ -95,6 +95,23 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     fireEvent.change(screen.getByLabelText("SSS içinde ara"), { target: { value: "üyelik" } });
     expect(screen.getByText("Üyelik zorunlu mu?")).toBeInTheDocument();
     expect(screen.queryByText("Öğretmenler içerik ekleyebilir mi?")).not.toBeInTheDocument();
+  });
+
+  it("sınıf özetinde alt kategorilerdeki içerik türü sayaçlarını ve yeni içerik önizlemesini üretir", () => {
+    const nodes = [
+      { id: 10, name: "1. Sınıf", level: "class", parentId: null },
+      { id: 11, name: "Türkçe", level: "subject", parentId: 10 },
+      { id: 12, name: "Ünite 1", level: "unit", parentId: 11 },
+    ];
+    const summary = classSummary("1. Sınıf", nodes, [
+      { id: 1, title: "Test", categoryId: 12, contentType: "test", status: "published", createdAt: "2026-08-18" },
+      { id: 2, title: "Video", categoryId: 11, contentType: "video", status: "pending", createdAt: "2026-08-17" },
+      { id: 3, title: "Pasif", categoryId: 12, contentType: "document", status: "draft", createdAt: "2026-08-19" },
+    ]);
+    expect(summary.total).toBe(2);
+    expect(summary.counts.test).toBe(1);
+    expect(summary.counts.video).toBe(1);
+    expect(summary.previews.map(item => item.title)).toEqual(["Test", "Video"]);
   });
 
   it("oturumlu kullanıcıya Panelim ve Panele git CTA’larını gösterip Panel’e yönlendirir", () => {

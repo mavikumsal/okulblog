@@ -26,6 +26,34 @@ function childrenOf(nodes: CategoryNode[], parentId: number | null, level?: stri
   return nodes.filter(node => node.parentId === parentId && (!level || node.level === level));
 }
 
+function categoryPath(nodes: CategoryNode[], selectedId?: number) {
+  const byId = new Map(nodes.map(node => [node.id, node]));
+  const result: CategoryNode[] = [];
+  let current = selectedId ? byId.get(selectedId) : undefined;
+  const visited = new Set<number>();
+  while (current && !visited.has(current.id)) {
+    visited.add(current.id);
+    result.unshift(current);
+    current = current.parentId ? byId.get(current.parentId) : undefined;
+  }
+  return result;
+}
+
+function breadcrumbHref(path: CategoryNode[], index: number) {
+  const params = new URLSearchParams();
+  path.slice(0, index + 1).forEach(node => params.set(`${node.level}Id`, String(node.id)));
+  params.set("categoryId", String(path[index].id));
+  return `/soru-cevap?${params.toString()}`;
+}
+
+function QABreadcrumb({ path, onNavigate }: { path: CategoryNode[]; onNavigate: (href: string) => void }) {
+  if (!path.length) return null;
+  const classNode = path.find(node => node.level === "class");
+  const grade = classNode?.name.match(/^(\\d+)\\./i)?.[1];
+  const group = grade ? Number(grade) <= 4 ? { label: "İlkokul", classes: "bg-[#eff9f5] text-[#155d55]" } : Number(grade) <= 8 ? { label: "Ortaokul", classes: "bg-[#eef6ff] text-[#24567b]" } : { label: "Lise", classes: "bg-[#f7f0ff] text-[#60447a]" } : null;
+  return <nav aria-label="Eğitim kategori yolu" className="mb-5 flex flex-wrap items-center gap-1.5 text-xs font-bold text-[#6d817d]"><button type="button" onClick={() => onNavigate("/soru-cevap")} className="rounded-lg px-2 py-1 transition hover:bg-[#f0edff] hover:text-[#5540e8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5540e8]">Soru-Cevap</button>{path.map((node, index) => <span key={node.id} className="inline-flex items-center gap-1.5"><ChevronRight size={13} aria-hidden="true" /><button type="button" onClick={() => onNavigate(breadcrumbHref(path, index))} aria-current={index === path.length - 1 ? "page" : undefined} className="max-w-[180px] truncate rounded-lg px-2 py-1 transition hover:bg-[#f0edff] hover:text-[#5540e8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5540e8]">{node.name}</button></span>)}{group && <span className={`ml-1 rounded-full px-2.5 py-1 ${group.classes}`}>{group.label} grubu</span>}</nav>;
+}
+
 function CategoryCascade({ nodes, values, onChange, prefix }: { nodes: CategoryNode[]; values: Record<string, string>; onChange: (level: string, value: string) => void; prefix: string }) {
   const levels = [
     ["ana-grup", "Ana grup", null],
@@ -91,6 +119,7 @@ export default function QA() {
   const categoryIdForQuestion = activeCategoryId;
   const selectedCategoryLabel = useMemo(() => nodes.find(node => node.id === categoryIdForQuestion)?.name, [nodes, categoryIdForQuestion]);
   const selectedPathLabel = useMemo(() => ["ana-grup", "school-level", "class", "subject", "unit", "outcome"].map(level => nodes.find(node => node.id === Number(categoryValues[level]))?.name).filter(Boolean).join(" · "), [nodes, categoryValues]);
+  const selectedBreadcrumbPath = useMemo(() => categoryPath(nodes, activeCategoryId), [nodes, activeCategoryId]);
   const sortedQuestions = useMemo(() => {
     const questions = [...(qa.data?.questions ?? [])];
     const answerCount = (questionId: number) => (qa.data?.answers ?? []).filter(answer => answer.questionId === questionId).length;
@@ -151,6 +180,7 @@ export default function QA() {
       <div className="container flex min-h-[76px] items-center justify-between gap-5 py-3"><button onClick={() => setLocation("/")} className="flex shrink-0 items-center gap-2.5 text-left" aria-label="OkulBlog ana sayfa"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#5540e8] text-white shadow-[0_9px_20px_rgba(85,64,232,.22)]"><GraduationCap size={21} /></span><span className="text-[21px] font-bold tracking-[-.06em] text-[#5540e8]">okul<span className="font-serif text-[#7c3aed]">blog</span></span></button><nav className="hidden min-w-0 flex-1 items-center justify-center gap-3 text-[11px] font-bold text-[#52666c] xl:flex">{navItems.map(([label, path]) => <button key={path} onClick={() => setLocation(path)} className={`relative rounded-full px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#f0edff] hover:text-[#5540e8] hover:shadow-[0_6px_14px_rgba(85,64,232,.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5540e8]/40 active:scale-95 ${path === "/soru-cevap" ? "bg-[#f0edff] text-[#5540e8] shadow-[0_6px_14px_rgba(85,64,232,.1)]" : ""}`}>{label}</button>)}</nav><Button onClick={() => isAuthenticated ? setLocation("/panel") : startLogin()} className="rounded-full bg-[#5540e8] font-bold text-white hover:bg-[#4632cf]">{isAuthenticated ? "Panelim" : "Giriş yap"}<ArrowRight size={15} /></Button></div>
     </header>
     <main className="container max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
+      <QABreadcrumb path={selectedBreadcrumbPath} onNavigate={href => setLocation(href)} />
       <section className="rounded-[28px] bg-[#18344f] p-7 text-white sm:p-10"><p className="text-xs font-bold uppercase tracking-[.2em] text-[#b8ddd4]">Topluluk alanı</p><h1 className="mt-3 text-4xl font-semibold tracking-[-.04em]">{selectedPathLabel ? `${selectedPathLabel} soruları` : "Soru-Cevap"}</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-[#d2dee0]">{selectedPathLabel ? `${selectedPathLabel} için soruları keşfet veya toplulukla paylaş.` : "Takıldığın yerde birlikte düşünelim. Dersini ve sınıfını seç, soruları keşfet veya toplulukla paylaş."}</p>{selectedPathLabel && <span className="mt-5 inline-flex rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold text-[#e7f4ef]">URL filtresi aktif · {selectedPathLabel}</span>}</section>
       <section className="mt-6 rounded-[24px] border border-[#e6e6de] bg-white p-5"><div className="grid gap-4"><div className="relative"><Search className="absolute left-3 top-3 text-[#78908c]" size={17} /><Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Sorularda ara..." className="h-11 rounded-xl pl-10" /></div><div className="grid gap-4 lg:grid-cols-[.9fr_1.1fr]"><QuestionCategoryTree nodes={nodes} selectedId={activeCategoryId} onSelect={id => { const node = nodes.find(item => item.id === id); if (node) updateCategory(node.level, String(id)); }} /><CategoryCascade nodes={nodes} values={categoryValues} onChange={updateCategory} prefix="Filtre" /></div><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-[#71838b]">{qa.data?.questions.length ?? 0} soru bulundu{selectedCategoryLabel ? ` · ${selectedCategoryLabel}` : ""}</p><Button variant="outline" onClick={() => { setSearch(""); setCategoryValues({}); window.history.replaceState(null, "", window.location.pathname); setLocation("/soru-cevap"); }} disabled={!search && !activeCategoryId} className="rounded-xl"><X size={15} /> Temizle</Button></div></div></section>
       {!isAuthenticated ? <section className="mt-6 rounded-[24px] border border-[#e6e6de] bg-white p-7 text-center"><MessageCircle className="mx-auto text-[#47736a]" size={30} /><h2 className="mt-3 text-xl font-bold text-[#29465a]">Soru sormak için giriş yapın</h2><Button onClick={() => startLogin()} className="mt-5 rounded-xl bg-[#18344f]">Üye girişi yap</Button></section> : <section className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-[#e6e6de] bg-white p-6"><div><h2 className="text-xl font-bold text-[#29465a]">Topluluğa sorunu yönelt</h2><p className="mt-1 text-sm text-[#71838b]">Seçtiğin kategoriye bağlı bir soru oluştur ve istersen görsel ekle.</p></div><Button onClick={() => setIsAskOpen(true)} className="rounded-xl bg-[#5540e8] font-bold text-white shadow-[0_10px_22px_rgba(85,64,232,.18)] transition hover:-translate-y-0.5 hover:bg-[#4632cf]"><MessageCircle size={16} /> Soru Sor</Button></section>}

@@ -60,6 +60,17 @@ describe("Soru-Cevap sayfası", () => {
     expect(screen.getByRole("option", { name: "Çözüldü" })).toBeInTheDocument();
   });
 
+  it("seçili eğitim yolunu tıklanabilir breadcrumb olarak gösterir ve üst seviyeye döner", () => {
+    window.history.replaceState(null, "", "/soru-cevap?ana-grupId=1&school-levelId=2&classId=3&categoryId=3");
+    render(<QA />);
+    expect(screen.getByRole("navigation", { name: "Eğitim kategori yolu" })).toBeInTheDocument();
+    const breadcrumbClass = screen.getAllByRole("button", { name: "1. Sınıf" })[0];
+    expect(breadcrumbClass).toHaveAttribute("aria-current", "page");
+    fireEvent.click(screen.getAllByRole("button", { name: "İlkokul" })[0]);
+    expect(qaState.setLocation).toHaveBeenCalledWith(expect.stringContaining("ana-grupId=1"));
+    expect(qaState.setLocation).toHaveBeenCalledWith(expect.not.stringContaining("classId=3"));
+  });
+
   it("arama ve kategori seçimini kullanıcıya sunar ve URL'yi günceller", () => {
     render(<QA />);
     fireEvent.change(screen.getByPlaceholderText("Sorularda ara..."), { target: { value: "matematik" } });

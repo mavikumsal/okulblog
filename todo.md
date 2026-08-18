@@ -842,3 +842,10 @@
 - [x] 1–4 İlkokul, 5–8 Ortaokul ve 9–12 Lise grupları için renk kodları ve eğitim ikonları tanımla
 - [x] Sınıf kartları, kategori accordion ve ilgili başlıklarda sınıf grubu görsel kimliğini uygula
 - [x] Breadcrumb ve sınıf grubu görsel sistemi için erişilebilirlik, Vitest, TypeScript, build ve responsive kontrol yap
+
+## Yeni istek: QA breadcrumb ve sınıf kartı zenginleştirmesi
+- [x] Soru-Cevap sayfasına MEB hiyerarşisiyle uyumlu tıklanabilir breadcrumb ekle
+- [x] Sınıf kartlarına gruba özel kapak illüstrasyonları ekle
+- [x] Sınıf kartlarında video, test, doküman ve diğer içerik türü sayaçlarını göster
+- [x] Sınıf kartlarında hover/focus ile popüler veya yeni içerik önizlemesi göster
+- [x] QA breadcrumb ve sınıf kartı zenginleştirmesi için Vitest, TypeScript, build ve responsive kontrol yap
