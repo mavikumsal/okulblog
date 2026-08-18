@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildClassBreadcrumb, buildContentTypeUrl, categoryIdsForSelection, categoryPathForNode, classGroupForName, contentTypes, filterContentByClass, filterContentBySubject, findClassNode, getSubjectNodesForClass, getTypeFromPath, paginateItems } from "./ContentHub";
+import { buildClassBreadcrumb, buildContentTypeUrl, categoryIdsForSelection, categoryPathForNode, classGroupForName, contentTypes, filterCategoryTreeNodes, filterContentByClass, filterContentBySubject, findClassNode, getSubjectNodesForClass, getTypeFromPath, paginateItems } from "./ContentHub";
 import { categoryBreadcrumb, contentActionLabel, isProgressCompleted } from "./ContentDetail";
 
 type Node = {
@@ -83,6 +83,12 @@ describe("ContentHub public kategori akışı", () => {
     expect(result.totalPages).toBe(3);
     expect(result.items).toEqual([13]);
     expect(paginateItems([1, 2], 0, 6).currentPage).toBe(1);
+  });
+
+  it("ders veya ünite araması eşleşen dalı ve üst kategori yolunu korur", () => {
+    expect(filterCategoryTreeNodes(nodes, "okuma").map(node => node.name)).toEqual(["İlkokul", "1. Sınıf", "Türkçe", "Okuma", "Sesleri tanır"]);
+    expect(filterCategoryTreeNodes(nodes, "matematik")).toEqual([]);
+    expect(filterCategoryTreeNodes(nodes, "")).toEqual(nodes);
   });
 
   it("detay sayfası için Admin kategori yolunu kökten kazanıma kadar üretir", () => {

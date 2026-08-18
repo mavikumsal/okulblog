@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { useLocation, useRoute } from "wouter";
-import { ArrowRight, BookOpen, CheckCircle2, ChevronDown, ChevronRight, FileText, Gamepad2, GraduationCap, Layers3, Newspaper, PlayCircle, Target } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, ChevronDown, ChevronRight, FileText, Gamepad2, GraduationCap, Layers3, Newspaper, PlayCircle, Search, Target } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 export const contentTypes = {
@@ -110,19 +110,63 @@ export function paginateItems<T>(items: T[], page: number, pageSize = NEWS_PAGE_
   return { items: items.slice((currentPage - 1) * safePageSize, currentPage * safePageSize), currentPage, totalPages };
 }
 
+export function filterCategoryTreeNodes(nodes: CategoryNode[], searchTerm: string) {
+  const normalized = searchTerm.trim().toLocaleLowerCase("tr-TR");
+  if (!normalized) return nodes;
+  const byId = new Map(nodes.map(node => [node.id, node]));
+  const childrenByParent = new Map<number, CategoryNode[]>();
+  nodes.forEach(node => {
+    if (node.parentId !== null) childrenByParent.set(node.parentId, [...(childrenByParent.get(node.parentId) ?? []), node]);
+  });
+  const visibleIds = new Set<number>();
+  const addAncestors = (node: CategoryNode) => {
+    let current: CategoryNode | undefined = node;
+    while (current) {
+      visibleIds.add(current.id);
+      current = current.parentId === null ? undefined : byId.get(current.parentId);
+    }
+  };
+  const addDescendants = (node: CategoryNode) => {
+    (childrenByParent.get(node.id) ?? []).forEach(child => {
+      if (!visibleIds.has(child.id)) {
+        visibleIds.add(child.id);
+        addDescendants(child);
+      }
+    });
+  };
+  nodes.filter(node => node.name.trim().toLocaleLowerCase("tr-TR").includes(normalized)).forEach(node => {
+    addAncestors(node);
+    addDescendants(node);
+  });
+  return nodes.filter(node => visibleIds.has(node.id));
+}
+
 function CategoryTree({ nodes, contentByCategory }: { nodes: CategoryNode[]; contentByCategory: Map<number, number> }) {
-  const [openIds, setOpenIds] = useState<Set<number>>(() => new Set(nodes.filter(node => node.level === "ana-grup").map(node => node.id)));
+  const [searchTerm, setSearchTerm] = useState("");
+  const [openIds, setOpenIds] = useState<Set<number>>(() => {
+    const fallback = nodes.filter(node => node.level === "ana-grup").map(node => node.id);
+    const stored = window.localStorage.getItem("okulblog:category-tree-open");
+    if (!stored) return new Set(fallback);
+    try {
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? new Set(parsed.filter((id): id is number => typeof id === "number" && nodes.some(node => node.id === id))) : new Set(fallback);
+    } catch {
+      return new Set(fallback);
+    }
+  });
   const [lastVisitedId, setLastVisitedId] = useState<number | null>(() => {
     const value = window.localStorage.getItem("okulblog:last-category");
     return value ? Number(value) : null;
   });
+  const visibleNodes = useMemo(() => filterCategoryTreeNodes(nodes, searchTerm), [nodes, searchTerm]);
   const childrenByParent = useMemo(() => {
     const map = new Map<number | null, CategoryNode[]>();
-    nodes.forEach(node => map.set(node.parentId, [...(map.get(node.parentId) ?? []), node]));
+    visibleNodes.forEach(node => map.set(node.parentId, [...(map.get(node.parentId) ?? []), node]));
     map.forEach(children => children.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id - b.id));
     return map;
-  }, [nodes]);
-  const expandableIds = useMemo(() => nodes.filter(node => (childrenByParent.get(node.id) ?? []).length > 0).map(node => node.id), [childrenByParent, nodes]);
+  }, [visibleNodes]);
+  const expandableIds = useMemo(() => visibleNodes.filter(node => (childrenByParent.get(node.id) ?? []).length > 0).map(node => node.id), [childrenByParent, visibleNodes]);
+  const allExpanded = expandableIds.length > 0 && expandableIds.every(id => openIds.has(id));
   const toggle = (id: number) => setOpenIds(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; });
   const visit = (id: number) => { setLastVisitedId(id); window.localStorage.setItem("okulblog:last-category", String(id)); };
   const renderBranch = (node: CategoryNode, depth = 0): ReactElement => {
@@ -140,8 +184,24 @@ function CategoryTree({ nodes, contentByCategory }: { nodes: CategoryNode[]; con
     </div>;
   };
   const roots = childrenByParent.get(null) ?? [];
+  useEffect(() => { window.localStorage.setItem("okulblog:category-tree-open", JSON.stringify(Array.from(openIds))); }, [openIds]);
   useEffect(() => { if (lastVisitedId && !nodes.some(node => node.id === lastVisitedId)) { setLastVisitedId(null); window.localStorage.removeItem("okulblog:last-category"); } }, [lastVisitedId, nodes]);
-  return roots.length ? <div><div className="sticky top-[72px] z-10 -mx-1 mb-3 flex items-center justify-between gap-3 rounded-2xl border border-[#e4e0ff] bg-[#f7f6f1]/95 px-3 py-2 shadow-[0_8px_20px_rgba(18,48,74,.06)] backdrop-blur-md md:static md:border-0 md:bg-transparent md:px-0 md:py-0 md:shadow-none md:backdrop-blur-0"><p className="text-xs text-[#71838b]">Son ziyaret edilen kategori vurgulanır.</p><button type="button" aria-label={openIds.size === expandableIds.length ? "Tüm kategorileri kapat" : "Tüm kategorileri aç"} onClick={() => setOpenIds(previous => previous.size === expandableIds.length ? new Set() : new Set(expandableIds))} className="min-h-11 shrink-0 rounded-xl border border-[#d6cdfc] bg-white px-3.5 py-2 text-xs font-extrabold text-[#5540e8] shadow-sm transition hover:border-[#5540e8] hover:bg-[#f0edff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5540e8] active:scale-[.98]">{openIds.size === expandableIds.length ? "Tümünü Kapat" : "Tümünü Aç"}</button></div><div className="space-y-3">{roots.map(root => renderBranch(root))}</div></div> : <div className="rounded-3xl border border-dashed border-[#cbd9d5] bg-white p-8 text-center text-sm text-[#6b7c79]">Admin panelinde henüz aktif eğitim kategorisi oluşturulmamış.</div>;
+  useEffect(() => {
+    if (!searchTerm.trim()) return;
+    const byId = new Map(visibleNodes.map(node => [node.id, node]));
+    setOpenIds(previous => {
+      const next = new Set(previous);
+      visibleNodes.filter(node => node.name.toLocaleLowerCase("tr-TR").includes(searchTerm.trim().toLocaleLowerCase("tr-TR"))).forEach(node => {
+        let parent = node.parentId === null ? undefined : byId.get(node.parentId);
+        while (parent) {
+          next.add(parent.id);
+          parent = parent.parentId === null ? undefined : byId.get(parent.parentId);
+        }
+      });
+      return next;
+    });
+  }, [searchTerm, visibleNodes]);
+  return roots.length ? <div><div className="sticky top-[72px] z-10 -mx-1 mb-3 flex flex-col gap-2 rounded-2xl border border-[#e4e0ff] bg-[#f7f6f1]/95 px-3 py-2 shadow-[0_8px_20px_rgba(18,48,74,.06)] backdrop-blur-md sm:flex-row sm:items-center md:static md:flex-row md:border-0 md:bg-transparent md:px-0 md:py-0 md:shadow-none md:backdrop-blur-0"><p className="text-xs text-[#71838b] sm:flex-1">Son ziyaret edilen kategori vurgulanır.</p><label className="relative flex min-h-11 min-w-0 items-center sm:w-44"><Search className="pointer-events-none absolute left-3 h-4 w-4 text-[#82918f]" aria-hidden="true" /><input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Ders veya ünite ara" aria-label="Ders veya ünite ara" className="h-11 w-full rounded-xl border border-[#dfe8e4] bg-white pl-9 pr-3 text-sm text-[#12304a] outline-none placeholder:text-[#9aa9a6] focus:border-[#5540e8] focus:ring-2 focus:ring-[#5540e8]/20" /></label><button type="button" aria-label={allExpanded ? "Tüm kategorileri kapat" : "Tüm kategorileri aç"} onClick={() => setOpenIds(previous => allExpanded ? new Set() : new Set(expandableIds))} className="min-h-11 shrink-0 self-end rounded-xl border border-[#d6cdfc] bg-white px-3.5 py-2 text-xs font-extrabold text-[#5540e8] shadow-sm transition hover:border-[#5540e8] hover:bg-[#f0edff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5540e8] active:scale-[.98] sm:self-auto">{allExpanded ? "Tümünü Kapat" : "Tümünü Aç"}</button></div><div className="space-y-3">{roots.map(root => renderBranch(root))}</div></div> : <div className="rounded-3xl border border-dashed border-[#cbd9d5] bg-white p-8 text-center text-sm text-[#6b7c79]">{searchTerm ? "Aramanızla eşleşen ders veya ünite bulunamadı." : "Admin panelinde henüz aktif eğitim kategorisi oluşturulmamış."}</div>;
 }
 
 export default function ContentHub() {
