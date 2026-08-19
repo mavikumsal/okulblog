@@ -1305,4 +1305,16 @@
 - [x] Animasyonlu sayaç için Vitest testi eklemek
 - [x] Masaüstü ve mobil görsel doğrulama yapmak
 - [x] TypeScript, Vitest ve production build çalıştırmak
-- [ ] Bu geliştirme için checkpoint oluşturmak
+- [x] Bu geliştirme için checkpoint oluşturmak
+
+## Ana Sayfa Haber Kapak Otomasyonu — 2026-08-19
+
+- [x] Admin haber kayıtlarının veri kaynağını, yayın durumunu ve kapak alanını incelemek
+- [x] Ana sayfa Haberler bölümünü gerçek haber kayıtlarına bağlamak
+- [x] Haber kartlarında admin tarafından yüklenen coverImageUrl değerini otomatik göstermek
+- [x] Haber başlığı, özeti, yayın tarihi ve detay bağlantısını gerçek verilerle göstermek
+- [x] Haber kapak görseli eksik olduğunda güvenli, konuya uygun fallback durumunu korumak
+- [x] Haber yoksa sahte kart yerine anlamlı boş durum göstermek
+- [x] Masaüstü ve mobil responsive görünümü kontrol etmek
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Bu geliştirme için checkpoint oluşturmak
