@@ -24,7 +24,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-import Home, { buildClassAllContentUrl, buildClassTypeUrl, classSummary, getHeroLearningContext } from "./Home";
+import Home, { buildClassAllContentUrl, buildClassTypeUrl, classLevelKey, classSummary, getHeroLearningContext } from "./Home";
 
 describe("Home marka, mobil menü ve CTA akışı", () => {
   afterEach(() => {
@@ -128,6 +128,15 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     expect(summary.counts.test).toBe(1);
     expect(summary.counts.video).toBe(1);
     expect(summary.previews.map(item => item.title)).toEqual(["Test", "Video"]);
+  });
+
+  it("eğitim seviyesi helper’ı sınıfları ilkokul, ortaokul ve lise aralıklarına ayırır", () => {
+    expect(classLevelKey("1. Sınıf")).toBe("elementary");
+    expect(classLevelKey("4. Sınıf")).toBe("elementary");
+    expect(classLevelKey("5. Sınıf")).toBe("middle");
+    expect(classLevelKey("8. Sınıf")).toBe("middle");
+    expect(classLevelKey("9. Sınıf")).toBe("high");
+    expect(classLevelKey("12. Sınıf")).toBe("high");
   });
 
   it("sınıfın Tümünü Gör URL’si sınıfı ve tüm içerik modunu korur", () => {

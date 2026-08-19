@@ -1157,4 +1157,22 @@
 - [x] Referans sayaç şeridi, sınıf kartları, popüler konular ve önerilen içerik bölümlerini gerçek backend verilerine bağlamak
 - [x] Referans HTML’deki tüm etkileşimleri React/tRPC akışlarına bağlamak; statik/demo veri kullanmamak
 - [x] Masaüstü, tablet ve mobil görünümü referansla karşılaştırmak; TypeScript, Vitest ve production build kontrollerini yapmak
-- [ ] Birebir ana sayfa uyarlaması için checkpoint oluşturmak
+- [x] Birebir ana sayfa uyarlaması için checkpoint oluşturmak
+
+## pasted_content_7.txt Hata Düzeltme Iterasyonu — 2026-08-19
+
+- [x] Mevcut Home.tsx akışını 12 maddelik hata listesiyle eşleştir ve çalışan bölümleri koru
+- [x] Eğitim seviyesi sekmelerinde gerçek sınıf filtrelemesini 1–4, 5–8 ve 9–12 olarak düzelt; her seçimde sıralı dört kart göster
+- [x] Sınıf kartlarını masaüstünde tek yatay sıraya al; kompakt yüksekliği, benzersiz görselleri, gerçek Ders Notu/Test/Video sayılarını ve Ortaokul 6. Sınıf Önerilen etiketini uygula
+- [x] Sınıf kartlarının sağındaki üç konulu Popüler Konular panelini koru ve ikinci büyük Popüler Konular bölümünü kaldır
+- [x] Senin için seçtiklerimiz başlığını düzelt; üç gerçek Ders Notu/Test/Video kartında kapak, metadata ve kaydetme aksiyonu göster; varsayılan kapakları içerik türüne göre ayır
+- [x] Yeni eklenen içeriklerde tür/ders bazlı farklı görseller, iki satırlı metin ve eşit kart yüksekliği uygula
+- [x] Hero çalışma planını yalnızca tamamlanma, ders/sınıf, sıradaki konu, süre, Devam Et ve haftalık seri bilgileriyle sadeleştir; küçük kartları Matematik ve Fen Bilimleri yap
+- [x] İstatistik şeridinde toplam kayıtlı öğrenci sayısını kullan; etiketleri Öğrenci, İçerik, Eğitim Kategorisi ve Her gün yeni içerik olarak koru
+- [x] Avantajlar bölümünü kompaktlaştır; Hedef CTA’da oturumsuz kullanıcıya ücretsiz hesap mesajı, oturumlu kullanıcıya gerçek istatistik göster
+- [x] Haber kartlarında boş açık mavi alanları kaldır; gerçek veya üç farklı eğitim temalı varsayılan kapak kullan ve SSS boşluğunu azalt
+- [x] Bülteni footer’dan çıkarıp açık turkuaz ayrı karta taşı; başlık, e-posta ve Abone Ol alanını ekle; footer sütunlarını koru
+- [x] Tüm bölüm boşluklarını yaklaşık 64–80px, kart iç boşluklarını ve başlık hizalarını tutarlı hale getir
+- [x] İlkokul/Ortaokul/Lise sekmelerini tıklayarak masaüstü ve mobilde dört doğru sınıfı doğrula; boş/tekrar görsel ve konsol hatalarını düzelt
+- [x] Lint, TypeScript, Vitest, production build ve son checkpoint işlemlerini tamamla
+- [ ] pasted_content_7.txt düzeltme iterasyonu için checkpoint oluşturmak
