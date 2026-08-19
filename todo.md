@@ -1099,3 +1099,10 @@
 - [x] Hero çalışma planı, sayaçlar, sınıf kartları, popüler konular ve seçilmiş içeriklerin gerçek veri kaynaklarını eşleştir
 - [x] Ana sayfa kartlarını gerçek içerik/kategori verileriyle, loading/empty/error durumlarıyla dinamik bağla
 - [x] Ana sayfa dinamik veri akışını TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
+
+## Ana sayfa kişiselleştirme ve medya iterasyonu
+- [x] Medya Merkezi kapak varlıklarının içerik ve kategori ilişkisini incele
+- [x] Ana sayfa kartlarında gerçek medya kapak URL’lerini kullan, eksik medya için boş durum göster
+- [x] Üye ilerleme, tamamlanma ve test geçmişi verileriyle kişisel Bugünkü Çalışma Planı oluştur
+- [x] Popüler konuları favori, çözülme ve görüntülenme sinyalleriyle dinamik sırala
+- [x] Yeni akışları TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula

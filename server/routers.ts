@@ -21,8 +21,9 @@ import {
   createStoredFile,
   createTest,
   listTests,
-  getContentOverview,
+  getHomepageContentOverview,
   getHomepageOverviewStats,
+  getHomepagePersonalization,
   listContentByType,
   listContentByCategory,
   updateContentStatus,
@@ -204,13 +205,17 @@ export const appRouter = router({
     }),
   }),
   platform: router({
-    overview: publicProcedure.query(async () => ({
-      content: await getContentOverview(),
-      approvedQuestions: await listApprovedQuestions(),
-      educationCategories: await listCategoryNodes("education"),
-      institutionCategories: await listCategoryNodes("institution"),
-      stats: await getHomepageOverviewStats(),
-    })),
+    overview: publicProcedure.query(async ({ ctx }) => {
+      const [content, approvedQuestions, educationCategories, institutionCategories, stats, personalization] = await Promise.all([
+        getHomepageContentOverview(),
+        listApprovedQuestions(),
+        listCategoryNodes("education"),
+        listCategoryNodes("institution"),
+        getHomepageOverviewStats(),
+        getHomepagePersonalization(ctx.user?.id),
+      ]);
+      return { content, approvedQuestions, educationCategories, institutionCategories, stats, personalization };
+    }),
     homeSlides: publicProcedure.query(() => listActiveHomeSlides()),
     contentByCategory: publicProcedure.input(z.object({ categoryId: z.number().int().positive() })).query(({ input }) => listContentByCategory(input.categoryId)),
     popularEducationCategories: publicProcedure.query(() => listPopularEducationCategories()),

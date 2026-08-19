@@ -288,6 +288,68 @@ export async function getContentOverview() {
   return db.select().from(contentItems).orderBy(asc(contentItems.contentType));
 }
 
+export async function getHomepageContentOverview() {
+  const db = await getDb();
+  if (!db) return [];
+  const [items, links, assets] = await Promise.all([
+    db.select().from(contentItems).where(eq(contentItems.status, "published")).orderBy(desc(contentItems.createdAt)),
+    db.select().from(mediaAssetLinks).where(eq(mediaAssetLinks.role, "cover")),
+    db.select({ id: mediaAssets.id, publicUrl: mediaAssets.publicUrl }).from(mediaAssets).where(eq(mediaAssets.status, "active")),
+  ]);
+  const assetUrlById = new Map(assets.map(asset => [asset.id, asset.publicUrl]));
+  const coverByContentId = new Map<number, string>();
+  for (const link of links) {
+    if (link.targetType !== "content" || coverByContentId.has(link.targetId)) continue;
+    const url = assetUrlById.get(link.mediaAssetId);
+    if (url) coverByContentId.set(link.targetId, url);
+  }
+  return items.map(item => ({ ...item, coverImageUrl: coverByContentId.get(item.id) ?? item.coverImageUrl }));
+}
+
+export async function getHomepagePersonalization(userId?: number) {
+  const db = await getDb();
+  if (!db || !userId) return { authenticated: false as const, plan: null, popularTopics: [] };
+  const [educationNodes, items, favoritesRows, progressRows, attemptRows] = await Promise.all([
+    db.select().from(categoryNodes).where(and(eq(categoryNodes.categoryType, "education"), eq(categoryNodes.isActive, true))),
+    db.select().from(contentItems).where(eq(contentItems.status, "published")),
+    db.select().from(favorites).where(eq(favorites.userId, userId)),
+    db.select().from(contentProgress).where(eq(contentProgress.userId, userId)),
+    db.select().from(testAttempts).where(eq(testAttempts.userId, userId)),
+  ]);
+  const descendantsOf = (rootId: number) => {
+    const ids = new Set([rootId]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const node of educationNodes) {
+        if (node.parentId && ids.has(node.parentId) && !ids.has(node.id)) { ids.add(node.id); changed = true; }
+      }
+    }
+    return ids;
+  };
+  const subjectNodes = educationNodes.filter(node => node.level === "subject");
+  const popularity = subjectNodes.map(subject => {
+    const ids = descendantsOf(subject.id);
+    const subjectItems = items.filter(item => item.categoryId && ids.has(item.categoryId));
+    const contentIds = new Set(subjectItems.map(item => item.id));
+    const favoriteCount = favoritesRows.filter(row => contentIds.has(row.contentId)).length;
+    const completedCount = progressRows.filter(row => row.status === "completed" && contentIds.has(row.contentId)).length;
+    const solvedCount = attemptRows.filter(row => contentIds.has(row.testId)).length;
+    return { id: subject.id, name: subject.name, categoryId: subject.id, favoriteCount, solvedCount, viewCount: 0, score: favoriteCount * 3 + solvedCount * 2 + completedCount, contentCount: subjectItems.length };
+  }).filter(item => item.contentCount > 0).sort((a, b) => b.score - a.score || b.contentCount - a.contentCount).slice(0, 5);
+  const completedIds = new Set(progressRows.filter(row => row.status === "completed").map(row => `${row.contentType}:${row.contentId}`));
+  const nextProgress = progressRows.find(row => row.status !== "completed" && items.some(item => item.id === row.contentId && item.contentType === row.contentType));
+  const nextFavorite = favoritesRows.find(row => !completedIds.has(`${row.contentType}:${row.contentId}`) && items.some(item => item.id === row.contentId && item.contentType === row.contentType));
+  const candidate = nextProgress ?? nextFavorite;
+  const candidateItem = candidate ? items.find(item => item.id === candidate.contentId && item.contentType === candidate.contentType) : undefined;
+  const topSubject = popularity[0];
+  return {
+    authenticated: true as const,
+    plan: candidateItem ? { contentId: candidateItem.id, contentType: candidateItem.contentType, title: candidateItem.title, summary: candidateItem.summary, coverImageUrl: candidateItem.coverImageUrl, progressPercent: nextProgress ? 50 : 0, subjectName: topSubject?.name ?? "Kişisel çalışma" } : null,
+    popularTopics: popularity,
+  };
+}
+
 export async function getHomepageOverviewStats() {
   const db = await getDb();
   if (!db) return { totalMembers: 0, publishedContent: 0, activeEducationCategories: 0, approvedQuestions: 0, favorites: 0, completedProgress: 0, testAttempts: 0, contentByType: [] as Array<{ contentType: string; count: number }> };
