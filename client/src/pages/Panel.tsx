@@ -84,6 +84,25 @@ const providerLabel: Record<string, string> = {
   "bunny-stream": "Bunny Stream",
   "bunny-pull-zone": "Bunny CDN · Pull Zone",
 };
+export type SecuritySeverityFilter = "all" | "critical" | "high" | "medium" | "low";
+
+export function getSecurityEventPage<T extends { severity: string }>(
+  events: T[],
+  filter: SecuritySeverityFilter,
+  page: number,
+  pageSize = 5
+) {
+  const filtered = events.filter(event => filter === "all" || event.severity === filter);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(Math.max(page, 1), pageCount);
+  return {
+    filtered,
+    pageCount,
+    page: safePage,
+    items: filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
+  };
+}
+
 type CategoryOption = {
   id: number;
   name: string;
@@ -628,6 +647,22 @@ function PanelContent() {
   const securityEvents = trpc.security.list.useQuery(undefined, {
     enabled: isAdmin,
   });
+  const [securitySeverityFilter, setSecuritySeverityFilter] = useState<SecuritySeverityFilter>("all");
+  const [securityPage, setSecurityPage] = useState(1);
+  const securityPageSize = 5;
+  const securityPageData = useMemo(
+    () => getSecurityEventPage(securityEvents.data ?? [], securitySeverityFilter, securityPage, securityPageSize),
+    [securityEvents.data, securitySeverityFilter, securityPage]
+  );
+  const filteredSecurityEvents = securityPageData.filtered;
+  const securityPageCount = securityPageData.pageCount;
+  const pagedSecurityEvents = securityPageData.items;
+  useEffect(() => {
+    setSecurityPage(1);
+  }, [securitySeverityFilter]);
+  useEffect(() => {
+    if (securityPage > securityPageCount) setSecurityPage(securityPageCount);
+  }, [securityPage, securityPageCount]);
   const adminSettings = trpc.admin.settings.useQuery(undefined, {
     enabled: isAdmin,
   });
@@ -3815,12 +3850,32 @@ function PanelContent() {
           {isAdmin ? (
             <div className="mt-6">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#f7f8f4] px-4 py-3 text-xs text-[#71838b]">
-                <span>Toplam {(securityEvents.data ?? []).length} güvenlik olayı</span>
-                <span className="font-semibold text-[#365368]">Liste içinde kaydırarak diğer kayıtları görüntüleyin</span>
+                <span>{filteredSecurityEvents.length} / {(securityEvents.data ?? []).length} kayıt</span>
+                <span className="font-semibold text-[#365368]">Sayfa {securityPage} / {securityPageCount}</span>
               </div>
-              {(securityEvents.data ?? []).length ? (
-                <div className="max-h-[360px] space-y-2 overflow-y-auto rounded-xl pr-1 [scrollbar-color:#b8ddd4_transparent] [scrollbar-width:thin]">
-                {securityEvents.data?.map(event => (
+              <div className="mb-4 flex flex-wrap gap-2" aria-label="Güvenlik önem derecesi filtresi">
+                {([
+                  ["all", "Tümü"],
+                  ["critical", "Kritik"],
+                  ["high", "Yüksek"],
+                  ["medium", "Orta"],
+                  ["low", "Düşük"],
+                ] as const).map(([value, label]) => (
+                  <Button
+                    key={value}
+                    type="button"
+                    size="sm"
+                    variant={securitySeverityFilter === value ? "default" : "outline"}
+                    onClick={() => setSecuritySeverityFilter(value)}
+                    className={securitySeverityFilter === value ? "rounded-full bg-[#0f9f9a] text-white hover:bg-[#078b87]" : "rounded-full border-[#dce7e3] text-[#557079]"}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              {filteredSecurityEvents.length ? (
+                <div className="space-y-2">
+                {pagedSecurityEvents.map(event => (
                   <div
                     key={event.id}
                     className="flex items-start justify-between gap-4 rounded-xl border border-[#edf0eb] px-4 py-3"
@@ -3839,7 +3894,14 @@ function PanelContent() {
                 </div>
               ) : (
                 <div className="rounded-xl bg-[#f7f8f4] p-5 text-sm text-[#728087]">
-                  Henüz kayıtlı güvenlik olayı yok.
+                  {(securityEvents.data ?? []).length ? "Bu önem derecesinde güvenlik olayı bulunmuyor." : "Henüz kayıtlı güvenlik olayı yok."}
+                </div>
+              )}
+              {filteredSecurityEvents.length > 0 && (
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#edf0eb] pt-4">
+                  <Button type="button" size="sm" variant="outline" disabled={securityPage === 1} onClick={() => setSecurityPage(page => Math.max(1, page - 1))} className="rounded-lg">Önceki</Button>
+                  <span className="text-xs font-semibold text-[#71838b]">{securityPage}. sayfa</span>
+                  <Button type="button" size="sm" variant="outline" disabled={securityPage === securityPageCount} onClick={() => setSecurityPage(page => Math.min(securityPageCount, page + 1))} className="rounded-lg">Sonraki</Button>
                 </div>
               )}
             </div>

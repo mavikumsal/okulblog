@@ -1361,3 +1361,13 @@
 - [x] Olay kayıtlarını sabit yükseklikli iç kaydırma alanında göstermek
 - [x] Güvenlik panelinin mobil ve masaüstü görünümünü yeniden doğrulamak
 - [x] Bu düzeltme için test, görsel kontrol ve checkpoint oluşturmak
+
+## Güvenlik Olayları Filtre ve Sayfalama — 2026-08-20
+
+- [x] Güvenlik olayları için önem derecesi filtre butonları eklemek
+- [x] Tümü, kritik, yüksek, orta ve düşük filtrelerini gerçek liste verisine bağlamak
+- [x] İç kaydırmayı kaldırıp güvenlik olayları listesine sayfalama eklemek
+- [x] Filtre değişiminde sayfayı birinci sayfaya sıfırlamak
+- [x] Önceki/sonraki sayfa ve mevcut sayfa bilgisini göstermek
+- [x] Mobil ve masaüstü görünümü ile ilgili testleri doğrulamak
+- [x] Bu geliştirme için checkpoint oluşturmak
