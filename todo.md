@@ -1225,3 +1225,13 @@
 - [x] Masaüstü, tablet ve mobil responsive görünümü kontrol etmek
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Yeni görsel düzenleme için checkpoint oluşturmak
+
+## Eğitim Seviyesi Sekmeleri ve Daha Fazla Göster — 2026-08-19
+
+- [x] İlkokul, Ortaokul ve Lise sekmelerini keşif başlığının sol tarafına taşımak
+- [x] Eğitim seviyesi sekmelerini biraz büyütmek ve her seviyeyi daha belirgin renklerle göstermek
+- [x] Sınıf kartı listesinin altına şık ve erişilebilir “Daha Fazla Göster” butonu eklemek
+- [x] Butonu mevcut kategori/içerik gezinme akışına bağlamak
+- [x] Masaüstü, tablet ve mobil responsive görünümü kontrol etmek
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Yeni düzen için checkpoint oluşturmak
