@@ -965,3 +965,9 @@
 - [x] Hero sağındaki boşluğu azaltıp içerik grubunu dengeli yerleştir
 - [x] Aktif Test sayacını gerçek örnek test/soru verisiyle tutarlı göster
 - [x] Masaüstü ve mobil doğrulama, todo güncellemesi ve checkpoint tamamla
+
+## Bug: gerçek ana sayfada hero düzeltmesi çalışmıyor
+- [x] Çalışan React `/` sayfasındaki gerçek hero panel ve sayaç kaynağını teşhis et
+- [x] Sağ panel taşmasını ve gereksiz boşluğu gerçek ana sayfada düzelt
+- [x] Gerçek sayaçları veritabanı verisiyle doğru etiketle ve bağla
+- [x] Canlı masaüstü/mobil kontrol, regresyon testi ve checkpoint tamamla

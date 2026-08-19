@@ -146,6 +146,7 @@ export const appRouter = router({
   platform: router({
     overview: publicProcedure.query(async () => ({
       content: await getContentOverview(),
+      approvedQuestions: await listApprovedQuestions(),
       educationCategories: await listCategoryNodes("education"),
       institutionCategories: await listCategoryNodes("institution"),
     })),
