@@ -976,3 +976,8 @@
 - [x] Öğrenme yolu ve Soru üretim özeti kartlarını masaüstünde yan yana yerleştir
 - [x] Mobilde kartları okunabilir akışta, taşma olmadan koru
 - [x] Tablet/masaüstü/mobil görsel doğrulama, test ve checkpoint tamamla
+
+## Yeni istek: öğrenme yolu kartı hizası
+- [x] Öğrenme yolu kartını hero alanında hafifçe yukarı al ve dikey olarak daha iyi ortala
+- [x] Mobil/tablet/masaüstü görünümde taşma ve hizalama kontrolü yap
+- [x] Test ve checkpoint tamamla

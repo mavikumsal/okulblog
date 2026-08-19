@@ -243,7 +243,7 @@ export default function Home() {
               <div className="mt-3 hidden flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-[#b6c7c9] sm:flex"><span>• Kazanım odaklı</span><span>• Rol tabanlı</span><span>• Yapay zekâ destekli</span></div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[min(100%,320px)] sm:max-w-[340px] lg:ml-auto lg:w-full lg:max-w-[560px]">
+            <div className="relative mx-auto w-full max-w-[min(100%,320px)] sm:max-w-[340px] lg:ml-auto lg:w-full lg:max-w-[560px] lg:-translate-y-3">
               <div className="absolute -left-5 top-16 h-40 w-40 rounded-full bg-[#c9e4dc]/20 blur-3xl" />
               <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
               <div className="relative overflow-hidden rounded-[20px] border border-white/25 bg-white/95 p-3 text-[#15344e] shadow-[0_16px_40px_rgba(31,41,55,.24)] sm:rounded-[22px] sm:p-3 lg:p-2.5">
