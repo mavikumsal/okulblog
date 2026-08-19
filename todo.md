@@ -1093,3 +1093,9 @@
 - [x] Tablo içi hızlı aramayı gerçek başlık ve tür verilerine bağla
 - [x] Filtre ve arama sonuçlarına sayfalama ekle, sayfa değişiminde aksiyonları koru
 - [x] Tablo etkileşimlerini TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
+
+## Ana sayfa gerçek veri bağlantısı iterasyonu
+- [x] Referans ana sayfa promptunu mevcut Home ve backend veri sözleşmeleriyle karşılaştır
+- [x] Hero çalışma planı, sayaçlar, sınıf kartları, popüler konular ve seçilmiş içeriklerin gerçek veri kaynaklarını eşleştir
+- [x] Ana sayfa kartlarını gerçek içerik/kategori verileriyle, loading/empty/error durumlarıyla dinamik bağla
+- [x] Ana sayfa dinamik veri akışını TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula

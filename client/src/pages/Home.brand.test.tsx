@@ -120,7 +120,7 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     ];
     const summary = classSummary("1. Sınıf", nodes, [
       { id: 1, title: "Test", categoryId: 12, contentType: "test", status: "published", createdAt: "2026-08-18" },
-      { id: 2, title: "Video", categoryId: 11, contentType: "video", status: "pending", createdAt: "2026-08-17" },
+      { id: 2, title: "Video", categoryId: 11, contentType: "video", status: "published", createdAt: "2026-08-17" },
       { id: 3, title: "Pasif", categoryId: 12, contentType: "document", status: "draft", createdAt: "2026-08-19" },
     ]);
     expect(summary.total).toBe(2);

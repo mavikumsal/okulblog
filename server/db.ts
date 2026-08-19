@@ -1,4 +1,4 @@
-import { and, eq, asc, desc, inArray, isNull, gte, lte } from "drizzle-orm";
+import { and, eq, asc, desc, inArray, isNull, gte, lte, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { categoryNodes, contentItems, contentProgress, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -286,6 +286,32 @@ export async function getContentOverview() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(contentItems).orderBy(asc(contentItems.contentType));
+}
+
+export async function getHomepageOverviewStats() {
+  const db = await getDb();
+  if (!db) return { totalMembers: 0, publishedContent: 0, activeEducationCategories: 0, approvedQuestions: 0, favorites: 0, completedProgress: 0, testAttempts: 0, contentByType: [] as Array<{ contentType: string; count: number }> };
+  const [memberRows, contentRows, categoryRows, questionRows, favoriteRows, progressRows, attemptRows, typeRows] = await Promise.all([
+    db.select({ value: count() }).from(users),
+    db.select({ value: count() }).from(contentItems).where(eq(contentItems.status, "published")),
+    db.select({ value: count() }).from(categoryNodes).where(and(eq(categoryNodes.categoryType, "education"), eq(categoryNodes.isActive, true))),
+    db.select({ value: count() }).from(questions).where(eq(questions.status, "approved")),
+    db.select({ value: count() }).from(favorites),
+    db.select({ value: count() }).from(contentProgress).where(eq(contentProgress.status, "completed")),
+    db.select({ value: count() }).from(testAttempts),
+    db.select({ contentType: contentItems.contentType, value: count() }).from(contentItems).where(eq(contentItems.status, "published")).groupBy(contentItems.contentType),
+  ]);
+  const toNumber = (value: unknown) => Number(value ?? 0);
+  return {
+    totalMembers: toNumber(memberRows[0]?.value),
+    publishedContent: toNumber(contentRows[0]?.value),
+    activeEducationCategories: toNumber(categoryRows[0]?.value),
+    approvedQuestions: toNumber(questionRows[0]?.value),
+    favorites: toNumber(favoriteRows[0]?.value),
+    completedProgress: toNumber(progressRows[0]?.value),
+    testAttempts: toNumber(attemptRows[0]?.value),
+    contentByType: typeRows.map(row => ({ contentType: row.contentType, count: toNumber(row.value) })),
+  };
 }
 
 export async function listContentByType(contentType: "test" | "document" | "simulation" | "video" | "game" | "news", categoryId?: number) {
