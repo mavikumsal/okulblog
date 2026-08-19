@@ -24,7 +24,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-import Home, { buildClassAllContentUrl, buildClassTypeUrl, classLevelKey, classSummary, getHeroLearningContext } from "./Home";
+import Home, { buildClassAllContentUrl, buildClassTypeUrl, classLevelKey, classSummary, getHeroLearningContext, isNewContent } from "./Home";
 
 describe("Home marka, mobil menü ve CTA akışı", () => {
   afterEach(() => {
@@ -154,6 +154,16 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
 
   it("mobil içerik sayaç URL’si sınıf ve içerik türünü korur", () => {
     expect(buildClassTypeUrl("1. Sınıf", "video")).toBe("/icerik/video?class=1.%20S%C4%B1n%C4%B1f&contentType=video");
+  });
+
+  it("Yeni rozetini yalnızca son 7 gün içindeki geçerli yayınlarda gösterir", () => {
+    const now = new Date("2026-08-19T12:00:00.000Z");
+    expect(isNewContent("2026-08-19T11:59:59.000Z", now)).toBe(true);
+    expect(isNewContent("2026-08-12T12:00:00.000Z", now)).toBe(true);
+    expect(isNewContent("2026-08-12T11:59:59.000Z", now)).toBe(false);
+    expect(isNewContent("2026-08-20T12:00:00.000Z", now)).toBe(false);
+    expect(isNewContent("geçersiz-tarih", now)).toBe(false);
+    expect(isNewContent(undefined, now)).toBe(false);
   });
 
   it("oturumlu kullanıcıya yalnızca Hesabım CTA’sını gösterip Panel’e yönlendirir", () => {

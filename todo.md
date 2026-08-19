@@ -1276,3 +1276,12 @@
 - [x] Rozet ve tarih yerleşimini masaüstü/mobil görünümde doğrulamak
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Bu düzenleme için checkpoint oluşturmak
+
+## Yeni Rozeti Son 7 Gün Kuralı — 2026-08-19
+
+- [x] Yayın tarihinin son 7 gün içinde olup olmadığını hesaplayan güvenli yardımcı fonksiyon eklemek
+- [x] Yeni rozetini yalnızca geçerli ve geçmişteki son 7 gün kayıtlarında göstermek
+- [x] Eksik, geçersiz veya gelecekteki tarihlerde rozeti gizlemek
+- [x] Sınır durumlarını ve masaüstü/mobil görünümü doğrulamak
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Bu kural için checkpoint oluşturmak
