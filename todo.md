@@ -1048,7 +1048,7 @@
 
 ## Onaylanan stratejik geliştirme sırası
 - [x] Dokümanlar için sınıf/ders/ünite/kazanım odaklı katalog ve modern kitaplık/grid keşif görünümü oluştur
-- [ ] Doküman detay sayfasında breadcrumb, kapak, metadata, önizleme, indirme, favori ve paylaşım akışını tamamla
+- [x] Doküman detay sayfasında breadcrumb, kapak, metadata, önizleme, indirme, favori ve paylaşım akışını tamamla
 - [ ] Online test çözme, süre, sonuç analizi ve öğrenci ilerleme deneyimini güçlendir
 - [ ] Taslak kuyruğuna toplu onay/toplu reddetme işlemleri ekle
 - [ ] OCR sonuçları için sayfa bazlı manuel düzeltme ve karşılaştırma ekranı ekle
