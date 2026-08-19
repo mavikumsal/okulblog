@@ -1374,13 +1374,13 @@
 
 ## Harici PDF İçe Aktarma Modülü — 2026-08-20
 
-- [ ] Harici PDF indirme, ön izleme ve taslak akışının mevcut kodunu bulmak
-- [ ] Modülün Admin navigasyonunda ve route yapısında görünür olup olmadığını doğrulamak
-- [ ] Eksik Admin menü bağlantısını ve giriş ekranını eklemek
-- [ ] URL’den PDF indirme, aktif depolama hedefi ve ön izleme akışını tamamlamak
-- [ ] Taslak onay kuyruğu ve kategoriye bağlama akışını doğrulamak
-- [ ] Güvenlik, dosya boyutu ve kaynak URL doğrulamalarını eklemek
-- [ ] Test, responsive kontrol ve checkpoint oluşturmak
+- [x] Harici PDF indirme, ön izleme ve taslak akışının mevcut kodunu bulmak
+- [x] Modülün Admin navigasyonunda ve route yapısında görünür olup olmadığını doğrulamak
+- [x] Eksik Admin menü bağlantısını ve giriş ekranını eklemek
+- [x] URL’den PDF indirme, aktif depolama hedefi ve ön izleme akışını tamamlamak
+- [x] Taslak onay kuyruğu ve kategoriye bağlama akışını doğrulamak
+- [x] Güvenlik, dosya boyutu ve kaynak URL doğrulamalarını eklemek
+- [x] Test, responsive kontrol ve checkpoint oluşturmak
 
 ## İçerik Kaydetme Hatası — 2026-08-20
 
