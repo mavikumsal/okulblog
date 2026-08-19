@@ -1147,4 +1147,14 @@
 - [x] Hero ve istatistik şeridini öğrenci referansındaki oranlara ve tek parça beyaz şerit düzenine yaklaştırmak
 - [x] Sınıf sekmeleri, 5–8 sınıf kartları, Popüler Konular ve önerilen içerik düzenini koruyarak referans yerleşimini doğrulamak
 - [x] Öğrenci odaklı hero için TypeScript, Vitest, production build ve 1440px/375px görsel kontrollerini yapmak
-- [ ] Öğrenci odaklı hero düzeltmesi için checkpoint oluşturmak
+- [x] Öğrenci odaklı hero düzeltmesi için checkpoint oluşturmak
+
+## okulblog-ana-sayfa.html Birebir Uyarlama — 2026-08-19
+
+- [x] Yüklenen okulblog-ana-sayfa.html referansını mevcut Home.tsx ile bölüm, renk, ölçü ve içerik sırası açısından karşılaştırmak
+- [x] Referans header ve navigasyonunu mevcut gerçek rota/oturum davranışlarıyla eşlemek
+- [x] Referans hero alanını öğrenci odaklı çalışma planı kartıyla yüksek sadakatle yeniden kurmak
+- [x] Referans sayaç şeridi, sınıf kartları, popüler konular ve önerilen içerik bölümlerini gerçek backend verilerine bağlamak
+- [x] Referans HTML’deki tüm etkileşimleri React/tRPC akışlarına bağlamak; statik/demo veri kullanmamak
+- [x] Masaüstü, tablet ve mobil görünümü referansla karşılaştırmak; TypeScript, Vitest ve production build kontrollerini yapmak
+- [ ] Birebir ana sayfa uyarlaması için checkpoint oluşturmak
