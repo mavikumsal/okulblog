@@ -1055,3 +1055,7 @@
 - [ ] AI doküman analiz kullanım ve maliyet istatistiklerini Admin dashboard’una ekle
 - [ ] Tüm akışları TypeScript, Vitest, production build ve responsive demo kontrolleriyle doğrula
 - [ ] Son demo checkpoint’ini oluştur ve kullanıcıya sun
+
+- [x] OCR taslak metni için admin manuel düzeltme alanı ve güvenli kaydetme
+- [x] AI kullanım ve OCR başarı istatistiklerini üretim dashboard’unda gösterme
+- [x] AI/OCR dashboard ve OCR düzeltme akışını Vitest ile doğrulama

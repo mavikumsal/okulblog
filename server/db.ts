@@ -432,6 +432,25 @@ export async function markOutcomeProgress(input: { userId: number; outcomeId: nu
   return { success: true };
 }
 
+export function summarizeDocumentAiUsage(rows: Array<{ aiStatus: string; ocrStatus: string; ocrConfidence: number | null }>) {
+  const ocrRows = rows.filter(row => row.ocrStatus !== "not_needed" && row.ocrStatus !== "not_started");
+  const completedOcrRows = ocrRows.filter(row => row.ocrStatus === "completed");
+  const confidenceValues = completedOcrRows.map(row => row.ocrConfidence).filter((value): value is number => typeof value === "number");
+  return {
+    totalDrafts: rows.length,
+    aiAnalyzed: rows.filter(row => row.aiStatus !== "not_started").length,
+    aiCompleted: rows.filter(row => row.aiStatus === "completed").length,
+    aiFailed: rows.filter(row => row.aiStatus === "failed").length,
+    ocrAttempted: ocrRows.length,
+    ocrCompleted: completedOcrRows.length,
+    ocrFailed: ocrRows.filter(row => row.ocrStatus === "failed").length,
+    ocrSuccessRate: ocrRows.length ? Math.round((completedOcrRows.length / ocrRows.length) * 100) : 0,
+    averageOcrConfidence: confidenceValues.length ? Math.round(confidenceValues.reduce((sum, value) => sum + value, 0) / confidenceValues.length) : null,
+    costTracked: false,
+    estimatedCostUsd: null,
+  };
+}
+
 export async function getQuestionProductionStats(input: { userId: number; role: "admin" | "teacher" }) {
   const db = await getDb();
   if (!db) {
@@ -443,6 +462,7 @@ export async function getQuestionProductionStats(input: { userId: number; role: 
       difficulties: { easy: 0, medium: 0, hard: 0 },
       questionTypes: { "multiple-choice": 0, "true-false": 0, "open-ended": 0 },
       recentQuestions: [],
+      aiUsage: { totalDrafts: 0, aiAnalyzed: 0, aiCompleted: 0, aiFailed: 0, ocrAttempted: 0, ocrCompleted: 0, ocrFailed: 0, ocrSuccessRate: 0, averageOcrConfidence: null, costTracked: false, estimatedCostUsd: null },
     };
   }
   const rows = await db.select({
@@ -453,6 +473,14 @@ export async function getQuestionProductionStats(input: { userId: number; role: 
     status: questions.status,
     createdAt: questions.createdAt,
   }).from(questions).where(input.role === "admin" ? undefined : eq(questions.createdBy, input.userId));
+  const draftRows = await db.select({
+    createdBy: documentImportDrafts.createdBy,
+    aiStatus: documentImportDrafts.aiStatus,
+    aiModel: documentImportDrafts.aiModel,
+    ocrStatus: documentImportDrafts.ocrStatus,
+    ocrConfidence: documentImportDrafts.ocrConfidence,
+  }).from(documentImportDrafts).where(input.role === "admin" ? undefined : eq(documentImportDrafts.createdBy, input.userId));
+  const aiUsage = summarizeDocumentAiUsage(draftRows);
   const recentThreshold = Date.now() - 30 * 24 * 60 * 60 * 1000;
   const statuses = { draft: 0, approved: 0, archived: 0 };
   const difficulties = { easy: 0, medium: 0, hard: 0 };
@@ -470,6 +498,7 @@ export async function getQuestionProductionStats(input: { userId: number; role: 
     difficulties,
     questionTypes,
     recentQuestions: rows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5),
+    aiUsage,
   };
 }
 
