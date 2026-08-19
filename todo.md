@@ -1318,3 +1318,15 @@
 - [x] Masaüstü ve mobil responsive görünümü kontrol etmek
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Bu geliştirme için checkpoint oluşturmak
+
+## Destek > S.S.S. Ayrı Sayfası — 2026-08-19
+
+- [x] Mevcut ana sayfa S.S.S. bölümünü, route yapısını ve Destek navigasyonunu incelemek
+- [x] Referans görsele uygun Destek > S.S.S. sayfası oluşturmak
+- [x] S.S.S. arama alanını anlık filtreleme ile bağlamak
+- [x] Soru satırlarını klavye erişilebilir açılır/kapanır accordion olarak uygulamak
+- [x] Ana sayfadaki uzun S.S.S. bölümünü kaldırmak ve kısa yönlendirme gerekip gerekmediğini netleştirmek
+- [x] Destek menüsüne S.S.S. bağlantısı eklemek ve `/destek/sss` rotasını tanımlamak
+- [x] Mobil, tablet ve masaüstü görsel doğrulaması yapmak
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Bu sayfa ayrıştırması için checkpoint oluşturmak

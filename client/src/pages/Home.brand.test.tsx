@@ -85,10 +85,10 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     expect(screen.queryByText("Türkçe çalışma testi")).not.toBeInTheDocument();
   });
 
-  it("iletişim ve Soru-Cevap alanlarını ayrı sayfaya taşır; Home’da yalnızca SSS alanını gösterir", () => {
+  it("iletişim ve Soru-Cevap alanlarını ayrı sayfaya taşır; Home’da uzun SSS bölümü göstermez", () => {
     render(<Home />);
 
-    expect(screen.getByText("Sıkça sorulan sorular")).toBeInTheDocument();
+    expect(screen.queryByText("Sıkça sorulan sorular")).not.toBeInTheDocument();
     expect(screen.queryByText("OkulBlog ekibi burada.")).not.toBeInTheDocument();
     expect(screen.queryByText("Takıldığın yerde birlikte düşünelim.")).not.toBeInTheDocument();
   });
@@ -103,14 +103,6 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     const documentFilter = screen.getAllByRole("button", { name: /^Dokümanlar$/ }).at(-1);
     fireEvent.click(documentFilter!);
     expect(window.location.search).toBe("?categoryId=1&contentType=document");
-  });
-
-  it("SSS aramasında sonuçları anında filtreler", () => {
-    render(<Home />);
-
-    fireEvent.change(screen.getByLabelText("SSS içinde ara"), { target: { value: "üyelik" } });
-    expect(screen.getByText("Üyelik zorunlu mu?")).toBeInTheDocument();
-    expect(screen.queryByText("Öğretmenler içerik ekleyebilir mi?")).not.toBeInTheDocument();
   });
 
   it("sınıf özetinde alt kategorilerdeki içerik türü sayaçlarını ve yeni içerik önizlemesini üretir", () => {

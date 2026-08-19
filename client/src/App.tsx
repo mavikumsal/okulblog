@@ -12,6 +12,7 @@ import ContentHub from "./pages/ContentHub";
 import ContentDetail from "./pages/ContentDetail";
 import OutcomeDetail from "./pages/OutcomeDetail";
 import LatestPreview from "./pages/LatestPreview";
+import FAQ from "./pages/FAQ";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/panel" component={Panel} />
       <Route path="/test/:id" component={TestRunner} />
       <Route path="/soru-cevap" component={QA} />
+      <Route path="/destek/sss" component={FAQ} />
       <Route path="/kazanim/:id" component={OutcomeDetail} />
       <Route path="/icerik/:type/:id" component={ContentDetail} />
       <Route path="/icerik/:type" component={ContentHub} />
