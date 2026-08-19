@@ -1341,3 +1341,16 @@
 - [x] Masaüstü, tablet ve mobil responsive görünümü kontrol etmek
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Bu düzenleme için checkpoint oluşturmak
+
+## Bülten Onayı, Sosyal İkonlar ve Kurumsal Sayfalar — 2026-08-19
+
+- [x] Bülten formu e-posta doğrulama ve başarı durumunu incelemek
+- [x] Başarılı abonelikte animasyonlu onay mesajı göstermek
+- [x] Hatalı/eksik e-posta için erişilebilir doğrulama uyarıları korumak
+- [x] Footer’ın altına tıklanabilir sosyal medya ikonları eklemek
+- [x] Sosyal ikonlarda tasarıma uygun hover renk geçişleri ve klavye odağı sağlamak
+- [x] Hakkımızda alt sayfasını oluşturmak ve footer bağlantısını bağlamak
+- [x] Gizlilik Politikası alt sayfasını oluşturmak ve footer bağlantısını bağlamak
+- [x] Mobil, tablet ve masaüstü responsive görünümü kontrol etmek
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [ ] Bu geliştirme için checkpoint oluşturmak
