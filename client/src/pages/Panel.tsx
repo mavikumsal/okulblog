@@ -48,6 +48,8 @@ import {
   Target,
   Trash2,
   Users,
+  History,
+  RotateCcw,
 } from "lucide-react";
 
 const roleName: Record<string, string> = {
@@ -467,6 +469,10 @@ function PanelContent() {
     aiStatus?: string;
   } | null>(null);
   const documentDraftQuery = (trpc.admin as any).documentImportDrafts;
+  const documentImportHistoryQuery = (trpc.admin as any).documentImportHistory;
+  const documentImportHistory = documentImportHistoryQuery?.useQuery
+    ? documentImportHistoryQuery.useQuery({ limit: 100 }, { enabled: isAdmin && (requestedSection === "dokumanlar" || panelContentTypeByRoute[requestedSection] === "document"), staleTime: 5_000 })
+    : { data: [], refetch: () => undefined };
   const draftFilterInput = useMemo(() => ({ status: draftStatusFilter || undefined, aiStatus: draftAiFilter || undefined, from: draftFromFilter ? new Date(`${draftFromFilter}T00:00:00`) : undefined, to: draftToFilter ? new Date(`${draftToFilter}T23:59:59.999`) : undefined }), [draftStatusFilter, draftAiFilter, draftFromFilter, draftToFilter]);
   const documentDrafts = documentDraftQuery?.useQuery
     ? documentDraftQuery.useQuery(draftFilterInput, { enabled: isAdmin && (section === "genel" || panelContentTypeByRoute[requestedSection] === "document" || section === "icerikler"), staleTime: 10_000 })
@@ -501,17 +507,27 @@ function PanelContent() {
     onSuccess: () => { documentDrafts.refetch(); toast.success("AI önerileri geri alındı."); },
     onError: (error: { message?: string }) => toast.error(error.message || "AI önerileri geri alınamadı."),
   }) : { mutate: (_input: unknown) => undefined, isPending: false };
+  const retryDocumentImportApi = (trpc.admin as any).retryDocumentImport;
+  const retryDocumentImport = retryDocumentImportApi?.useMutation ? retryDocumentImportApi.useMutation({
+    onSuccess: (result: { sourceUrl: string; fileName?: string | null }) => {
+      importDocumentFromUrl.mutate({ sourceUrl: result.sourceUrl, fileName: result.fileName ?? undefined, analyzeWithAi: analyzeImportedDocumentWithAi });
+      documentImportHistory.refetch();
+      toast.info("PDF yeniden indirme kuyruğuna alındı.");
+    },
+    onError: (error: { message?: string }) => toast.error(error.message || "PDF yeniden başlatılamadı."),
+  }) : { mutate: (_input: { id: number }) => undefined, isPending: false };
   const importDocumentFromUrl = (trpc.admin as any).importDocumentDraftFromUrl?.useMutation ? (trpc.admin as any).importDocumentDraftFromUrl.useMutation({
     onSuccess: (result: { provider: string; fileName: string; publicUrl: string; coverImageUrl: string | null; sizeBytes: number; mimeType?: string; title?: string; summary?: string; tags?: string[]; previewPages?: Array<{ page: number; url: string }>; draftId?: number; aiStatus?: string }) => {
       setRemoteDocumentResult(result);
       setRemoteDocumentUrl("");
+      documentImportHistory.refetch();
       if (result.title && !contentTitle.trim()) setContentTitle(result.title);
       else if (!contentTitle.trim()) setContentTitle(result.fileName.replace(/\\.[^.]+$/, ""));
       if (result.summary && !contentSummary.trim()) setContentSummary(result.summary);
       if (result.coverImageUrl) setContentCoverUrl(result.coverImageUrl);
       toast.success(`Doküman aktif ${result.provider === "bunny-storage" ? "Bunny" : "S3"} depolamaya aktarıldı.`);
     },
-    onError: (error: { message?: string }) => toast.error(error.message || "URL’den doküman aktarılamadı."),
+    onError: (error: { message?: string }) => { documentImportHistory.refetch(); toast.error(error.message || "URL’den doküman aktarılamadı."); },
   }) : { mutate: () => undefined, isPending: false };
   const documentUpload = trpc.admin.uploadMediaAsset.useMutation({
     onSuccess: result => {
@@ -2401,6 +2417,10 @@ function PanelContent() {
             </div>
           </div>
           {selectedContentType === "document" && <div className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
+            <div className="mb-5 rounded-2xl border border-[#e5e9f5] bg-[#f8f9ff] p-4">
+              <div className="flex items-start justify-between gap-3"><div><p className="flex items-center gap-2 text-sm font-bold text-[#29465a]"><History size={16} className="text-[#5540e8]" /> PDF işlem geçmişi</p><p className="mt-1 text-xs leading-5 text-[#71838b]">İndirme, aktif depolamaya aktarım ve başarısız denemeler burada kalıcı olarak izlenir.</p></div><Badge variant="outline" className="shrink-0">{documentImportHistory.data?.length ?? 0} işlem</Badge></div>
+              <div className="mt-3 space-y-2">{(documentImportHistory.data ?? []).slice(0, 8).map((entry: { id: number; sourceUrl: string; fileName?: string | null; provider?: string | null; status: string; errorMessage?: string | null; attempts?: number; createdAt?: string | Date }) => <div key={entry.id} className="flex flex-col gap-2 rounded-xl border border-[#e2e6f1] bg-white p-3 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="truncate text-xs font-semibold text-[#29465a]">{entry.fileName || entry.sourceUrl}</span><Badge variant="outline" className={entry.status === "failed" ? "border-[#e7b5ae] text-[#9b4b42]" : entry.status === "completed" ? "border-[#afd8c8] text-[#34735c]" : "text-[#71838b]"}>{entry.status === "failed" ? "Başarısız" : entry.status === "completed" ? "Tamamlandı" : entry.status === "retried" ? "Yeniden denendi" : "İşleniyor"}</Badge></div><p className="mt-1 truncate text-[11px] text-[#71838b]">{entry.provider ? `${entry.provider === "bunny-storage" ? "Bunny" : "S3"} · ` : ""}{entry.attempts ?? 1}. deneme · {entry.createdAt ? new Date(entry.createdAt).toLocaleString("tr-TR") : ""}</p>{entry.errorMessage && <p className="mt-1 text-[11px] text-[#9b4b42]">{entry.errorMessage}</p>}</div>{entry.status === "failed" && <Button type="button" size="sm" variant="outline" disabled={retryDocumentImport.isPending} onClick={() => retryDocumentImport.mutate({ id: entry.id })} className="shrink-0 rounded-lg border-[#d6c8f4] text-[#5540e8]"><RotateCcw size={14} /> Yeniden dene</Button>}</div>)}{(documentImportHistory.data ?? []).length === 0 && <p className="rounded-xl border border-dashed border-[#cfdacf] p-4 text-center text-xs text-[#71838b]">Henüz PDF işlem kaydı yok.</p>}</div>
+            </div>
             <div className="flex items-start justify-between gap-3">
               <div><p className="text-sm font-bold text-[#29465a]">Doküman taslak onay kuyruğu</p><p className="mt-1 text-xs leading-5 text-[#71838b]">İçe aktarılan belgeler yayınlanmadan önce başlık, özet, etiket ve tüm PDF sayfaları burada incelenir.</p></div>
               <Badge variant="outline" className="shrink-0">{documentDrafts.data?.length ?? 0} kayıt</Badge>
@@ -2413,10 +2433,13 @@ function PanelContent() {
             </div>
             {(() => { const visibleDrafts = (documentDrafts.data ?? []) as Array<{ id: number; categoryId: number | null; institutionCategoryId: number | null }>; const allVisibleSelected = visibleDrafts.length > 0 && visibleDrafts.every(draft => selectedDraftIds.includes(draft.id)); return <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#dfe8df] bg-[#f7fbf7] p-3 sm:flex-row sm:items-center sm:justify-between"><label className="flex items-center gap-2 text-xs font-semibold text-[#496374]"><input type="checkbox" checked={allVisibleSelected} onChange={event => setSelectedDraftIds(event.target.checked ? visibleDrafts.map(draft => draft.id) : [])} className="size-4 accent-[#5540e8]" /> Tüm görünenleri seç</label><div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{selectedDraftIds.length} seçili</Badge><Button type="button" size="sm" className="rounded-lg bg-[#18344f]" disabled={!selectedDraftIds.length || bulkApproveDrafts.isPending} onClick={() => bulkApproveDrafts.mutate({ ids: selectedDraftIds })}><CheckCircle2 size={14} /> Toplu yayınla</Button><Button type="button" size="sm" variant="outline" className="rounded-lg" disabled={!selectedDraftIds.length || bulkRejectDrafts.isPending} onClick={() => bulkRejectDrafts.mutate({ ids: selectedDraftIds, reason: "Admin tarafından toplu olarak reddedildi." })}><Trash2 size={14} /> Toplu reddet</Button></div></div>; })()}
             <div className="mt-5 space-y-4">
-              {(documentDrafts.data ?? []).map((draft: { id: number; title: string; summary: string | null; tags: unknown; categoryId: number | null; institutionCategoryId: number | null; previewPages: unknown; aiStatus: string; extractedText?: string | null; status?: string; createdAt?: string | Date; ocrStatus?: string; ocrConfidence?: number | null }) => {
+              {(documentDrafts.data ?? []).map((draft: { id: number; title: string; summary: string | null; tags: unknown; categoryId: number | null; institutionCategoryId: number | null; coverImageUrl?: string | null; previewPages: unknown; aiStatus: string; extractedText?: string | null; status?: string; createdAt?: string | Date; ocrStatus?: string; ocrConfidence?: number | null }) => {
                 const pages = Array.isArray(draft.previewPages) ? draft.previewPages as Array<{ page: number; url: string }> : [];
                 const pageIndex = Math.min(readerPageByDraft[draft.id] ?? 0, Math.max(0, pages.length - 1));
                 const currentPage = pages[pageIndex];
+                const hasCategory = Boolean(draft.categoryId || draft.institutionCategoryId);
+                const hasCover = Boolean(draft.coverImageUrl);
+                const readyToPublish = hasCategory && hasCover;
                 return <div key={draft.id} className="overflow-hidden rounded-2xl border border-[#dfe8df] bg-[#fbfdf9]">
                   <div className="flex items-center gap-2 border-b border-[#e7eee7] px-4 py-2"><input type="checkbox" checked={selectedDraftIds.includes(draft.id)} onChange={event => setSelectedDraftIds(current => event.target.checked ? (current.includes(draft.id) ? current : [...current, draft.id]) : current.filter(id => id !== draft.id))} aria-label={`${draft.title} taslağını seç`} className="size-4 accent-[#5540e8]" /><span className="text-xs font-semibold text-[#71838b]">Toplu işlem için seç</span></div>
                   <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_220px]">
@@ -2430,7 +2453,8 @@ function PanelContent() {
                       <div><Label htmlFor={`draft-summary-${draft.id}`}>Kısa özet</Label><Textarea id={`draft-summary-${draft.id}`} defaultValue={draft.summary ?? ""} onBlur={event => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: event.target.value, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId })} className="mt-1 min-h-24 rounded-xl bg-white text-xs" /></div>
                       <div><Label htmlFor={`draft-tags-${draft.id}`}>Etiketler</Label><Input id={`draft-tags-${draft.id}`} defaultValue={Array.isArray(draft.tags) ? (draft.tags as string[]).join(", ") : ""} onBlur={event => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: event.target.value.split(",").map(tag => tag.trim()).filter(Boolean).slice(0, 12), categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId })} className="mt-1 h-10 rounded-xl bg-white text-xs" placeholder="2. sınıf, Türkçe, sınav" /></div><div><Label htmlFor={`draft-ocr-${draft.id}`}>OCR metni / manuel düzeltme</Label><Textarea id={`draft-ocr-${draft.id}`} defaultValue={draft.extractedText ?? ""} onBlur={event => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId, extractedText: event.target.value.slice(0, 14000) })} className="mt-1 min-h-28 rounded-xl bg-white text-xs leading-5" placeholder="Taranmış PDF’den çıkarılan metni burada düzeltebilirsiniz." /><p className="mt-1 text-[10px] text-[#71838b]">OCR metni kaydedilir; AI yeniden analizinde kullanılabilir.</p></div>
                       <CategoryCascadeSelect nodes={categoryOptions} educationValue={draft.categoryId ? String(draft.categoryId) : ""} institutionValue={draft.institutionCategoryId ? String(draft.institutionCategoryId) : ""} onEducationChange={value => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: value ? Number(value) : null, institutionCategoryId: draft.institutionCategoryId })} onInstitutionChange={value => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: value ? Number(value) : null })} />
-                      <div className="flex flex-wrap gap-2 pt-1"><Button type="button" className="rounded-xl bg-[#18344f]" disabled={!draft.categoryId && !draft.institutionCategoryId || approveDocumentDraft.isPending} onClick={() => approveDocumentDraft.mutate({ id: draft.id })}><CheckCircle2 size={15} /> Yayınla</Button><Button type="button" variant="outline" className="rounded-xl" disabled={rejectDocumentDraft.isPending} onClick={() => rejectDocumentDraft.mutate({ id: draft.id, reason: "Admin tarafından reddedildi." })}><Trash2 size={15} /> Reddet</Button><Button type="button" variant="outline" className="rounded-xl" disabled={reanalyzeDocumentDraft.isPending} onClick={() => reanalyzeDocumentDraft.mutate({ id: draft.id })}><BrainCircuit size={15} /> Yeniden analiz et</Button><Button type="button" variant="ghost" className="rounded-xl text-[#9b4b42]" disabled={revertDocumentDraftAi.isPending || draft.aiStatus !== "completed"} onClick={() => revertDocumentDraftAi.mutate({ id: draft.id })}>Öneriyi geri al</Button></div>
+                      <div className={`rounded-xl border p-3 text-xs ${readyToPublish ? "border-[#afd8c8] bg-[#f2fbf6] text-[#34735c]" : "border-[#f0d6a6] bg-[#fffaf0] text-[#8a642d]"}`}><p className="font-bold">Yayın öncesi son kontrol</p><div className="mt-2 grid gap-1 sm:grid-cols-2"><span>{hasCategory ? "✓" : "○"} Eğitim veya kurum kategorisi</span><span>{hasCover ? "✓" : "○"} Kapak görseli</span></div>{!readyToPublish && <p className="mt-2 text-[11px]">Yayınlamak için eksik alanları tamamlayın.</p>}</div>
+                      <div className="flex flex-wrap gap-2 pt-1"><Button type="button" className="rounded-xl bg-[#18344f]" disabled={!readyToPublish || approveDocumentDraft.isPending} onClick={() => { if (window.confirm("Bu doküman kategori ve kapak kontrolünden geçti. Yayınlamak istiyor musunuz?")) approveDocumentDraft.mutate({ id: draft.id }); }}><CheckCircle2 size={15} /> Yayınla</Button><Button type="button" variant="outline" className="rounded-xl" disabled={rejectDocumentDraft.isPending} onClick={() => rejectDocumentDraft.mutate({ id: draft.id, reason: "Admin tarafından reddedildi." })}><Trash2 size={15} /> Reddet</Button><Button type="button" variant="outline" className="rounded-xl" disabled={reanalyzeDocumentDraft.isPending} onClick={() => reanalyzeDocumentDraft.mutate({ id: draft.id })}><BrainCircuit size={15} /> Yeniden analiz et</Button><Button type="button" variant="ghost" className="rounded-xl text-[#9b4b42]" disabled={revertDocumentDraftAi.isPending || draft.aiStatus !== "completed"} onClick={() => revertDocumentDraftAi.mutate({ id: draft.id })}>Öneriyi geri al</Button></div>
                       <p className="text-[11px] leading-5 text-[#71838b]">AI durumu: {draft.aiStatus === "completed" ? "Başlık ve özet oluşturuldu" : draft.aiStatus === "failed" ? "Analiz başarısız; OCR/alanları manuel kontrol edin" : "Analiz yapılmadı"} · OCR: {draft.ocrStatus === "completed" ? `%${draft.ocrConfidence ?? 0} güven` : draft.ocrStatus === "failed" ? "başarısız" : draft.ocrStatus === "not_needed" ? "gerekmedi" : "bekliyor"}</p>
                     </div>
                   </div>

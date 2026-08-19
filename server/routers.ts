@@ -52,6 +52,10 @@ import {
   getMediaAsset,
   createMediaAsset,
   createDocumentImportDraft,
+  createDocumentImportHistory,
+  updateDocumentImportHistory,
+  listDocumentImportHistory,
+  getDocumentImportHistory,
   listDocumentImportDrafts,
   getDocumentImportDraft,
   updateDocumentImportDraft,
@@ -803,6 +807,8 @@ export const appRouter = router({
       return { success: true, provider, providerAssetId, publicUrl, coverImageUrl, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, sourceUrl: input.sourceUrl };
     }),
     importDocumentDraftFromUrl: adminProcedure.input(z.object({ sourceUrl: z.string().trim().url().max(1200), fileName: z.string().trim().max(255).optional(), analyzeWithAi: z.boolean().default(true) })).mutation(async ({ ctx, input }) => {
+      const historyId = await createDocumentImportHistory({ sourceUrl: input.sourceUrl, fileName: input.fileName ?? null, status: "downloading", requestedBy: ctx.user.id });
+      try {
       let sourceUrl: URL;
       try { sourceUrl = validateRemoteDocumentUrl(input.sourceUrl); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Geçersiz kaynak URL." }); }
       const response = await fetch(sourceUrl, { redirect: "manual", signal: AbortSignal.timeout(45_000), headers: { "User-Agent": "OkulBlogDocumentImporter/1.0" } });
@@ -858,7 +864,21 @@ export const appRouter = router({
       const draftId = await createDocumentImportDraft({ mediaAssetId, sourceUrl: input.sourceUrl, title: analysis.title, summary: analysis.summary, tags: analysis.tags, coverImageUrl, previewPages, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, extractedText: analysis.extractedText, aiSuggestedTitle: analysis.aiSuggestedTitle, aiSuggestedSummary: analysis.aiSuggestedSummary, aiSuggestedTags: analysis.aiSuggestedTags, createdBy: ctx.user.id });
       if (analysis.aiStatus !== "not_started" || analysis.ocrStatus !== "not_needed") await updateDocumentImportDraft(draftId, { aiStatus: analysis.aiStatus, aiModel: analysis.aiModel, aiError: analysis.aiError, aiSuggestedTitle: analysis.aiSuggestedTitle, aiSuggestedSummary: analysis.aiSuggestedSummary, aiSuggestedTags: analysis.aiSuggestedTags, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, extractedText: analysis.extractedText });
       await recordSecurityEvent({ eventType: "document_import_draft_created", severity: "low", description: "Admin dokümanı taslak onay kuyruğuna aldı.", metadata: { draftId, mediaAssetId, provider, mimeType, sizeBytes: buffer.byteLength, actorId: ctx.user.id } });
+      if (historyId) await updateDocumentImportHistory(historyId, { status: "completed", fileName: originalName, provider, draftId, mediaAssetId, errorMessage: null });
       return { success: true, draftId, mediaAssetId, provider, publicUrl, coverImageUrl, previewPages, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, title: analysis.title, summary: analysis.summary, tags: analysis.tags, aiStatus: analysis.aiStatus, aiError: analysis.aiError, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, aiRequested: input.analyzeWithAi };
+      } catch (error) {
+        if (historyId) await updateDocumentImportHistory(historyId, { status: "failed", errorMessage: error instanceof Error ? error.message : "PDF aktarımı başarısız." });
+        throw error;
+      }
+    }),
+    documentImportHistory: adminProcedure.input(z.object({ limit: z.number().int().positive().max(200).optional() }).optional()).query(({ input }) => listDocumentImportHistory(input?.limit ?? 100)),
+    retryDocumentImport: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+      const history = await getDocumentImportHistory(input.id);
+      if (!history) throw new TRPCError({ code: "NOT_FOUND", message: "İşlem kaydı bulunamadı." });
+      if (history.status !== "failed") throw new TRPCError({ code: "BAD_REQUEST", message: "Yalnızca başarısız PDF işlemleri yeniden denenebilir." });
+      await updateDocumentImportHistory(input.id, { status: "retried", attempts: (history.attempts ?? 1) + 1, errorMessage: null });
+      await recordSecurityEvent({ eventType: "document_import_retried", severity: "low", description: "Başarısız PDF aktarımı yeniden denendi.", metadata: { historyId: input.id, actorId: ctx.user.id } });
+      return { success: true, sourceUrl: history.sourceUrl, fileName: history.fileName };
     }),
     documentImportDrafts: adminProcedure.input(z.object({ status: z.enum(["draft", "pending", "approved", "rejected"]).optional(), aiStatus: z.enum(["not_started", "processing", "completed", "failed"]).optional(), from: z.coerce.date().optional(), to: z.coerce.date().optional() }).optional()).query(({ input }) => listDocumentImportDrafts(input)),
     updateDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(3).max(220), summary: z.string().trim().max(3000).optional().nullable(), tags: z.array(z.string().trim().min(1).max(50)).max(12).default([]), categoryId: z.number().int().positive().optional().nullable(), institutionCategoryId: z.number().int().positive().optional().nullable(), extractedText: z.string().max(14000).optional().nullable(), status: z.enum(["draft", "pending", "rejected"]).optional() })).mutation(async ({ input }) => { const { id, ...data } = input; await updateDocumentImportDraft(id, data); return { success: true }; }),

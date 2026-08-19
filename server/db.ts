@@ -1,6 +1,6 @@
 import { and, eq, asc, desc, inArray, isNull, gte, lte, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, contentProgress, contentViewDaily, contentViewEvents, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, contentViewDaily, contentViewEvents, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, documentImportHistory, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { educationCurriculum } from "./educationCurriculum";
 
@@ -811,6 +811,32 @@ export async function createMediaAsset(input: {
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   const result = await db.insert(mediaAssets).values({ ...input, contentType: input.contentType ?? "general", providerAssetId: input.providerAssetId ?? null, publicUrl: input.publicUrl ?? null, sizeBytes: input.sizeBytes ?? null, folderPath: input.folderPath ?? null, metadata: input.metadata ?? {} });
   return Number(result[0].insertId);
+}
+
+export async function createDocumentImportHistory(input: { sourceUrl: string; fileName?: string | null; provider?: string | null; status?: "queued" | "downloading" | "completed" | "failed" | "retried"; errorMessage?: string | null; draftId?: number | null; mediaAssetId?: number | null; attempts?: number; requestedBy: number }) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(documentImportHistory).values({ ...input, status: input.status ?? "queued", fileName: input.fileName ?? null, provider: input.provider ?? null, errorMessage: input.errorMessage ?? null, draftId: input.draftId ?? null, mediaAssetId: input.mediaAssetId ?? null, attempts: input.attempts ?? 1 }).$returningId();
+  return result[0]?.id ?? null;
+}
+
+export async function updateDocumentImportHistory(id: number, input: { status?: "queued" | "downloading" | "completed" | "failed" | "retried"; errorMessage?: string | null; fileName?: string | null; provider?: string | null; draftId?: number | null; mediaAssetId?: number | null; attempts?: number }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(documentImportHistory).set(input).where(eq(documentImportHistory.id, id));
+}
+
+export async function listDocumentImportHistory(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(documentImportHistory).orderBy(desc(documentImportHistory.createdAt)).limit(Math.min(Math.max(limit, 1), 200));
+}
+
+export async function getDocumentImportHistory(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const [row] = await db.select().from(documentImportHistory).where(eq(documentImportHistory.id, id)).limit(1);
+  return row ?? null;
 }
 
 export async function createDocumentImportDraft(input: {

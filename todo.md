@@ -1389,3 +1389,13 @@
 - [x] Gerekirse hata mesajını kullanıcıya gerçek nedeni açıklayacak şekilde iyileştirmek
 - [x] Düzeltme sonrası TypeScript, Vitest ve kayıt akışını doğrulamak
 - [x] Bu hata düzeltmesi için checkpoint oluşturmak
+
+## PDF İşlem Geçmişi ve Yayın Öncesi Onay — 2026-08-20
+
+- [x] Başarısız PDF indirmeleri için yeniden deneme altyapısı eklemek
+- [x] PDF aktarım ve taslak durumları için işlem geçmişi ekranı eklemek
+- [x] İşlem geçmişinde durum, hata nedeni, tarih ve hedef depolamayı göstermek
+- [x] Yayınlama öncesinde kategori zorunluluğu kontrolü eklemek
+- [x] Yayınlama öncesinde kapak görseli zorunluluğu kontrolü eklemek
+- [x] Eksikleri gösteren son onay adımı ve güvenli yayınlama akışı eklemek
+- [x] Test, responsive kontrol ve checkpoint oluşturmak

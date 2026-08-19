@@ -270,6 +270,21 @@ export const documentImportDrafts = mysqlTable("document_import_drafts", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const documentImportHistory = mysqlTable("document_import_history", {
+  id: int("id").autoincrement().primaryKey(),
+  sourceUrl: varchar("sourceUrl", { length: 1200 }).notNull(),
+  fileName: varchar("fileName", { length: 255 }),
+  provider: varchar("provider", { length: 80 }),
+  status: mysqlEnum("status", ["queued", "downloading", "completed", "failed", "retried"]).default("queued").notNull(),
+  errorMessage: text("errorMessage"),
+  draftId: int("draftId"),
+  mediaAssetId: int("mediaAssetId"),
+  attempts: int("attempts").default(1).notNull(),
+  requestedBy: int("requestedBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const mediaAssetLinks = mysqlTable("media_asset_links", {
   id: int("id").autoincrement().primaryKey(),
   mediaAssetId: int("mediaAssetId").notNull(),
@@ -332,6 +347,7 @@ export type Test = typeof tests.$inferSelect;
 export type OutcomeProgress = typeof outcomeProgress.$inferSelect;
 export type StoredFile = typeof storedFiles.$inferSelect;
 export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type DocumentImportHistory = typeof documentImportHistory.$inferSelect;
 export type MediaTransferJob = typeof mediaTransferJobs.$inferSelect;
 export type SearchConsoleToken = typeof searchConsoleTokens.$inferSelect;
 export type NewsCategory = typeof newsCategories.$inferSelect;

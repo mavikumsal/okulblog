@@ -169,6 +169,13 @@
       "when": 1787161209341,
       "tag": "0023_left_unicorn",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1787174940338,
+      "tag": "0024_sweet_the_professor",
+      "breakpoints": true
     }
   ]
 }
