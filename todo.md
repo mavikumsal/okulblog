@@ -1371,3 +1371,21 @@
 - [x] Önceki/sonraki sayfa ve mevcut sayfa bilgisini göstermek
 - [x] Mobil ve masaüstü görünümü ile ilgili testleri doğrulamak
 - [x] Bu geliştirme için checkpoint oluşturmak
+
+## Harici PDF İçe Aktarma Modülü — 2026-08-20
+
+- [ ] Harici PDF indirme, ön izleme ve taslak akışının mevcut kodunu bulmak
+- [ ] Modülün Admin navigasyonunda ve route yapısında görünür olup olmadığını doğrulamak
+- [ ] Eksik Admin menü bağlantısını ve giriş ekranını eklemek
+- [ ] URL’den PDF indirme, aktif depolama hedefi ve ön izleme akışını tamamlamak
+- [ ] Taslak onay kuyruğu ve kategoriye bağlama akışını doğrulamak
+- [ ] Güvenlik, dosya boyutu ve kaynak URL doğrulamalarını eklemek
+- [ ] Test, responsive kontrol ve checkpoint oluşturmak
+
+## İçerik Kaydetme Hatası — 2026-08-20
+
+- [x] “İçerik kaydedilemedi” hatasının gerçek sunucu nedenini tespit etmek
+- [x] Doküman kaydetme formunun zorunlu alan ve kategori değerlerini doğrulamak
+- [x] Gerekirse hata mesajını kullanıcıya gerçek nedeni açıklayacak şekilde iyileştirmek
+- [x] Düzeltme sonrası TypeScript, Vitest ve kayıt akışını doğrulamak
+- [x] Bu hata düzeltmesi için checkpoint oluşturmak

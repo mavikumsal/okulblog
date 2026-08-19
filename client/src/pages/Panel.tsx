@@ -611,7 +611,7 @@ function PanelContent() {
       utils.contents.list.invalidate({ contentType: selectedContentType });
       toast.success("İçerik taslak olarak kaydedildi.");
     },
-    onError: () => toast.error("İçerik kaydedilemedi."),
+    onError: error => toast.error(error.message || "İçerik kaydedilemedi."),
   });
   const deleteContent = trpc.contents.remove.useMutation({
     onSuccess: () => {
@@ -2384,7 +2384,7 @@ function PanelContent() {
                   createContent.mutate({
                     title: contentTitle,
                     contentType: selectedContentType,
-                    summary: contentSummary,
+                    summary: contentSummary.trim().slice(0, 3000),
                     body: remoteDocumentResult ? `Dokümanı görüntüle veya indir: ${remoteDocumentResult.publicUrl}` : undefined,
                     coverImageUrl: contentCoverUrl.trim() || undefined,
                     categoryId: Number(contentCategoryId),

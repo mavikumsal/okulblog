@@ -378,9 +378,9 @@ export const appRouter = router({
     create: protectedProcedure.input(z.object({
       title: z.string().trim().min(3).max(220),
       contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]),
-      summary: z.string().trim().max(1000).optional(),
+      summary: z.string().trim().max(3000).optional(),
       body: z.string().trim().max(10000).optional(),
-      coverImageUrl: z.string().url().max(700).nullable().optional(),
+      coverImageUrl: z.string().refine(value => { try { return value.startsWith("/") || Boolean(new URL(value)); } catch { return false; } }, "Geçerli bir görsel adresi girilmelidir.").max(900).nullable().optional(),
       categoryId: z.number().int().positive(),
       institutionCategoryId: z.number().int().positive().nullable().optional(),
     })).mutation(async ({ ctx, input }) => {
