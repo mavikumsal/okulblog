@@ -1188,4 +1188,20 @@
 - [x] Referans sınıf kartları, Popüler Konular paneli ve alt içerik bölümlerini aynı grid/oranlarla yeniden kodlamak
 - [x] Tüm etkileşimleri ve gerçek tRPC veri akışlarını koruyarak statik demo veri kullanmamak
 - [x] Masaüstü, tablet ve mobilde referansla pixel karşılaştırması yapmak; TypeScript, Vitest, production build ve konsol kontrollerini tamamlamak
-- [ ] Birebir HTML/CSS yeniden kodlama için checkpoint oluşturmak
+- [x] Birebir HTML/CSS yeniden kodlama için checkpoint oluşturmak
+
+## Referans Önizleme Karşılaştırması — 2026-08-19
+
+- [x] Mevcut canlı önizlemeyi masaüstü ve mobil ekranlarda yeniden yakalamak
+- [x] Referans HTML ile mevcut önizlemeyi aynı viewport ölçülerinde yan yana karşılaştırmak
+- [x] Farkları header, hero, çalışma planı, sınıf kartları, Popüler Konular, boşluklar ve responsive davranış olarak raporlamak
+- [x] Kullanıcı onayı olmadan kodu değiştirmemek; yalnızca fark raporunu sunmak
+
+## Önizleme ile Referans Görsel/HTML Eşleştirme — 2026-08-19
+
+- [x] Mevcut sayfanın gerçek masaüstü ve mobil önizlemesini almak
+- [x] Önizlemeyi referans görsel ve okulblog-ana-sayfa.html ile aynı ölçülerde karşılaştırmak
+- [x] Sağ çalışma planını referans ana kartı, iki mini kart, ilerleme halkası, konu bilgisi, CTA ve haftalık seri düzeniyle birebir eşlemek
+- [x] Header, hero, sınıf kartları, Popüler Konular, spacing ve alt bölümlerde tespit edilen farkları düzeltmek
+- [x] Gerçek veri ve etkileşimleri koruyarak statik/demo veri kullanmamak
+- [x] Test, TypeScript, production build ve görsel doğrulama sonrası yeni checkpoint oluşturmak
