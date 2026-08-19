@@ -1353,4 +1353,11 @@
 - [x] Gizlilik Politikası alt sayfasını oluşturmak ve footer bağlantısını bağlamak
 - [x] Mobil, tablet ve masaüstü responsive görünümü kontrol etmek
 - [x] TypeScript, Vitest ve production build çalıştırmak
-- [ ] Bu geliştirme için checkpoint oluşturmak
+- [x] Bu geliştirme için checkpoint oluşturmak
+
+## Güvenlik Olayları Paneli — 2026-08-20
+
+- [x] Güvenlik olayları listesinin sayfayı sınırsız uzatmasını engellemek
+- [x] Olay kayıtlarını sabit yükseklikli iç kaydırma alanında göstermek
+- [x] Güvenlik panelinin mobil ve masaüstü görünümünü yeniden doğrulamak
+- [x] Bu düzeltme için test, görsel kontrol ve checkpoint oluşturmak

@@ -3813,9 +3813,14 @@ function PanelContent() {
             Yüksek ve kritik olaylar Admin'e otomatik bildirilir.
           </p>
           {isAdmin ? (
-            <div className="mt-6 space-y-2">
+            <div className="mt-6">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#f7f8f4] px-4 py-3 text-xs text-[#71838b]">
+                <span>Toplam {(securityEvents.data ?? []).length} güvenlik olayı</span>
+                <span className="font-semibold text-[#365368]">Liste içinde kaydırarak diğer kayıtları görüntüleyin</span>
+              </div>
               {(securityEvents.data ?? []).length ? (
-                securityEvents.data?.map(event => (
+                <div className="max-h-[360px] space-y-2 overflow-y-auto rounded-xl pr-1 [scrollbar-color:#b8ddd4_transparent] [scrollbar-width:thin]">
+                {securityEvents.data?.map(event => (
                   <div
                     key={event.id}
                     className="flex items-start justify-between gap-4 rounded-xl border border-[#edf0eb] px-4 py-3"
@@ -3830,7 +3835,8 @@ function PanelContent() {
                     </div>
                     <Badge variant="outline">{event.severity}</Badge>
                   </div>
-                ))
+                ))}
+                </div>
               ) : (
                 <div className="rounded-xl bg-[#f7f8f4] p-5 text-sm text-[#728087]">
                   Henüz kayıtlı güvenlik olayı yok.
