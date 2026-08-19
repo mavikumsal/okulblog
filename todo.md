@@ -1235,3 +1235,14 @@
 - [x] Masaüstü, tablet ve mobil responsive görünümü kontrol etmek
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Yeni düzen için checkpoint oluşturmak
+
+## Seçilmiş İçerikler Referans Düzeni — 2026-08-19
+
+- [x] Sağlanan okulblog-ana-sayfa.html içindeki seçilmiş içerik kart yapısını incelemek
+- [x] “Senin için seçtiklerimiz” bölümünü başlık ve sağ aksiyon bağlantısı düzenine uyarlamak
+- [x] Üç kartlı düzende büyük görsel/illüstrasyon alanı, tür rozeti, başlık ve meta satırını uygulamak
+- [x] Gerçek tRPC içerik verisini ve içerik detay bağlantılarını korumak
+- [x] Boş görsel durumunu referans estetiğine uygun hale getirmek
+- [x] Masaüstü ve mobil responsive görünümü kontrol etmek
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Yeni düzen için checkpoint oluşturmak
