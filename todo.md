@@ -954,3 +954,8 @@
 - [x] Kazanım yanında soru/doküman etkileşimine bağlı “Tamamlandı” ilerleme checkbox’ı ekle
 - [x] Üye ilerlemesini güvenli biçimde kaydet, public ve profil akışında göster
 - [x] Test, build, responsive doğrulama ve checkpoint tamamla
+
+## Yeni istek: tek sayfalık güncellenmiş HTML
+- [x] Görsel UI düzeltmelerini içeren bağımsız responsive tek sayfalık HTML oluştur
+- [x] Hero taşması, sayaç tutarsızlığı, sağ panel hizası ve mobil görünümü düzelt
+- [x] HTML dosyasını temel tarayıcı kontrolünden geçirip kullanıcıya teslim et
