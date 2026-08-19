@@ -1246,3 +1246,13 @@
 - [x] Masaüstü ve mobil responsive görünümü kontrol etmek
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Yeni düzen için checkpoint oluşturmak
+
+## Seçilmiş İçerikler Görsel Uyum Düzeltmesi — 2026-08-19
+
+- [x] Referans görsel ile mevcut seçilmiş içerik renderını doğrudan karşılaştırmak
+- [x] Önceki uyarlamada eksik kalan görsel alanı, renk, oran ve tipografi farklarını belirlemek
+- [x] Referans HTML yapısındaki üç kartlı içeriği aynı görsel hiyerarşiyle yeniden uygulamak
+- [x] Gerçek medya kapaklarının referans kompozisyonunu bozmasını önlemek
+- [x] Masaüstü ve mobil karşılaştırmalı görsel kontrol yapmak
+- [x] TypeScript, Vitest ve production build doğrulamak
+- [x] Düzeltme için yeni checkpoint oluşturmak
