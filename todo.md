@@ -1205,3 +1205,14 @@
 - [x] Header, hero, sınıf kartları, Popüler Konular, spacing ve alt bölümlerde tespit edilen farkları düzeltmek
 - [x] Gerçek veri ve etkileşimleri koruyarak statik/demo veri kullanmamak
 - [x] Test, TypeScript, production build ve görsel doğrulama sonrası yeni checkpoint oluşturmak
+
+## Hero Dekoratif İllüstrasyonları ve Sınıf Kapakları — 2026-08-19
+
+
+- [x] Referans kitap, defter ve kalem dekorasyonları için uygun medya varlıklarını hazırlamak
+- [x] Dekoratif illüstrasyonları sağ çalışma planının arkasına katmanlı ve responsive biçimde yerleştirmek
+- [x] Hero dekorasyonlarının çalışma planı metinlerini ve mobil görünümü kapatmamasını doğrulamak
+- [x] 1–4, 5–8 ve 9–12 sınıf kartları için farklı konuya uygun kapak görselleri eşleme altyapısı oluşturmak
+- [x] Kapak görsellerini gerçek kategori/kademe verisiyle bağlamak; tekrar eden veya demo görsel bırakmamak
+- [x] Masaüstü, tablet ve mobil görsel kontrolü ile TypeScript, Vitest ve production build çalıştırmak
+- [x] Bu görsel iterasyon için checkpoint oluşturmak
