@@ -416,6 +416,12 @@ function PanelContent() {
   const [contentTitle, setContentTitle] = useState("");
   const [contentSummary, setContentSummary] = useState("");
   const [contentCoverUrl, setContentCoverUrl] = useState("");
+  const [documentPreview, setDocumentPreview] = useState<{
+    name: string;
+    sizeBytes: number;
+    mimeType: string;
+    url: string;
+  } | null>(null);
   const documentUpload = trpc.admin.uploadMediaAsset.useMutation({
     onSuccess: result => {
       if (result.coverImageUrl) {
@@ -2255,7 +2261,14 @@ function PanelContent() {
               {selectedContentType === "document" && <div className="space-y-2 rounded-xl border border-[#e4ebe4] bg-[#fbfdf9] p-3">
                 <Label htmlFor="documentCoverSource">PDF’den otomatik kapak oluştur</Label>
                 <p className="text-[11px] leading-5 text-[#71838b]">PDF’nin ilk sayfası 900×1200 WebP kapak görseline dönüştürülür ve S3’e kaydedilir.</p>
-                <input id="documentCoverSource" type="file" accept="application/pdf" disabled={documentUpload.isPending} onChange={event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const dataBase64 = String(reader.result).split(",")[1] ?? ""; documentUpload.mutate({ fileName: file.name, mimeType: "application/pdf", dataBase64, contentType: "document" }); }; reader.readAsDataURL(file); event.currentTarget.value = ""; }} className="block w-full rounded-xl border border-input bg-white p-2 text-xs" />
+                <input id="documentCoverSource" type="file" accept="application/pdf,.docx,.pptx" disabled={documentUpload.isPending} onChange={event => { const file = event.target.files?.[0]; if (!file) return; const previewUrl = URL.createObjectURL(file); setDocumentPreview({ name: file.name, sizeBytes: file.size, mimeType: file.type || "application/octet-stream", url: previewUrl }); const reader = new FileReader(); reader.onload = () => { const dataBase64 = String(reader.result).split(",")[1] ?? ""; documentUpload.mutate({ fileName: file.name, mimeType: file.type || "application/octet-stream", dataBase64, contentType: "document" }); }; reader.readAsDataURL(file); event.currentTarget.value = ""; }} className="block w-full rounded-xl border border-input bg-white p-2 text-xs" />
+                {documentPreview && <div className="mt-3 overflow-hidden rounded-2xl border border-[#dfe8df] bg-white">
+                  <div className="flex items-center justify-between gap-3 border-b border-[#edf1ec] px-3 py-2">
+                    <div className="min-w-0"><p className="truncate text-xs font-bold text-[#29465a]">{documentPreview.name}</p><p className="text-[11px] text-[#71838b]">{documentPreview.mimeType} · {(documentPreview.sizeBytes / 1024 / 1024).toFixed(2)} MB</p></div>
+                    <Badge variant="outline" className="shrink-0 text-[10px]">Önizleme</Badge>
+                  </div>
+                  {documentPreview.mimeType === "application/pdf" ? <iframe title="Doküman önizlemesi" src={documentPreview.url} className="h-64 w-full bg-[#f7f8f4]" /> : <div className="grid h-32 place-items-center bg-[#f7f8f4] px-4 text-center text-xs text-[#71838b]">Bu dosya türünde tarayıcı önizlemesi sınırlı. Dosya bilgileri kontrol edilerek yüklenebilir.</div>}
+                </div>}
                 {documentUpload.isPending && <p className="text-xs text-[#4e7c6d]">Doküman yükleniyor, kapak hazırlanıyor...</p>}
               </div>}
               <div className="space-y-2">
