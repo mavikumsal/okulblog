@@ -1071,3 +1071,11 @@
 - [x] Referans tasarımdaki açık farkları ve belirsiz gereksinimleri teknik plana dönüştür
 - [x] Panel arayüzünü mevcut gerçek veri ve yetki bağlantılarını koruyarak referansa yaklaştır
 - [x] Yeni panel iterasyonunu TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
+
+## Dashboard etkileşimli veri iterasyonu
+- [x] “Son 30 gün” tarih filtresini gerçek performans sorgusuna bağla
+- [x] Üst arama kutusuna modül bazlı canlı autocomplete önerileri ekle
+- [x] Çizgi grafik veri noktalarında kesin görüntülenme ve etkileşim tooltip’i göster
+- [x] Dashboard etkileşimlerini TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
+
+- [x] Admin Genel Bakış karşılama alanında eski “Pekşen Yayınları” ibaresini OkulBlog markasıyla değiştir

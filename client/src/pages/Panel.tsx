@@ -153,6 +153,7 @@ function PanelContent() {
     requestedSection === "ayarlar" && !isAdmin
       ? "restricted-settings"
       : (sectionAlias[requestedSection] ?? requestedSection);
+  const dashboardRangeDays = [7, 30, 90].includes(Number(searchParams?.get("range"))) ? Number(searchParams?.get("range")) : 30;
   const panelSections = trpc.panel.accessibleSections.useQuery(undefined, {
     enabled: Boolean(user),
   });
@@ -1230,6 +1231,7 @@ function PanelContent() {
             content={(overview.data?.content ?? []) as Array<{ id: number; title: string; contentType: string; status: string; createdAt?: string | Date }>}
             userCount={(overviewAdminUsers.data ?? []).length}
             pendingCount={(documentDrafts.data ?? []).filter((draft: { status?: string }) => draft.status === "pending").length + (overview.data?.content ?? []).filter(item => item.status === "pending").length}
+            rangeDays={dashboardRangeDays}
             onNavigate={route => setLocation(route)}
           />
           {(isAdmin || user?.role === "teacher") && <QuestionProductionDashboard className="mt-5" />}

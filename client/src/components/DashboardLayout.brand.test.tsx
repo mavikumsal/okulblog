@@ -8,9 +8,9 @@ vi.mock("@/_core/hooks/useAuth", () => ({
   useAuth: () => ({ loading: false, user: { role: "admin", name: "Admin" }, logout: vi.fn() }),
 }));
 vi.mock("@/hooks/useMobile", () => ({ useIsMobile: () => false }));
-vi.mock("wouter", () => ({ useLocation: () => ["/panel", vi.fn()] }));
+vi.mock("wouter", () => ({ useLocation: () => ["/panel?range=7", vi.fn()] }));
 vi.mock("@/lib/trpc", () => ({
-  trpc: { panel: { accessibleSections: { useQuery: () => ({ data: [], isLoading: false, isError: false }) } } },
+  trpc: { panel: { accessibleSections: { useQuery: () => ({ data: [], isLoading: false, isError: false }) } }, platform: { overview: { useQuery: () => ({ data: { content: [] }, isLoading: false, isError: false }) } } },
 }));
 
 import DashboardLayout from "./DashboardLayout";
@@ -22,6 +22,7 @@ describe("DashboardLayout nötr hesap etiketi", () => {
     render(<DashboardLayout><div>Panel içeriği</div></DashboardLayout>);
 
     expect(screen.getByText("OkulBlog hesabı")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tarih aralığı: Son 7 gün")).toBeInTheDocument();
     expect(screen.getByText("Hesap seçenekleri")).toBeInTheDocument();
     expect(screen.queryByText(/Pekşen Yayınları|peksen yayınları/i)).not.toBeInTheDocument();
   });

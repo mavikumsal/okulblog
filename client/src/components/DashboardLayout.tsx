@@ -142,9 +142,22 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
+  const [rangeMenuOpen, setRangeMenuOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === getPanelPathname(location));
   const accessibleSections = trpc.panel.accessibleSections.useQuery(undefined, { enabled: Boolean(user) });
+  const dashboardOverview = trpc.platform.overview.useQuery(undefined, { enabled: Boolean(user), staleTime: 30_000 });
+  const searchTerm = globalSearch.trim().toLocaleLowerCase("tr-TR");
+  const searchSuggestions = searchTerm ? [
+    ...menuItems.filter(item => item.label.toLocaleLowerCase("tr-TR").includes(searchTerm)).map(item => ({ label: item.label, meta: "Modül", path: item.path })),
+    ...((dashboardOverview.data?.content ?? []) as Array<{ id: number; title: string; contentType: string }>).filter(item => item.title.toLocaleLowerCase("tr-TR").includes(searchTerm)).slice(0, 5).map(item => ({ label: item.title, meta: item.contentType, path: `/icerik/${item.contentType}/${item.id}` })),
+  ].slice(0, 7) : [];
+  const currentRange = Number(new URLSearchParams(location.split("?")[1] ?? "").get("range")) || 30;
+  const setDashboardRange = (days: number) => {
+    const separator = location.includes("?") ? "&" : "?";
+    setLocation(`${location.split("?")[0]}${separator}range=${days}`);
+    setRangeMenuOpen(false);
+  };
   const visibleMenuItems = menuItems.filter(item => {
     if (item.adminOnly) return user?.role === "admin";
     if (user?.role === "admin") return true;
@@ -303,8 +316,8 @@ function DashboardLayoutContent({
             </div>
           </div>
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <label className="hidden h-9 min-w-0 items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-3 text-[#7a898c] lg:flex lg:w-52 xl:w-64"><Search className="h-4 w-4 shrink-0" /><input value={globalSearch} onChange={event => setGlobalSearch(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && globalSearch.trim()) setLocation(`/panel/icerikler?search=${encodeURIComponent(globalSearch.trim())}`); }} placeholder="Panelde ara..." aria-label="Panelde ara" className="min-w-0 flex-1 bg-transparent text-xs text-[#193f59] outline-none placeholder:text-[#a0aeae]" /></label>
-            <button type="button" aria-label="Tarih aralığı: Son 30 gün" className="hidden h-9 items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-3 text-xs font-semibold text-[#52666c] transition-colors hover:border-[#079b98] hover:text-[#193f59] xl:flex"><CalendarDays className="h-3.5 w-3.5" />Son 30 gün</button>
+            <div className="relative hidden lg:block lg:w-52 xl:w-64"><label className="flex h-9 min-w-0 items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-3 text-[#7a898c] focus-within:border-[#079b98]"><Search className="h-4 w-4 shrink-0" /><input value={globalSearch} onChange={event => setGlobalSearch(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && globalSearch.trim()) setLocation(`/panel/icerikler?search=${encodeURIComponent(globalSearch.trim())}`); if (event.key === "Escape") setGlobalSearch(""); }} placeholder="Panelde ara..." aria-label="Panelde ara" className="min-w-0 flex-1 bg-transparent text-xs text-[#193f59] outline-none placeholder:text-[#a0aeae]" /></label>{searchSuggestions.length > 0 && <div className="absolute left-0 right-0 top-11 z-50 overflow-hidden rounded-xl border border-[#e0e7e5] bg-white p-1.5 shadow-xl">{searchSuggestions.map(item => <button key={`${item.meta}-${item.path}`} type="button" onClick={() => { setGlobalSearch(item.label); setLocation(item.path); }} className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-[#edf7f4]"><span className="min-w-0 truncate text-xs font-bold text-[#193f59]">{item.label}</span><span className="shrink-0 text-[10px] font-semibold uppercase text-[#8a999c]">{item.meta}</span></button>)}</div>}</div>
+            <div className="relative hidden xl:block"><button type="button" aria-expanded={rangeMenuOpen} aria-label={`Tarih aralığı: Son ${currentRange} gün`} onClick={() => setRangeMenuOpen(open => !open)} className="flex h-9 items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-3 text-xs font-semibold text-[#52666c] transition-colors hover:border-[#079b98] hover:text-[#193f59]"><CalendarDays className="h-3.5 w-3.5" />Son {currentRange} gün<ChevronDown className="h-3 w-3" /></button>{rangeMenuOpen && <div className="absolute right-0 top-11 z-50 w-36 rounded-xl border border-[#e0e7e5] bg-white p-1.5 shadow-xl">{[7, 30, 90].map(days => <button key={days} type="button" onClick={() => setDashboardRange(days)} className={`flex w-full rounded-lg px-3 py-2 text-left text-xs font-semibold transition hover:bg-[#edf7f4] ${currentRange === days ? "bg-[#edf7f4] text-[#193f59]" : "text-[#60757c]"}`}>Son {days} gün</button>)}</div>}</div>
             <button aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} onClick={() => toggleTheme?.()} className="hidden h-9 w-9 items-center justify-center rounded-xl border border-[#e0e7e5] bg-white text-[#65777b] transition-colors hover:bg-[#edf3f1] hover:text-[#193f59] sm:flex">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
