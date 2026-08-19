@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from "react";
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const homeState = vi.hoisted(() => ({
@@ -24,7 +24,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-import Home, { buildClassAllContentUrl, buildClassTypeUrl, classLevelKey, classSummary, getHeroLearningContext, isNewContent } from "./Home";
+import Home, { AnimatedMetric, buildClassAllContentUrl, buildClassTypeUrl, classLevelKey, classSummary, getHeroLearningContext, isNewContent } from "./Home";
 
 describe("Home marka, mobil menü ve CTA akışı", () => {
   afterEach(() => {
@@ -154,6 +154,13 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
 
   it("mobil içerik sayaç URL’si sınıf ve içerik türünü korur", () => {
     expect(buildClassTypeUrl("1. Sınıf", "video")).toBe("/icerik/video?class=1.%20S%C4%B1n%C4%B1f&contentType=video");
+  });
+
+  it("istatistik sayacı yeni veri geldiğinde hedef değere doğru animasyonla ilerler", async () => {
+    const view = render(<AnimatedMetric value={0} />);
+    expect(view.container.querySelector("strong")).toHaveTextContent("0");
+    view.rerender(<AnimatedMetric value={12} />);
+    await waitFor(() => expect(view.container.querySelector("strong")).toHaveTextContent("12"), { timeout: 1500 });
   });
 
   it("Yeni rozetini yalnızca son 7 gün içindeki geçerli yayınlarda gösterir", () => {

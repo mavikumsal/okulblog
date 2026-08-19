@@ -1295,3 +1295,14 @@
 - [x] Masaüstü ve mobil görsel kontrolü yapmak
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Bu görsel düzenleme için checkpoint oluşturmak
+
+## Animasyonlu İstatistik Kartı — 2026-08-19
+
+- [x] İstatistik kartı veri kaynaklarını ve mevcut render akışını incelemek
+- [x] Sayısal değerleri veri geldiğinde animasyonlu sayaçlarla göstermek
+- [x] Veri yenilendiğinde sayaçların yeni hedef değere yumuşak geçiş yapmasını sağlamak
+- [x] Kişisel plan, eksik veri ve sıfır değer durumlarını doğru göstermek
+- [x] Animasyonlu sayaç için Vitest testi eklemek
+- [x] Masaüstü ve mobil görsel doğrulama yapmak
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [ ] Bu geliştirme için checkpoint oluşturmak

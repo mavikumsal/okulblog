@@ -76,6 +76,43 @@ function getSlideNavigation(link: string | null | undefined) {
   return { kind: "anchor" as const, target: `#${target}` };
 }
 
+type AnimatedMetricProps = {
+  value: number | string;
+  className?: string;
+  format?: (value: number) => string;
+};
+
+export function AnimatedMetric({ value, className, format = value => String(value) }: AnimatedMetricProps) {
+  const numericValue = typeof value === "number" && Number.isFinite(value) ? value : null;
+  const [displayValue, setDisplayValue] = useState<number | string>(numericValue ?? value);
+
+  useEffect(() => {
+    if (numericValue === null) {
+      setDisplayValue(value);
+      return;
+    }
+
+    const fromValue = typeof displayValue === "number" && Number.isFinite(displayValue) ? displayValue : 0;
+    const distance = numericValue - fromValue;
+    if (distance === 0) return;
+
+    const startedAt = performance.now();
+    const duration = 720;
+    let frame = 0;
+    const tick = (now: number) => {
+      const progress = Math.min((now - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(fromValue + distance * eased));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [numericValue, value]);
+
+  return <strong className={`mt-1 block text-xl font-black text-[#078b87] transition-opacity duration-300 ${className ?? ""}`} aria-live="polite">{numericValue === null ? displayValue : format(Number(displayValue))}</strong>;
+}
+
 export default function Home() {
   const { isAuthenticated, loading, user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -276,7 +313,7 @@ export default function Home() {
 
         <section aria-label="Yeni eklenen içerikler" className="bg-[#f7f9fa] py-10 sm:py-12"><div className="container"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-2xl font-black tracking-[-.04em] text-[#17354d] sm:text-3xl">Yeni eklenen içerikler</h2><p className="mt-2 text-sm text-[#64748b]">Her hafta güncellenen ders notları, testler ve videolar.</p></div><button type="button" onClick={() => goTo("icerikler")} className="inline-flex items-center gap-2 text-sm font-bold text-[#078b87]">Tüm yeni içerikleri gör <ArrowRight size={15} /></button></div>{publishedContent.length > 3 ? <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{publishedContent.slice(3, 7).map((item, itemIndex) => { const visual = NEW_CONTENT_VISUALS[itemIndex] ?? NEW_CONTENT_VISUALS[0]; return <button key={item.id} type="button" onClick={() => setLocation(`/icerik/${item.contentType}/${item.id}`)} className="group overflow-hidden rounded-2xl border border-[#e2e8e7] bg-white text-left shadow-[0_12px_34px_rgba(6,27,46,.06)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(6,27,46,.14)] focus:outline-none focus:ring-2 focus:ring-[#08a7a2]/40"><div className="relative"><div className="relative h-36 overflow-hidden bg-[#eff5ee]"><img src={visual.src} alt={visual.alt} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]" /><div className="absolute inset-0 bg-gradient-to-t from-[#061b2e]/20 via-transparent to-white/10" />{isNewContent(item.createdAt) && <span className="absolute right-3 top-3 rounded-full bg-[#f4b63e] px-2.5 py-1 text-[10px] font-black uppercase tracking-[.08em] text-[#061b2e] shadow-[0_5px_12px_rgba(6,27,46,.18)]">Yeni</span>}</div></div><div className="p-4"><span className="rounded-md bg-[#e7f6f4] px-2 py-1 text-[10px] font-extrabold text-[#078b87]">{contentTypeLabel(item.contentType)}</span><h3 className="mt-3 line-clamp-2 text-sm font-extrabold text-[#17354d]">{item.title}</h3><small className="mt-2 block truncate text-xs text-[#64748b]">{categoryNameById.get(item.categoryId ?? -1) ?? "Eğitim içeriği"} · {contentTypeLabel(item.contentType)}{formatPublishedDate(item.createdAt) ? ` · ${formatPublishedDate(item.createdAt)}` : ""}</small></div></button>; })}</div> : <div className="mt-7 rounded-2xl border border-dashed border-[#c9d6cf] bg-white p-7 text-center text-sm text-[#64748b]">Yeni eklenen içerikler burada görünecek.</div>}</div></section>
 
-        <section className="bg-[#f7f9fa] pb-14 sm:pb-16"><div className="container grid gap-8 rounded-2xl bg-gradient-to-br from-[#061b2e] to-[#092c4a] p-7 text-white shadow-[0_15px_35px_rgba(6,27,46,.14)] sm:p-10 lg:grid-cols-2 lg:items-center"><div><h2 className="text-3xl font-black leading-tight tracking-[-.04em] sm:text-4xl">Hedefine düzenli çalışarak ulaş.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-[#cbd5e1]">Kişiselleştirilmiş çalışma planın ve ilerleme takibinle hedeflerine daha hızlı ve kolay ulaş.</p><Button onClick={accountAction} className="mt-6 rounded-xl bg-[#0f9f9a] font-bold hover:bg-[#078b87]">Ücretsiz Başla <ArrowRight size={16} /></Button></div><div className="grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 text-[#17354d]"><div className="rounded-xl border border-[#e2e8e7] p-4"><small className="text-xs text-[#64748b]">Haftalık Seri</small><strong className="mt-1 block text-xl font-black text-[#078b87]">{personalPlan ? "Aktif" : "—"}</strong></div><div className="rounded-xl border border-[#e2e8e7] p-4"><small className="text-xs text-[#64748b]">Tamamlanan İçerik</small><strong className="mt-1 block text-xl font-black text-[#078b87]">{homepageStats?.completedProgress ?? 0}</strong></div><div className="rounded-xl border border-[#e2e8e7] p-4"><small className="text-xs text-[#64748b]">Başarı Oranı</small><strong className="mt-1 block text-xl font-black text-[#078b87]">{personalPlan ? `%${personalPlan.progressPercent}` : "—"}</strong></div><div className="rounded-xl border border-[#e2e8e7] p-4"><small className="text-xs text-[#64748b]">Bu hafta</small><strong className="mt-1 block text-xl font-black text-[#078b87]">{homepageStats?.testAttempts ?? 0}</strong></div></div></div></section>
+        <section className="bg-[#f7f9fa] pb-14 sm:pb-16"><div className="container grid gap-8 rounded-2xl bg-gradient-to-br from-[#061b2e] to-[#092c4a] p-7 text-white shadow-[0_15px_35px_rgba(6,27,46,.14)] sm:p-10 lg:grid-cols-2 lg:items-center"><div><h2 className="text-3xl font-black leading-tight tracking-[-.04em] sm:text-4xl">Hedefine düzenli çalışarak ulaş.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-[#cbd5e1]">Kişiselleştirilmiş çalışma planın ve ilerleme takibinle hedeflerine daha hızlı ve kolay ulaş.</p><Button onClick={accountAction} className="mt-6 rounded-xl bg-[#0f9f9a] font-bold hover:bg-[#078b87]">Ücretsiz Başla <ArrowRight size={16} /></Button></div><div className="grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 text-[#17354d]"><div className="rounded-xl border border-[#e2e8e7] p-4"><small className="text-xs text-[#64748b]">Haftalık Seri</small><AnimatedMetric value={personalPlan ? "Aktif" : "—"} /></div><div className="rounded-xl border border-[#e2e8e7] p-4"><small className="text-xs text-[#64748b]">Tamamlanan İçerik</small><AnimatedMetric value={homepageStats?.completedProgress ?? 0} /></div><div className="rounded-xl border border-[#e2e8e7] p-4"><small className="text-xs text-[#64748b]">Başarı Oranı</small><AnimatedMetric value={personalPlan ? personalPlan.progressPercent : "—"} format={value => `%${value}`} /></div><div className="rounded-xl border border-[#e2e8e7] p-4"><small className="text-xs text-[#64748b]">Bu hafta</small><AnimatedMetric value={homepageStats?.testAttempts ?? 0} /></div></div></div></section>
 
         <section id="duyurular" className="bg-white py-12 sm:py-14"><div className="container"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#5540e8]">Güncel duyurular</p><h2 className="mt-3 text-3xl font-black tracking-[-.045em] text-[#111827] sm:text-4xl">Eğitim dünyasından en son haberler.</h2><p className="mt-3 text-sm text-[#6b7280]">OkulBlog’daki güncel içerikleri ve önemli gelişmeleri takip edin.</p></div><button onClick={() => setLocation("/icerik/news")} className="inline-flex items-center gap-2 self-start rounded-xl border border-[#e5e7eb] bg-white px-4 py-3 text-sm font-bold text-[#374151] shadow-sm transition hover:border-[#5540e8] hover:text-[#5540e8]">Tüm haberleri gör <ArrowRight size={16} /></button></div>{newsItems.length ? <div className="mt-10 grid gap-5 md:grid-cols-3">{newsItems.map(item => <button key={item.id} onClick={() => setLocation("/icerik/news")} className="group overflow-hidden rounded-[24px] border border-[#e5e7eb] bg-white text-left shadow-[0_8px_20px_rgba(31,41,55,.04)] transition hover:-translate-y-1 hover:shadow-[0_18px_34px_rgba(85,64,232,.12)]"><div className="h-36 bg-[#eef5ff]">{item.coverImageUrl ? <img src={item.coverImageUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <div className="grid h-full place-items-center text-[#8bb7ed]"><Megaphone size={30} /></div>}</div><div className="p-5"><span className="rounded-md bg-[#f0f5ff] px-2 py-1 text-[10px] font-bold text-[#2864d8]">GÜNCEL</span><h3 className="mt-4 line-clamp-2 text-lg font-extrabold text-[#111827]">{item.title}</h3><p className="mt-2 line-clamp-2 text-sm leading-5 text-[#6b7280]">{item.summary || "OkulBlog’dan güncel eğitim duyurusu."}</p><span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-[#2864d8]">Oku <ArrowRight size={14} /></span></div></button>)}</div> : <div className="mt-10 grid gap-5 md:grid-cols-3">{["Sınav ve başvuru duyuruları", "Yeni kaynaklar ve dokümanlar", "Güncel test ve ders içerikleri"].map(title => <div key={title} className="rounded-[24px] border border-[#e5e7eb] bg-white p-5 shadow-[0_8px_20px_rgba(31,41,55,.04)]"><div className="grid h-36 place-items-center rounded-2xl bg-[#eef5ff] text-[#8bb7ed]"><Megaphone size={30} /></div><h3 className="mt-5 text-lg font-extrabold text-[#111827]">{title}</h3><p className="mt-2 text-sm text-[#6b7280]">Yakında yayınlanacak güncel içerikleri burada görebilirsiniz.</p></div>)}</div>}</div></section>
 
