@@ -1059,3 +1059,9 @@
 - [x] OCR taslak metni için admin manuel düzeltme alanı ve güvenli kaydetme
 - [x] AI kullanım ve OCR başarı istatistiklerini üretim dashboard’unda gösterme
 - [x] AI/OCR dashboard ve OCR düzeltme akışını Vitest ile doğrulama
+
+## Yeni kullanıcı dosyası entegrasyonu
+- [x] Gönderilen metin dosyasını okuyup mevcut OkulBlog kapsamıyla karşılaştır
+- [x] Dosyadan çıkan yeni gereksinimleri teknik uygulama planına dönüştür
+- [x] Onaylanan yeni gereksinimleri projeye entegre et
+- [x] Yeni değişiklikleri TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula

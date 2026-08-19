@@ -21,7 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
-import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList, Cloud, Megaphone, SearchCheck, Heart, MessageCircle, ChevronDown, ExternalLink, Bell, Sun, Moon, ScrollText } from "lucide-react";
+import { BarChart3, CalendarDays, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Search, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList, Cloud, Megaphone, SearchCheck, Heart, MessageCircle, ChevronDown, ExternalLink, Bell, Sun, Moon, ScrollText } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -141,6 +141,7 @@ function DashboardLayoutContent({
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState("");
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === getPanelPathname(location));
   const accessibleSections = trpc.panel.accessibleSections.useQuery(undefined, { enabled: Boolean(user) });
@@ -301,7 +302,9 @@ function DashboardLayoutContent({
               <span className="text-[11px] text-[#7a898c]">OkulBlog Yönetim Paneli</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <label className="hidden h-9 min-w-0 items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-3 text-[#7a898c] lg:flex lg:w-52 xl:w-64"><Search className="h-4 w-4 shrink-0" /><input value={globalSearch} onChange={event => setGlobalSearch(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && globalSearch.trim()) setLocation(`/panel/icerikler?search=${encodeURIComponent(globalSearch.trim())}`); }} placeholder="Panelde ara..." aria-label="Panelde ara" className="min-w-0 flex-1 bg-transparent text-xs text-[#193f59] outline-none placeholder:text-[#a0aeae]" /></label>
+            <div className="hidden items-center gap-1 rounded-xl border border-[#e0e7e5] bg-white px-2 py-1.5 text-[#65777b] xl:flex" aria-label="Tarih aralığı"><CalendarDays className="h-3.5 w-3.5" /><input type="date" aria-label="Başlangıç tarihi" className="w-[92px] bg-transparent text-[10px] outline-none" /><span className="text-[#c4cecc]">–</span><input type="date" aria-label="Bitiş tarihi" className="w-[92px] bg-transparent text-[10px] outline-none" /></div>
             <button aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} onClick={() => toggleTheme?.()} className="hidden h-9 w-9 items-center justify-center rounded-xl border border-[#e0e7e5] bg-white text-[#65777b] transition-colors hover:bg-[#edf3f1] hover:text-[#193f59] sm:flex">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>

@@ -3,6 +3,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import QuestionEditor from "@/components/QuestionEditor";
 import ContactSettings from "@/components/ContactSettings";
 import ContentQuickStart from "@/components/ContentQuickStart";
+import { AdminOverviewDashboard } from "@/components/AdminOverviewDashboard";
 import CategoryCascadeSelect from "@/components/CategoryCascadeSelect";
 import SearchConsoleActionPanel from "@/components/SearchConsoleActionPanel";
 import { AdminUsersManagement } from "@/components/AdminUsersManagement";
@@ -156,6 +157,7 @@ function PanelContent() {
     enabled: Boolean(user),
   });
   const overview = trpc.platform.overview.useQuery();
+  const overviewAdminUsers = trpc.admin.users.useQuery(undefined, { enabled: isAdmin && section === "genel" });
   const auditLogs = (trpc as any).audit?.list?.useQuery
     ? (trpc as any).audit.list.useQuery({ limit: 250 }, { enabled: isAdmin && section === "audit" })
     : { data: [], isLoading: false, isError: false };
@@ -447,7 +449,7 @@ function PanelContent() {
   const documentDraftQuery = (trpc.admin as any).documentImportDrafts;
   const draftFilterInput = useMemo(() => ({ status: draftStatusFilter || undefined, aiStatus: draftAiFilter || undefined, from: draftFromFilter ? new Date(`${draftFromFilter}T00:00:00`) : undefined, to: draftToFilter ? new Date(`${draftToFilter}T23:59:59.999`) : undefined }), [draftStatusFilter, draftAiFilter, draftFromFilter, draftToFilter]);
   const documentDrafts = documentDraftQuery?.useQuery
-    ? documentDraftQuery.useQuery(draftFilterInput, { enabled: isAdmin && (panelContentTypeByRoute[requestedSection] === "document" || section === "icerikler"), staleTime: 10_000 })
+    ? documentDraftQuery.useQuery(draftFilterInput, { enabled: isAdmin && (section === "genel" || panelContentTypeByRoute[requestedSection] === "document" || section === "icerikler"), staleTime: 10_000 })
     : { data: [], refetch: () => undefined };
   const [selectedDraftIds, setSelectedDraftIds] = useState<number[]>([]);
   const bulkApproveDraftApi = (trpc.admin as any).bulkApproveDocumentImportDrafts;
@@ -1227,34 +1229,13 @@ function PanelContent() {
 
       {section === "genel" && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              label="Eğitim Kategorileri"
-              value={String(overview.data?.educationCategories.length ?? 0)}
-              icon={FolderTree}
-              tone="bg-[#e0f2ea] text-[#276e61]"
-            />
-            <StatCard
-              label="Kurum Kategorileri"
-              value={String(overview.data?.institutionCategories.length ?? 0)}
-              icon={Layers3}
-              tone="bg-[#f8edcf] text-[#9c7427]"
-            />
-            <StatCard
-              label="Yayınlanan İçerik"
-              value={String(overview.data?.content.length ?? 0)}
-              icon={FileText}
-              tone="bg-[#e7e5f8] text-[#62538d]"
-            />
-            <StatCard
-              label="Açık Modüller"
-              value={String(
-                isAdmin ? managedSections.length : roleSections.length
-              )}
-              icon={CheckCircle2}
-              tone="bg-[#e0eaf5] text-[#386886]"
-            />
-          </div>
+          <AdminOverviewDashboard
+            userName={user?.name}
+            content={(overview.data?.content ?? []) as Array<{ id: number; title: string; contentType: string; status: string; createdAt?: string | Date }>}
+            userCount={(overviewAdminUsers.data ?? []).length}
+            pendingCount={(documentDrafts.data ?? []).filter((draft: { status?: string }) => draft.status === "pending").length + (overview.data?.content ?? []).filter(item => item.status === "pending").length}
+            onNavigate={route => setLocation(route)}
+          />
           {(isAdmin || user?.role === "teacher") && <QuestionProductionDashboard className="mt-5" />}
           <div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
             <section className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
