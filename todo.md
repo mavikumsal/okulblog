@@ -1137,3 +1137,14 @@
 ## Next iteration note
 
 - [x] Sonraki kullanıcı görevi: kullanıcı tarafından sağlanacak referans görsele göre ilgili ekranı yüksek sadakatle uyarlamak
+
+## Öğrenci Odaklı Hero Düzeltmesi — 2026-08-19
+
+- [x] Hero sağ tarafındaki admin paneli, üretim özeti ve soru üretim istatistiği kartlarını kaldırmak
+- [x] Hero sağında yalnızca gerçek kullanıcı ilerlemesine dayalı Bugünkü Çalışma Planın kartını göstermek
+- [x] Hero başlığını ve öğrenci odaklı açıklama/avantaj metinlerini referans tasarıma uyarlamak
+- [x] Header’dan Ana Sayfa, Panelim ve Panele git alanlarını kaldırıp Giriş Yap/Ücretsiz Başla düzenini uygulamak
+- [x] Hero ve istatistik şeridini öğrenci referansındaki oranlara ve tek parça beyaz şerit düzenine yaklaştırmak
+- [x] Sınıf sekmeleri, 5–8 sınıf kartları, Popüler Konular ve önerilen içerik düzenini koruyarak referans yerleşimini doğrulamak
+- [x] Öğrenci odaklı hero için TypeScript, Vitest, production build ve 1440px/375px görsel kontrollerini yapmak
+- [ ] Öğrenci odaklı hero düzeltmesi için checkpoint oluşturmak

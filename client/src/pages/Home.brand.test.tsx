@@ -46,12 +46,13 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
 
     const menuButton = screen.getByRole("button", { name: "Menüyü aç" });
     fireEvent.click(menuButton);
-    expect(screen.getAllByRole("button", { name: "Ana Sayfa" }).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByRole("button", { name: "Giriş yap" }).length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryAllByRole("button", { name: "Ana Sayfa" })).toHaveLength(0);
+    expect(screen.getAllByRole("button", { name: "Ücretsiz Başla" }).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByRole("button", { name: "Dersler" }).length).toBeGreaterThanOrEqual(1);
 
     fireEvent.click(menuButton);
-    expect(screen.getAllByRole("button", { name: "Ana Sayfa" })).toHaveLength(1);
-    fireEvent.click(screen.getAllByRole("button", { name: "Giriş yap" })[0]);
+    expect(screen.queryAllByRole("button", { name: "Ana Sayfa" })).toHaveLength(0);
+    fireEvent.click(screen.getAllByRole("button", { name: "Ücretsiz Başla" })[0]);
     expect(homeState.startLogin).toHaveBeenCalledTimes(1);
   });
 
@@ -146,13 +147,14 @@ describe("Home marka, mobil menü ve CTA akışı", () => {
     expect(buildClassTypeUrl("1. Sınıf", "video")).toBe("/icerik/video?class=1.%20S%C4%B1n%C4%B1f&contentType=video");
   });
 
-  it("oturumlu kullanıcıya Panelim ve Panele git CTA’larını gösterip Panel’e yönlendirir", () => {
+  it("oturumlu kullanıcıya yalnızca Hesabım CTA’sını gösterip Panel’e yönlendirir", () => {
     homeState.auth = { isAuthenticated: true, loading: false };
     render(<Home />);
 
-    expect(screen.getAllByRole("button", { name: "Panelim" }).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByRole("button", { name: "Panele git" }).length).toBeGreaterThanOrEqual(1);
-    fireEvent.click(screen.getAllByRole("button", { name: "Panele git" })[0]);
+    expect(screen.queryAllByRole("button", { name: "Panelim" })).toHaveLength(0);
+    expect(screen.queryAllByRole("button", { name: "Panele git" })).toHaveLength(0);
+    expect(screen.getAllByRole("button", { name: "Hesabım" }).length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(screen.getAllByRole("button", { name: "Hesabım" })[0]);
     expect(homeState.setLocation).toHaveBeenCalledWith("/panel");
   });
 });
