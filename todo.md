@@ -1216,3 +1216,12 @@
 - [x] Kapak görsellerini gerçek kategori/kademe verisiyle bağlamak; tekrar eden veya demo görsel bırakmamak
 - [x] Masaüstü, tablet ve mobil görsel kontrolü ile TypeScript, Vitest ve production build çalıştırmak
 - [x] Bu görsel iterasyon için checkpoint oluşturmak
+
+## Sınıf Kartı ve Popüler Konular Eşleme — 2026-08-19
+
+- [x] Sınıf keşif kartlarının kapak görseli yüksekliğini referans görsele göre büyütmek
+- [x] Sınıf kartı gövde yüksekliğini ve alt boşluklarını Popüler Konular kartıyla görsel olarak eşlemek
+- [x] Popüler Konular paneli ile sınıf kartları arasında ortak grid hizası ve dengeli dikey ritim sağlamak
+- [x] Masaüstü, tablet ve mobil responsive görünümü kontrol etmek
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Yeni görsel düzenleme için checkpoint oluşturmak
