@@ -96,13 +96,59 @@ import { decryptSearchConsoleToken, encryptSearchConsoleToken } from "./searchCo
 import { extractPdfText, renderPdfCover, renderPdfPages } from "./documentCover";
 import { ALLOWED_REMOTE_DOCUMENT_TYPES, uploadToBunnyStorage, validateRemoteDocumentUrl } from "./bunnyStorage";
 import { buildExportFile } from "./exportDocuments";
-import { buildDocumentAiPrompt, normalizeDocumentAiMetadata, sanitizeDocumentAiError, shouldAnalyzeDocumentText } from "./documentAiMetadata";
+import { buildDocumentAiPrompt, buildDocumentOcrPrompt, normalizeDocumentAiMetadata, normalizeDocumentOcrText, ocrConfidenceFromText, sanitizeDocumentAiError, shouldAnalyzeDocumentText } from "./documentAiMetadata";
 
 export function canManagePopularEducationCategories(role: string | undefined) {
   return role === "admin";
 }
 function safeFileStem(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/\.pdf$/i, "").slice(0, 160);
+}
+
+async function analyzeDocumentWithOcr(input: { text: string; previewPages: Array<{ page: number; url: string }>; fallbackTitle: string }) {
+  let extractedText = input.text.trim();
+  let ocrStatus: "not_needed" | "not_started" | "completed" | "failed" = "not_needed";
+  let ocrConfidence: number | null = null;
+  let aiStatus: "not_started" | "completed" | "failed" = "not_started";
+  let aiModel: string | null = null;
+  let aiError: string | null = null;
+  if (extractedText.length < 40 && input.previewPages.length) {
+    ocrStatus = "not_started";
+    try {
+      const pages = input.previewPages.slice(0, 3);
+      const ocr = await invokeLLM({
+        model: "gpt-5-mini",
+        messages: [
+          { role: "system", content: buildDocumentOcrPrompt() },
+          { role: "user", content: [{ type: "text", text: "Belgenin aşağıdaki sayfalarından Türkçe OCR metni çıkar." }, ...pages.map(page => ({ type: "image_url" as const, image_url: { url: page.url, detail: "high" as const } }))] },
+        ],
+      });
+      const content = ocr.choices[0]?.message?.content;
+      extractedText = normalizeDocumentOcrText(content);
+      ocrConfidence = ocrConfidenceFromText(extractedText, pages.length);
+      ocrStatus = extractedText.length >= 20 ? "completed" : "failed";
+    } catch (error) {
+      ocrStatus = "failed";
+      aiError = sanitizeDocumentAiError(error);
+    }
+  }
+  let title = input.fallbackTitle;
+  let summary = "";
+  let tags: string[] = [];
+  if (extractedText.length >= 40) {
+    try {
+      aiModel = "gpt-5-mini";
+      const ai = await invokeLLM({ model: aiModel, messages: [{ role: "system", content: "Türkçe eğitim dokümanını analiz et. Yalnızca JSON döndür. Başlık en fazla 220, özet en fazla 3000 karakter, etiket sayısı en fazla 6 olmalı." }, { role: "user", content: buildDocumentAiPrompt(extractedText) }], response_format: { type: "json_schema", json_schema: { name: "document_metadata", strict: true, schema: { type: "object", properties: { title: { type: "string" }, summary: { type: "string" }, tags: { type: "array", items: { type: "string" } } }, required: ["title", "summary", "tags"], additionalProperties: false } } } });
+      const content = ai.choices[0]?.message?.content;
+      const parsed = JSON.parse(typeof content === "string" ? content : "{}");
+      ({ title, summary, tags } = normalizeDocumentAiMetadata(parsed, title));
+      aiStatus = "completed";
+    } catch (error) {
+      aiStatus = "failed";
+      aiError = sanitizeDocumentAiError(error);
+    }
+  }
+  return { extractedText, ocrStatus, ocrConfidence, title, summary, tags, aiStatus, aiModel, aiError, aiSuggestedTitle: aiStatus === "completed" ? title : null, aiSuggestedSummary: aiStatus === "completed" ? summary : null, aiSuggestedTags: aiStatus === "completed" ? tags : [] };
 }
 
 const categoryInput = z.object({
@@ -793,29 +839,17 @@ export const appRouter = router({
         extractedText = await extractPdfText(buffer);
       }
       const mediaAssetId = await createMediaAsset({ provider, providerAssetId, fileName: originalName, publicUrl, mimeType, sizeBytes: buffer.byteLength, contentType: "document", metadata: { sourceUrl: input.sourceUrl, activeProvider, coverImageUrl, previewPages }, uploadedBy: ctx.user.id });
-      let title = originalName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
-      let summary = "";
-      let tags: string[] = [];
-      let aiStatus: "not_started" | "completed" | "failed" = "not_started";
-      let aiModel: string | null = null;
-      let aiError: string | null = null;
-      if (shouldAnalyzeDocumentText(input.analyzeWithAi, extractedText)) {
-        try {
-          aiModel = "gpt-5-mini";
-          const ai = await invokeLLM({ model: aiModel, messages: [{ role: "system", content: "Türkçe eğitim dokümanını analiz et. Yalnızca JSON döndür. Başlık en fazla 220, özet en fazla 3000 karakter, etiket sayısı en fazla 6 olmalı." }, { role: "user", content: buildDocumentAiPrompt(extractedText) }], response_format: { type: "json_schema", json_schema: { name: "document_metadata", strict: true, schema: { type: "object", properties: { title: { type: "string" }, summary: { type: "string" }, tags: { type: "array", items: { type: "string" } } }, required: ["title", "summary", "tags"], additionalProperties: false } } } });
-          const content = ai.choices[0]?.message?.content;
-          const parsed = JSON.parse(typeof content === "string" ? content : "{}");
-          ({ title, summary, tags } = normalizeDocumentAiMetadata(parsed, title));
-          aiStatus = "completed";
-        } catch (error) { aiStatus = "failed"; aiError = sanitizeDocumentAiError(error); }
-      }
-      const draftId = await createDocumentImportDraft({ mediaAssetId, sourceUrl: input.sourceUrl, title, summary, tags, coverImageUrl, previewPages, createdBy: ctx.user.id });
-      if (aiStatus !== "not_started") await updateDocumentImportDraft(draftId, { aiStatus, aiModel, aiError });
+      const fallbackTitle = originalName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+      const analysis = input.analyzeWithAi ? await analyzeDocumentWithOcr({ text: extractedText, previewPages, fallbackTitle }) : { extractedText, ocrStatus: "not_needed" as const, ocrConfidence: null, title: fallbackTitle, summary: "", tags: [], aiStatus: "not_started" as const, aiModel: null, aiError: null, aiSuggestedTitle: null, aiSuggestedSummary: null, aiSuggestedTags: [] };
+      const draftId = await createDocumentImportDraft({ mediaAssetId, sourceUrl: input.sourceUrl, title: analysis.title, summary: analysis.summary, tags: analysis.tags, coverImageUrl, previewPages, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, extractedText: analysis.extractedText, aiSuggestedTitle: analysis.aiSuggestedTitle, aiSuggestedSummary: analysis.aiSuggestedSummary, aiSuggestedTags: analysis.aiSuggestedTags, createdBy: ctx.user.id });
+      if (analysis.aiStatus !== "not_started" || analysis.ocrStatus !== "not_needed") await updateDocumentImportDraft(draftId, { aiStatus: analysis.aiStatus, aiModel: analysis.aiModel, aiError: analysis.aiError, aiSuggestedTitle: analysis.aiSuggestedTitle, aiSuggestedSummary: analysis.aiSuggestedSummary, aiSuggestedTags: analysis.aiSuggestedTags, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, extractedText: analysis.extractedText });
       await recordSecurityEvent({ eventType: "document_import_draft_created", severity: "low", description: "Admin dokümanı taslak onay kuyruğuna aldı.", metadata: { draftId, mediaAssetId, provider, mimeType, sizeBytes: buffer.byteLength, actorId: ctx.user.id } });
-      return { success: true, draftId, mediaAssetId, provider, publicUrl, coverImageUrl, previewPages, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, title, summary, tags, aiStatus, aiError, aiRequested: input.analyzeWithAi };
+      return { success: true, draftId, mediaAssetId, provider, publicUrl, coverImageUrl, previewPages, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, title: analysis.title, summary: analysis.summary, tags: analysis.tags, aiStatus: analysis.aiStatus, aiError: analysis.aiError, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, aiRequested: input.analyzeWithAi };
     }),
-    documentImportDrafts: adminProcedure.input(z.object({ status: z.enum(["draft", "pending", "approved", "rejected"]).optional() }).optional()).query(({ input }) => listDocumentImportDrafts(input?.status)),
+    documentImportDrafts: adminProcedure.input(z.object({ status: z.enum(["draft", "pending", "approved", "rejected"]).optional(), aiStatus: z.enum(["not_started", "processing", "completed", "failed"]).optional(), from: z.coerce.date().optional(), to: z.coerce.date().optional() }).optional()).query(({ input }) => listDocumentImportDrafts(input)),
     updateDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(3).max(220), summary: z.string().trim().max(3000).optional().nullable(), tags: z.array(z.string().trim().min(1).max(50)).max(12).default([]), categoryId: z.number().int().positive().optional().nullable(), institutionCategoryId: z.number().int().positive().optional().nullable(), status: z.enum(["draft", "pending", "rejected"]).optional() })).mutation(async ({ input }) => { const { id, ...data } = input; await updateDocumentImportDraft(id, data); return { success: true }; }),
+    reanalyzeDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { const draft = await getDocumentImportDraft(input.id); if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Taslak bulunamadı." }); let text = draft.extractedText ?? ""; const pages = Array.isArray(draft.previewPages) ? draft.previewPages as Array<{ page: number; url: string }> : []; if (text.length < 40 && pages.length === 0) { const asset = await getMediaAsset(draft.mediaAssetId); if (asset?.mimeType === "application/pdf" && asset.publicUrl) { const response = await fetch(asset.publicUrl, { signal: AbortSignal.timeout(30_000) }); if (response.ok) text = await extractPdfText(Buffer.from(await response.arrayBuffer())); } } const fallbackTitle = draft.sourceUrl.split("/").pop()?.replace(/[-_]+/g, " ").replace(/\.[^.]+$/, "").trim() || draft.title; const analysis = await analyzeDocumentWithOcr({ text, previewPages: pages, fallbackTitle }); await updateDocumentImportDraft(input.id, { title: analysis.title, summary: analysis.summary, tags: analysis.tags, aiStatus: analysis.aiStatus, aiModel: analysis.aiModel, aiError: analysis.aiError, aiSuggestedTitle: analysis.aiSuggestedTitle, aiSuggestedSummary: analysis.aiSuggestedSummary, aiSuggestedTags: analysis.aiSuggestedTags, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, extractedText: analysis.extractedText }); return { success: true, ...analysis }; }),
+    revertDocumentImportDraftAi: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { const draft = await getDocumentImportDraft(input.id); if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Taslak bulunamadı." }); const fallbackTitle = draft.sourceUrl.split("/").pop()?.replace(/[-_]+/g, " ").replace(/\.[^.]+$/, "").trim() || "İçe aktarılan doküman"; await updateDocumentImportDraft(input.id, { title: fallbackTitle.slice(0, 220), summary: null, tags: [], aiStatus: "not_started", aiModel: null, aiError: null, aiSuggestedTitle: null, aiSuggestedSummary: null, aiSuggestedTags: [] }); return { success: true, title: fallbackTitle }; }),
     approveDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => { const draft = await getDocumentImportDraft(input.id); if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Taslak bulunamadı." }); if (!draft.categoryId && !draft.institutionCategoryId) throw new TRPCError({ code: "BAD_REQUEST", message: "Yayınlamadan önce bir kategori seçilmelidir." }); const asset = await getMediaAsset(draft.mediaAssetId); if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Medya varlığı bulunamadı." }); const contentId = await createContentItem({ title: draft.title, contentType: "document", summary: draft.summary ?? undefined, body: asset.publicUrl ?? "", coverImageUrl: draft.coverImageUrl, categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId, createdBy: ctx.user.id, status: "published" }); await createMediaAssetLink({ mediaAssetId: draft.mediaAssetId, targetType: "content", targetId: contentId, role: "document-file", createdBy: ctx.user.id }); await updateDocumentImportDraft(input.id, { status: "approved", reviewedBy: ctx.user.id, reviewedAt: new Date() }); return { success: true, contentId }; }),
     rejectDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive(), reason: z.string().trim().min(3).max(500) })).mutation(async ({ ctx, input }) => { const draft = await getDocumentImportDraft(input.id); if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Taslak bulunamadı." }); await updateDocumentImportDraft(input.id, { status: "rejected", reviewedBy: ctx.user.id, reviewedAt: new Date(), aiError: input.reason }); return { success: true }; }),
     archiveMediaAsset: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { await archiveMediaAsset(input.id); return { success: true }; }),

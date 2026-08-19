@@ -1029,3 +1029,14 @@
 - [x] AI analizinde metin uzunluğu, maliyet, hata, yetki ve kullanıcı onayı kontrollerini ekle
 - [x] PDF okuyucu, taslak kuyruğu ve AI metadata için Vitest testleri ekle
 - [x] Responsive görsel doğrulama ve checkpoint tamamla
+
+## Yeni istek: AI taslak yönetimi ve OCR
+- [x] Taslaklarda AI önerisini yeniden analiz etme prosedürü ve arayüz düğmesi ekle
+- [x] AI önerisini geri alma ve özgün dosya adından başlığa dönme akışı ekle
+- [x] Taslak kuyruğuna durum filtresi ekle
+- [x] Taslak kuyruğuna tarih aralığı filtresi ekle
+- [x] Taslak kuyruğuna AI analiz durumu filtresi ekle
+- [x] Taranmış/metinsiz PDF’leri algıla ve OCR ile metin çıkarma fallback’i ekle
+- [x] OCR güven skoru ve analiz durumunu taslak metadata’sında göster
+- [x] Yeniden analiz, geri alma, filtreler ve OCR için Vitest testleri ekle
+- [x] Mobil responsive doğrulama ve checkpoint tamamla

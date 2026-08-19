@@ -1,4 +1,4 @@
-import { and, eq, asc, desc, inArray, isNull } from "drizzle-orm";
+import { and, eq, asc, desc, inArray, isNull, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { categoryNodes, contentItems, contentProgress, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -632,18 +632,30 @@ export async function createDocumentImportDraft(input: {
   institutionCategoryId?: number | null;
   coverImageUrl?: string | null;
   previewPages?: Array<{ page: number; url: string }>;
+  ocrStatus?: "not_needed" | "not_started" | "completed" | "failed";
+  ocrConfidence?: number | null;
+  extractedText?: string | null;
+  aiSuggestedTitle?: string | null;
+  aiSuggestedSummary?: string | null;
+  aiSuggestedTags?: string[];
   createdBy: number;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
-  const result = await db.insert(documentImportDrafts).values({ ...input, summary: input.summary ?? null, tags: input.tags ?? [], categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, coverImageUrl: input.coverImageUrl ?? null, previewPages: input.previewPages ?? [] });
+  const result = await db.insert(documentImportDrafts).values({ ...input, summary: input.summary ?? null, tags: input.tags ?? [], categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, coverImageUrl: input.coverImageUrl ?? null, previewPages: input.previewPages ?? [], aiSuggestedTitle: input.aiSuggestedTitle ?? null, aiSuggestedSummary: input.aiSuggestedSummary ?? null, aiSuggestedTags: input.aiSuggestedTags ?? [] });
   return Number(result[0].insertId);
 }
 
-export async function listDocumentImportDrafts(status?: "draft" | "pending" | "approved" | "rejected") {
+export async function listDocumentImportDrafts(input?: { status?: "draft" | "pending" | "approved" | "rejected"; aiStatus?: "not_started" | "processing" | "completed" | "failed"; from?: Date; to?: Date }) {
   const db = await getDb();
   if (!db) return [];
-  return status ? db.select().from(documentImportDrafts).where(eq(documentImportDrafts.status, status)).orderBy(desc(documentImportDrafts.createdAt)) : db.select().from(documentImportDrafts).orderBy(desc(documentImportDrafts.createdAt));
+  const conditions = [
+    input?.status ? eq(documentImportDrafts.status, input.status) : undefined,
+    input?.aiStatus ? eq(documentImportDrafts.aiStatus, input.aiStatus) : undefined,
+    input?.from ? gte(documentImportDrafts.createdAt, input.from) : undefined,
+    input?.to ? lte(documentImportDrafts.createdAt, input.to) : undefined,
+  ].filter(Boolean);
+  return db.select().from(documentImportDrafts).where(conditions.length ? and(...conditions) : undefined).orderBy(desc(documentImportDrafts.createdAt));
 }
 
 export async function getDocumentImportDraft(id: number) {
@@ -653,7 +665,11 @@ export async function getDocumentImportDraft(id: number) {
   return rows[0];
 }
 
-export async function updateDocumentImportDraft(id: number, input: { title?: string; summary?: string | null; tags?: string[]; categoryId?: number | null; institutionCategoryId?: number | null; coverImageUrl?: string | null; previewPages?: Array<{ page: number; url: string }>; status?: "draft" | "pending" | "approved" | "rejected"; aiStatus?: "not_started" | "processing" | "completed" | "failed"; aiModel?: string | null; aiError?: string | null; reviewedBy?: number | null; reviewedAt?: Date | null }) {
+export async function updateDocumentImportDraft(id: number, input: { title?: string; summary?: string | null; tags?: string[]; categoryId?: number | null; institutionCategoryId?: number | null; coverImageUrl?: string | null; previewPages?: Array<{ page: number; url: string }>; status?: "draft" | "pending" | "approved" | "rejected"; aiStatus?: "not_started" | "processing" | "completed" | "failed"; aiModel?: string | null;   aiError?: string | null;
+  aiSuggestedTitle?: string | null;
+  aiSuggestedSummary?: string | null;
+  aiSuggestedTags?: string[];
+  ocrStatus?: "not_needed" | "not_started" | "completed" | "failed"; ocrConfidence?: number | null; extractedText?: string | null; reviewedBy?: number | null; reviewedAt?: Date | null }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   await db.update(documentImportDrafts).set(input).where(eq(documentImportDrafts.id, id));
