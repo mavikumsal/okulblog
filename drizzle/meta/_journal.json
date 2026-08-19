@@ -134,6 +134,20 @@
       "when": 1787148028521,
       "tag": "0018_supreme_quicksilver",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1787150497586,
+      "tag": "0019_tidy_catseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1787150713822,
+      "tag": "0020_odd_scourge",
+      "breakpoints": true
     }
   ]
 }

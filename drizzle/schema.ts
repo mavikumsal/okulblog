@@ -219,6 +219,28 @@ export const mediaAssets = mysqlTable("media_assets", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const documentImportDrafts = mysqlTable("document_import_drafts", {
+  id: int("id").autoincrement().primaryKey(),
+  mediaAssetId: int("mediaAssetId").notNull(),
+  sourceUrl: varchar("sourceUrl", { length: 1200 }).notNull(),
+  title: varchar("title", { length: 220 }).notNull(),
+  summary: text("summary"),
+  tags: json("tags"),
+  categoryId: int("categoryId"),
+  institutionCategoryId: int("institutionCategoryId"),
+  coverImageUrl: varchar("coverImageUrl", { length: 900 }),
+  previewPages: json("previewPages"),
+  status: mysqlEnum("status", ["draft", "pending", "approved", "rejected"]).default("draft").notNull(),
+  aiStatus: mysqlEnum("aiStatus", ["not_started", "processing", "completed", "failed"]).default("not_started").notNull(),
+  aiModel: varchar("aiModel", { length: 120 }),
+  aiError: text("aiError"),
+  createdBy: int("createdBy").notNull(),
+  reviewedBy: int("reviewedBy"),
+  reviewedAt: timestamp("reviewedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const mediaAssetLinks = mysqlTable("media_asset_links", {
   id: int("id").autoincrement().primaryKey(),
   mediaAssetId: int("mediaAssetId").notNull(),

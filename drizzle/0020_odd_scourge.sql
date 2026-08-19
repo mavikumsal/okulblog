@@ -1,0 +1,1 @@
+ALTER TABLE `document_import_drafts` ADD `previewPages` json;

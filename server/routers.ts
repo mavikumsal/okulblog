@@ -45,6 +45,10 @@ import {
   listMediaAssets,
   getMediaAsset,
   createMediaAsset,
+  createDocumentImportDraft,
+  listDocumentImportDrafts,
+  getDocumentImportDraft,
+  updateDocumentImportDraft,
   createMediaAssetLink,
   listMediaAssetLinks,
   removeMediaAssetLink,
@@ -89,7 +93,7 @@ import { notifyOwner } from "./_core/notification";
 import { buildGoogleDriveAuthorizationUrl, createGoogleDriveResumableUpload, exchangeGoogleDriveCode, getGoogleDriveMissingConfig } from "./googleDriveProvider";
 import { buildSearchConsoleActions, buildSearchConsoleAuthorizationUrl, createSearchConsoleOAuthState, exchangeSearchConsoleCode, getSearchConsoleMissingConfig, getSearchConsoleTokenMetadata, refreshSearchConsoleToken, verifySearchConsoleOAuthState } from "./searchConsoleProvider";
 import { decryptSearchConsoleToken, encryptSearchConsoleToken } from "./searchConsoleTokenVault";
-import { renderPdfCover } from "./documentCover";
+import { extractPdfText, renderPdfCover, renderPdfPages } from "./documentCover";
 import { ALLOWED_REMOTE_DOCUMENT_TYPES, uploadToBunnyStorage, validateRemoteDocumentUrl } from "./bunnyStorage";
 import { buildExportFile } from "./exportDocuments";
 
@@ -737,6 +741,81 @@ export const appRouter = router({
       await recordSecurityEvent({ eventType: "document_imported", severity: "low", description: "Admin URL üzerinden doküman içe aktardı.", metadata: { sourceUrl: input.sourceUrl, provider, providerAssetId, mimeType, sizeBytes: buffer.byteLength, actorId: ctx.user.id } });
       return { success: true, provider, providerAssetId, publicUrl, coverImageUrl, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, sourceUrl: input.sourceUrl };
     }),
+    importDocumentDraftFromUrl: adminProcedure.input(z.object({ sourceUrl: z.string().trim().url().max(1200), fileName: z.string().trim().max(255).optional() })).mutation(async ({ ctx, input }) => {
+      let sourceUrl: URL;
+      try { sourceUrl = validateRemoteDocumentUrl(input.sourceUrl); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Geçersiz kaynak URL." }); }
+      const response = await fetch(sourceUrl, { redirect: "manual", signal: AbortSignal.timeout(45_000), headers: { "User-Agent": "OkulBlogDocumentImporter/1.0" } });
+      if (!response.ok || response.headers.get("location")) throw new TRPCError({ code: "BAD_REQUEST", message: "Kaynak dosya doğrudan indirilebilir olmalı." });
+      const mimeType = (response.headers.get("content-type") || "").split(";", 1)[0].toLowerCase();
+      if (!ALLOWED_REMOTE_DOCUMENT_TYPES.has(mimeType)) throw new TRPCError({ code: "UNSUPPORTED_MEDIA_TYPE", message: "Yalnızca PDF, DOCX ve PPTX dokümanları içe aktarılabilir." });
+      const buffer = Buffer.from(await response.arrayBuffer());
+      if (buffer.byteLength === 0 || buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Doküman boyutu en fazla 20 MB olabilir." });
+      const settings = await listSiteSettings();
+      const settingMap = new Map(settings.map(item => [item.settingKey, item.settingValue]));
+      const activeProvider = settingMap.get("active_storage_provider") || "s3";
+      const originalName = input.fileName || sourceUrl.pathname.split("/").pop() || "dokuman.pdf";
+      let provider: "s3" | "bunny-storage" = "s3";
+      let providerAssetId: string;
+      let publicUrl: string;
+      const uploadPreview = async (data: Buffer, name: string) => {
+        if (activeProvider === "bunny-storage") {
+          const storageZone = settingMap.get("bunny_storage_zone") || process.env.BUNNY_STORAGE_ZONE;
+          const accessKey = settingMap.get("bunny_storage_access_key") || process.env.BUNNY_STORAGE_ACCESS_KEY;
+          const pullZoneUrl = settingMap.get("bunny_pull_zone_url") || process.env.BUNNY_PULL_ZONE_URL;
+          if (!storageZone || !accessKey || !pullZoneUrl) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Aktif Bunny depolama ayarları eksik." });
+          return uploadToBunnyStorage({ data, fileName: name, mimeType: "image/webp", storageZone, accessKey, pullZoneUrl, endpoint: settingMap.get("bunny_storage_endpoint") || undefined });
+        }
+        return storagePut(`okulblog/imported/${ctx.user.id}/previews/${name}`, data, "image/webp");
+      };
+      if (activeProvider === "bunny-storage") {
+        const storageZone = settingMap.get("bunny_storage_zone") || process.env.BUNNY_STORAGE_ZONE;
+        const accessKey = settingMap.get("bunny_storage_access_key") || process.env.BUNNY_STORAGE_ACCESS_KEY;
+        const pullZoneUrl = settingMap.get("bunny_pull_zone_url") || process.env.BUNNY_PULL_ZONE_URL;
+        if (!storageZone || !accessKey || !pullZoneUrl) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Aktif Bunny depolama için Storage Zone, AccessKey ve Pull Zone bilgileri eksik." });
+        const uploaded = await uploadToBunnyStorage({ data: buffer, fileName: originalName, mimeType, storageZone, accessKey, pullZoneUrl, endpoint: settingMap.get("bunny_storage_endpoint") || undefined });
+        provider = "bunny-storage"; providerAssetId = uploaded.providerAssetId; publicUrl = uploaded.publicUrl;
+      } else {
+        const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "-");
+        const uploaded = await storagePut(`okulblog/imported/${ctx.user.id}/${safeName}`, buffer, mimeType);
+        providerAssetId = uploaded.key; publicUrl = uploaded.url;
+      }
+      let coverImageUrl: string | null = null;
+      let previewPages: Array<{ page: number; url: string }> = [];
+      let extractedText = "";
+      if (mimeType === "application/pdf") {
+        const rendered = await renderPdfPages(buffer);
+        for (let index = 0; index < rendered.pages.length; index += 1) {
+          const uploaded = await uploadPreview(rendered.pages[index], `${safeFileStem(originalName)}-page-${String(index + 1).padStart(3, "0")}.webp`);
+          previewPages.push({ page: index + 1, url: "url" in uploaded ? uploaded.url : uploaded.publicUrl });
+        }
+        coverImageUrl = previewPages[0]?.url ?? null;
+        extractedText = await extractPdfText(buffer);
+      }
+      const mediaAssetId = await createMediaAsset({ provider, providerAssetId, fileName: originalName, publicUrl, mimeType, sizeBytes: buffer.byteLength, contentType: "document", metadata: { sourceUrl: input.sourceUrl, activeProvider, coverImageUrl, previewPages }, uploadedBy: ctx.user.id });
+      let title = originalName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+      let summary = "";
+      let tags: string[] = [];
+      let aiStatus: "not_started" | "completed" | "failed" = "not_started";
+      let aiModel: string | null = null;
+      let aiError: string | null = null;
+      if (extractedText.length >= 40) {
+        try {
+          aiModel = "gpt-5-mini";
+          const ai = await invokeLLM({ model: aiModel, messages: [{ role: "system", content: "Türkçe eğitim dokümanını analiz et. Yalnızca JSON döndür." }, { role: "user", content: `Başlık, kısa özet ve en fazla 6 etiket üret. Metin:\n${extractedText}` }], response_format: { type: "json_schema", json_schema: { name: "document_metadata", strict: true, schema: { type: "object", properties: { title: { type: "string" }, summary: { type: "string" }, tags: { type: "array", items: { type: "string" } } }, required: ["title", "summary", "tags"], additionalProperties: false } } } });
+          const content = ai.choices[0]?.message?.content;
+          const parsed = JSON.parse(typeof content === "string" ? content : "{}");
+          title = String(parsed.title || title).slice(0, 220); summary = String(parsed.summary || "").slice(0, 3000); tags = Array.isArray(parsed.tags) ? parsed.tags.map((tag: unknown) => String(tag).slice(0, 50)).slice(0, 6) : []; aiStatus = "completed";
+        } catch (error) { aiStatus = "failed"; aiError = error instanceof Error ? error.message.slice(0, 500) : "AI analizi başarısız."; }
+      }
+      const draftId = await createDocumentImportDraft({ mediaAssetId, sourceUrl: input.sourceUrl, title, summary, tags, coverImageUrl, previewPages, createdBy: ctx.user.id });
+      if (aiStatus !== "not_started") await updateDocumentImportDraft(draftId, { aiStatus, aiModel, aiError });
+      await recordSecurityEvent({ eventType: "document_import_draft_created", severity: "low", description: "Admin dokümanı taslak onay kuyruğuna aldı.", metadata: { draftId, mediaAssetId, provider, mimeType, sizeBytes: buffer.byteLength, actorId: ctx.user.id } });
+      return { success: true, draftId, mediaAssetId, provider, publicUrl, coverImageUrl, previewPages, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, title, summary, tags, aiStatus, aiError };
+    }),
+    documentImportDrafts: adminProcedure.input(z.object({ status: z.enum(["draft", "pending", "approved", "rejected"]).optional() }).optional()).query(({ input }) => listDocumentImportDrafts(input?.status)),
+    updateDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(3).max(220), summary: z.string().trim().max(3000).optional().nullable(), tags: z.array(z.string().trim().min(1).max(50)).max(12).default([]), categoryId: z.number().int().positive().optional().nullable(), institutionCategoryId: z.number().int().positive().optional().nullable(), status: z.enum(["draft", "pending", "rejected"]).optional() })).mutation(async ({ input }) => { const { id, ...data } = input; await updateDocumentImportDraft(id, data); return { success: true }; }),
+    approveDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => { const draft = await getDocumentImportDraft(input.id); if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Taslak bulunamadı." }); if (!draft.categoryId && !draft.institutionCategoryId) throw new TRPCError({ code: "BAD_REQUEST", message: "Yayınlamadan önce bir kategori seçilmelidir." }); const asset = await getMediaAsset(draft.mediaAssetId); if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Medya varlığı bulunamadı." }); const contentId = await createContentItem({ title: draft.title, contentType: "document", summary: draft.summary ?? undefined, body: asset.publicUrl ?? "", coverImageUrl: draft.coverImageUrl, categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId, createdBy: ctx.user.id, status: "published" }); await createMediaAssetLink({ mediaAssetId: draft.mediaAssetId, targetType: "content", targetId: contentId, role: "document-file", createdBy: ctx.user.id }); await updateDocumentImportDraft(input.id, { status: "approved", reviewedBy: ctx.user.id, reviewedAt: new Date() }); return { success: true, contentId }; }),
+    rejectDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive(), reason: z.string().trim().min(3).max(500) })).mutation(async ({ ctx, input }) => { const draft = await getDocumentImportDraft(input.id); if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Taslak bulunamadı." }); await updateDocumentImportDraft(input.id, { status: "rejected", reviewedBy: ctx.user.id, reviewedAt: new Date(), aiError: input.reason }); return { success: true }; }),
     archiveMediaAsset: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { await archiveMediaAsset(input.id); return { success: true }; }),
     linkMediaAsset: adminProcedure.input(z.object({ mediaAssetId: z.number().int().positive(), targetType: z.enum(["content", "test"]), targetId: z.number().int().positive(), role: z.string().trim().min(1).max(80).default("attachment") })).mutation(async ({ ctx, input }) => { const asset = await getMediaAsset(input.mediaAssetId); if (!asset || asset.status === "archived") throw new TRPCError({ code: "NOT_FOUND", message: "Bağlanacak medya varlığı bulunamadı veya arşivlenmiş." }); await createMediaAssetLink({ ...input, createdBy: ctx.user.id }); return { success: true }; }),
     mediaAssetLinks: adminProcedure.input(z.object({ targetType: z.enum(["content", "test"]), targetId: z.number().int().positive() })).query(({ input }) => listMediaAssetLinks(input)),

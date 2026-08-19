@@ -423,18 +423,48 @@ function PanelContent() {
     url: string;
   } | null>(null);
   const [remoteDocumentUrl, setRemoteDocumentUrl] = useState("");
+  const [readerPageByDraft, setReaderPageByDraft] = useState<Record<number, number>>({});
+  const [readerZoomByDraft, setReaderZoomByDraft] = useState<Record<number, number>>({});
   const [remoteDocumentResult, setRemoteDocumentResult] = useState<{
     provider: string;
     fileName: string;
     publicUrl: string;
     coverImageUrl: string | null;
     sizeBytes: number;
+    mimeType?: string;
+    title?: string;
+    summary?: string;
+    tags?: string[];
+    previewPages?: Array<{ page: number; url: string }>;
+    draftId?: number;
+    aiStatus?: string;
   } | null>(null);
-  const importDocumentFromUrl = (trpc.admin as any).importDocumentFromUrl?.useMutation ? (trpc.admin as any).importDocumentFromUrl.useMutation({
-    onSuccess: (result: { provider: string; fileName: string; publicUrl: string; coverImageUrl: string | null; sizeBytes: number }) => {
+  const documentDraftQuery = (trpc.admin as any).documentImportDrafts;
+  const documentDrafts = documentDraftQuery?.useQuery
+    ? documentDraftQuery.useQuery({ status: "pending" }, { enabled: isAdmin && (panelContentTypeByRoute[requestedSection] === "document" || section === "icerikler"), staleTime: 10_000 })
+    : { data: [], refetch: () => undefined };
+  const updateDocumentDraftApi = (trpc.admin as any).updateDocumentImportDraft;
+  const updateDocumentDraft = updateDocumentDraftApi?.useMutation ? updateDocumentDraftApi.useMutation({
+    onSuccess: () => { documentDrafts.refetch(); toast.success("Taslak güncellendi."); },
+    onError: (error: { message?: string }) => toast.error(error.message || "Taslak güncellenemedi."),
+  }) : { mutate: (_input: unknown) => undefined, isPending: false };
+  const approveDocumentDraftApi = (trpc.admin as any).approveDocumentImportDraft;
+  const approveDocumentDraft = approveDocumentDraftApi?.useMutation ? approveDocumentDraftApi.useMutation({
+    onSuccess: () => { documentDrafts.refetch(); utils.contents.list.invalidate(); toast.success("Doküman yayınlandı."); },
+    onError: (error: { message?: string }) => toast.error(error.message || "Doküman yayınlanamadı."),
+  }) : { mutate: (_input: unknown) => undefined, isPending: false };
+  const rejectDocumentDraftApi = (trpc.admin as any).rejectDocumentImportDraft;
+  const rejectDocumentDraft = rejectDocumentDraftApi?.useMutation ? rejectDocumentDraftApi.useMutation({
+    onSuccess: () => { documentDrafts.refetch(); toast.success("Taslak reddedildi."); },
+    onError: (error: { message?: string }) => toast.error(error.message || "Taslak reddedilemedi."),
+  }) : { mutate: (_input: unknown) => undefined, isPending: false };
+  const importDocumentFromUrl = (trpc.admin as any).importDocumentDraftFromUrl?.useMutation ? (trpc.admin as any).importDocumentDraftFromUrl.useMutation({
+    onSuccess: (result: { provider: string; fileName: string; publicUrl: string; coverImageUrl: string | null; sizeBytes: number; mimeType?: string; title?: string; summary?: string; tags?: string[]; previewPages?: Array<{ page: number; url: string }>; draftId?: number; aiStatus?: string }) => {
       setRemoteDocumentResult(result);
       setRemoteDocumentUrl("");
-      if (!contentTitle.trim()) setContentTitle(result.fileName.replace(/\\.[^.]+$/, ""));
+      if (result.title && !contentTitle.trim()) setContentTitle(result.title);
+      else if (!contentTitle.trim()) setContentTitle(result.fileName.replace(/\\.[^.]+$/, ""));
+      if (result.summary && !contentSummary.trim()) setContentSummary(result.summary);
       if (result.coverImageUrl) setContentCoverUrl(result.coverImageUrl);
       toast.success(`Doküman aktif ${result.provider === "bunny-storage" ? "Bunny" : "S3"} depolamaya aktarıldı.`);
     },
@@ -2281,7 +2311,7 @@ function PanelContent() {
                 <p className="text-[11px] leading-5 text-[#71838b]">PDF, DOCX veya PPTX bağlantısını girin. Sistem aktif depolama sağlayıcısını kullanır.</p>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Input id="remoteDocumentUrl" value={remoteDocumentUrl} onChange={event => setRemoteDocumentUrl(event.target.value)} placeholder="https://ornek.com/dokuman.pdf" className="h-10 rounded-xl bg-white" />
-                  <Button type="button" disabled={!remoteDocumentUrl.trim() || importDocumentFromUrl.isPending} onClick={() => importDocumentFromUrl.mutate({ sourceUrl: remoteDocumentUrl.trim(), contentType: "document" })} className="h-10 shrink-0 rounded-xl bg-[#18344f] text-xs">{importDocumentFromUrl.isPending ? "Aktarılıyor..." : "İndir ve aktar"}</Button>
+                  <Button type="button" disabled={!remoteDocumentUrl.trim() || importDocumentFromUrl.isPending} onClick={() => importDocumentFromUrl.mutate({ sourceUrl: remoteDocumentUrl.trim() })} className="h-10 shrink-0 rounded-xl bg-[#18344f] text-xs">{importDocumentFromUrl.isPending ? "Aktarılıyor..." : "İndir ve aktar"}</Button>
                 </div>
                 {remoteDocumentResult && <div className="rounded-xl border border-[#dfe8df] bg-white p-3 text-xs text-[#496374]"><div className="flex items-center justify-between gap-2"><strong className="truncate">{remoteDocumentResult.fileName}</strong><Badge variant="outline">{remoteDocumentResult.provider === "bunny-storage" ? "Bunny" : "S3"}</Badge></div><p className="mt-1">{(remoteDocumentResult.sizeBytes / 1024 / 1024).toFixed(2)} MB · Depolamaya aktarıldı</p>{remoteDocumentResult.coverImageUrl && <img src={remoteDocumentResult.coverImageUrl} alt="Aktarılan doküman kapağı" className="mt-3 h-28 w-20 rounded-lg border object-cover" />}<a href={remoteDocumentResult.publicUrl} target="_blank" rel="noreferrer" className="mt-2 block truncate text-[#5540e8] underline">Dosya bağlantısını aç</a></div>}
                 <Label htmlFor="documentCoverSource">Yerel PDF seç veya önizle</Label>
@@ -2333,6 +2363,37 @@ function PanelContent() {
               </Button>
             </div>
           </div>
+          {selectedContentType === "document" && <div className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div><p className="text-sm font-bold text-[#29465a]">Doküman taslak onay kuyruğu</p><p className="mt-1 text-xs leading-5 text-[#71838b]">İçe aktarılan belgeler yayınlanmadan önce başlık, özet, etiket ve tüm PDF sayfaları burada incelenir.</p></div>
+              <Badge variant="outline" className="shrink-0">{documentDrafts.data?.length ?? 0} bekleyen</Badge>
+            </div>
+            <div className="mt-5 space-y-4">
+              {(documentDrafts.data ?? []).map((draft: { id: number; title: string; summary: string | null; tags: unknown; categoryId: number | null; institutionCategoryId: number | null; previewPages: unknown; aiStatus: string }) => {
+                const pages = Array.isArray(draft.previewPages) ? draft.previewPages as Array<{ page: number; url: string }> : [];
+                const pageIndex = Math.min(readerPageByDraft[draft.id] ?? 0, Math.max(0, pages.length - 1));
+                const currentPage = pages[pageIndex];
+                return <div key={draft.id} className="overflow-hidden rounded-2xl border border-[#dfe8df] bg-[#fbfdf9]">
+                  <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+                    <div className="min-w-0">
+                      {currentPage ? <div className="max-h-[520px] overflow-auto rounded-xl border border-[#dfe8df] bg-[#eef2ed]"><img src={currentPage.url} alt={`${draft.title} ${currentPage.page}. sayfa`} style={{ transform: `scale(${readerZoomByDraft[draft.id] ?? 1})`, transformOrigin: "top center" }} className="mx-auto w-full object-contain transition-transform" /></div> : <div className="grid min-h-48 place-items-center rounded-xl border border-dashed border-[#cfdacf] text-xs text-[#71838b]">PDF sayfa önizlemesi bulunmuyor.</div>}
+                      {pages.length > 0 && <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-1"><Button type="button" variant="outline" size="sm" aria-label="Uzaklaştır" disabled={(readerZoomByDraft[draft.id] ?? 1) <= 1} onClick={() => setReaderZoomByDraft(current => ({ ...current, [draft.id]: Math.max(1, (current[draft.id] ?? 1) - 0.25) }))}>−</Button><span className="min-w-12 text-center text-xs font-semibold text-[#496374]">{Math.round((readerZoomByDraft[draft.id] ?? 1) * 100)}%</span><Button type="button" variant="outline" size="sm" aria-label="Yakınlaştır" disabled={(readerZoomByDraft[draft.id] ?? 1) >= 2} onClick={() => setReaderZoomByDraft(current => ({ ...current, [draft.id]: Math.min(2, (current[draft.id] ?? 1) + 0.25) }))}>+</Button></div><span className="text-xs font-semibold text-[#496374]">Sayfa {pageIndex + 1} / {pages.length}</span><div className="flex gap-1"><Button type="button" variant="outline" size="sm" disabled={pageIndex === 0} onClick={() => setReaderPageByDraft(current => ({ ...current, [draft.id]: pageIndex - 1 }))}>Önceki</Button><Button type="button" variant="outline" size="sm" disabled={pageIndex >= pages.length - 1} onClick={() => setReaderPageByDraft(current => ({ ...current, [draft.id]: pageIndex + 1 }))}>Sonraki</Button></div></div>}
+                      {pages.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-8">{pages.map((page, index) => <button type="button" key={page.page} aria-label={`${page.page}. sayfayı aç`} onClick={() => setReaderPageByDraft(current => ({ ...current, [draft.id]: index }))} className={`overflow-hidden rounded-lg border-2 bg-white ${index === pageIndex ? "border-[#5540e8]" : "border-transparent"}`}><img src={page.url} alt="" className="aspect-[3/4] w-full object-cover" /></button>)}</div>}
+                    </div>
+                    <div className="space-y-3">
+                      <div><Label htmlFor={`draft-title-${draft.id}`}>Başlık</Label><Input id={`draft-title-${draft.id}`} defaultValue={draft.title} onBlur={event => { if (event.target.value.trim() && event.target.value !== draft.title) updateDocumentDraft.mutate({ id: draft.id, title: event.target.value.trim(), summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId }); }} className="mt-1 h-10 rounded-xl bg-white text-sm" /></div>
+                      <div><Label htmlFor={`draft-summary-${draft.id}`}>Kısa özet</Label><Textarea id={`draft-summary-${draft.id}`} defaultValue={draft.summary ?? ""} onBlur={event => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: event.target.value, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId })} className="mt-1 min-h-24 rounded-xl bg-white text-xs" /></div>
+                      <div><Label htmlFor={`draft-tags-${draft.id}`}>Etiketler</Label><Input id={`draft-tags-${draft.id}`} defaultValue={Array.isArray(draft.tags) ? (draft.tags as string[]).join(", ") : ""} onBlur={event => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: event.target.value.split(",").map(tag => tag.trim()).filter(Boolean).slice(0, 12), categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId })} className="mt-1 h-10 rounded-xl bg-white text-xs" placeholder="2. sınıf, Türkçe, sınav" /></div>
+                      <CategoryCascadeSelect nodes={categoryOptions} educationValue={draft.categoryId ? String(draft.categoryId) : ""} institutionValue={draft.institutionCategoryId ? String(draft.institutionCategoryId) : ""} onEducationChange={value => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: value ? Number(value) : null, institutionCategoryId: draft.institutionCategoryId })} onInstitutionChange={value => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: value ? Number(value) : null })} />
+                      <div className="flex flex-wrap gap-2 pt-1"><Button type="button" className="rounded-xl bg-[#18344f]" disabled={!draft.categoryId && !draft.institutionCategoryId || approveDocumentDraft.isPending} onClick={() => approveDocumentDraft.mutate({ id: draft.id })}><CheckCircle2 size={15} /> Yayınla</Button><Button type="button" variant="outline" className="rounded-xl" disabled={rejectDocumentDraft.isPending} onClick={() => rejectDocumentDraft.mutate({ id: draft.id, reason: "Admin tarafından reddedildi." })}><Trash2 size={15} /> Reddet</Button></div>
+                      <p className="text-[11px] leading-5 text-[#71838b]">AI durumu: {draft.aiStatus === "completed" ? "Başlık ve özet oluşturuldu" : draft.aiStatus === "failed" ? "Analiz başarısız; alanları manuel düzenleyin" : "Analiz yapılmadı"}</p>
+                    </div>
+                  </div>
+                </div>;
+              })}
+              {documentDrafts.data?.length === 0 && <div className="rounded-xl border border-dashed border-[#cfdacf] p-5 text-center text-xs text-[#71838b]">Bekleyen doküman taslağı yok.</div>}
+            </div>
+          </div>}
           <div className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
             <p className="text-sm font-bold text-[#29465a]">İçerik ilkeleri</p>
             <div className="mt-5 space-y-3">

@@ -1,0 +1,21 @@
+CREATE TABLE `document_import_drafts` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`mediaAssetId` int NOT NULL,
+	`sourceUrl` varchar(1200) NOT NULL,
+	`title` varchar(220) NOT NULL,
+	`summary` text,
+	`tags` json,
+	`categoryId` int,
+	`institutionCategoryId` int,
+	`coverImageUrl` varchar(900),
+	`status` enum('draft','pending','approved','rejected') NOT NULL DEFAULT 'draft',
+	`aiStatus` enum('not_started','processing','completed','failed') NOT NULL DEFAULT 'not_started',
+	`aiModel` varchar(120),
+	`aiError` text,
+	`createdBy` int NOT NULL,
+	`reviewedBy` int,
+	`reviewedAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `document_import_drafts_id` PRIMARY KEY(`id`)
+);

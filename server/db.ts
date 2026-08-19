@@ -1,6 +1,6 @@
 import { and, eq, asc, desc, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, contentProgress, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { educationCurriculum } from "./educationCurriculum";
 
@@ -515,7 +515,8 @@ export async function createContentItem(input: {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   const slug = `${input.title.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşöçıİ]+/gi, "-").replace(/(^-|-$)/g, "")}-${crypto.randomUUID().slice(0, 8)}`;
-  await db.insert(contentItems).values({ ...input, slug, categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, status: input.status ?? "draft" });
+  const result = await db.insert(contentItems).values({ ...input, slug, categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, status: input.status ?? "draft" });
+  return Number(result[0].insertId);
 }
 
 export async function createTest(input: { title: string; description?: string; coverImageUrl?: string | null; durationMinutes?: number; categoryId?: number | null; institutionCategoryId?: number | null; questionIds: number[]; createdBy: number }) {
@@ -617,7 +618,45 @@ export async function createMediaAsset(input: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
-  await db.insert(mediaAssets).values({ ...input, contentType: input.contentType ?? "general", providerAssetId: input.providerAssetId ?? null, publicUrl: input.publicUrl ?? null, sizeBytes: input.sizeBytes ?? null, folderPath: input.folderPath ?? null, metadata: input.metadata ?? {} });
+  const result = await db.insert(mediaAssets).values({ ...input, contentType: input.contentType ?? "general", providerAssetId: input.providerAssetId ?? null, publicUrl: input.publicUrl ?? null, sizeBytes: input.sizeBytes ?? null, folderPath: input.folderPath ?? null, metadata: input.metadata ?? {} });
+  return Number(result[0].insertId);
+}
+
+export async function createDocumentImportDraft(input: {
+  mediaAssetId: number;
+  sourceUrl: string;
+  title: string;
+  summary?: string | null;
+  tags?: string[];
+  categoryId?: number | null;
+  institutionCategoryId?: number | null;
+  coverImageUrl?: string | null;
+  previewPages?: Array<{ page: number; url: string }>;
+  createdBy: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const result = await db.insert(documentImportDrafts).values({ ...input, summary: input.summary ?? null, tags: input.tags ?? [], categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, coverImageUrl: input.coverImageUrl ?? null, previewPages: input.previewPages ?? [] });
+  return Number(result[0].insertId);
+}
+
+export async function listDocumentImportDrafts(status?: "draft" | "pending" | "approved" | "rejected") {
+  const db = await getDb();
+  if (!db) return [];
+  return status ? db.select().from(documentImportDrafts).where(eq(documentImportDrafts.status, status)).orderBy(desc(documentImportDrafts.createdAt)) : db.select().from(documentImportDrafts).orderBy(desc(documentImportDrafts.createdAt));
+}
+
+export async function getDocumentImportDraft(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(documentImportDrafts).where(eq(documentImportDrafts.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function updateDocumentImportDraft(id: number, input: { title?: string; summary?: string | null; tags?: string[]; categoryId?: number | null; institutionCategoryId?: number | null; coverImageUrl?: string | null; previewPages?: Array<{ page: number; url: string }>; status?: "draft" | "pending" | "approved" | "rejected"; aiStatus?: "not_started" | "processing" | "completed" | "failed"; aiModel?: string | null; aiError?: string | null; reviewedBy?: number | null; reviewedAt?: Date | null }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.update(documentImportDrafts).set(input).where(eq(documentImportDrafts.id, id));
 }
 
 export async function createMediaAssetLink(input: { mediaAssetId: number; targetType: "content" | "test"; targetId: number; role?: string; createdBy: number }) {

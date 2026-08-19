@@ -1018,3 +1018,14 @@
 - [x] Önizlemeden kategori seçimi, taslak kaydı ve yayınlama akışını bağla
 - [x] Bunny ve önizleme akışı için yetki, hata, güvenlik ve Vitest kontrollerini ekle
 - [x] Responsive doğrulama ve checkpoint tamamla
+
+## Yeni istek: doküman inceleme, taslak onay ve AI metadata
+- [x] PDF belgeler için tüm sayfaları gezilebilir çok sayfalı önizleme okuyucusu ekle
+- [x] Sayfa küçük görselleri, sayfa numarası, yakınlaştırma ve mobil uyumlu okuyucu kontrolleri ekle
+- [x] URL’den içe aktarılan dokümanları doğrudan yayınlamak yerine taslak onay kuyruğuna al
+- [x] Taslak kuyruğunda başlık, kısa özet, etiketler, kategori ve kapak düzenleme alanlarını ekle
+- [x] Admin’in taslağı onaylama, reddetme ve düzenlemeye geri gönderme akışlarını ekle
+- [x] Doküman içeriğini AI ile analiz edip başlık, özet ve önerilen etiketleri doldur
+- [ ] AI analizinde metin uzunluğu, maliyet, hata, yetki ve kullanıcı onayı kontrollerini ekle
+- [ ] PDF okuyucu, taslak kuyruğu ve AI metadata için Vitest testleri ekle
+- [x] Responsive görsel doğrulama ve checkpoint tamamla
