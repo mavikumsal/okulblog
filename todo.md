@@ -959,3 +959,9 @@
 - [x] Görsel UI düzeltmelerini içeren bağımsız responsive tek sayfalık HTML oluştur
 - [x] Hero taşması, sayaç tutarsızlığı, sağ panel hizası ve mobil görünümü düzelt
 - [x] HTML dosyasını temel tarayıcı kontrolünden geçirip kullanıcıya teslim et
+
+## Yeni istek: hero UI önerilerinin uygulanması
+- [x] Sağ istatistik panelini hero sınırları içinde tamamen görünür hale getir
+- [x] Hero sağındaki boşluğu azaltıp içerik grubunu dengeli yerleştir
+- [x] Aktif Test sayacını gerçek örnek test/soru verisiyle tutarlı göster
+- [x] Masaüstü ve mobil doğrulama, todo güncellemesi ve checkpoint tamamla
