@@ -1285,3 +1285,13 @@
 - [x] Sınır durumlarını ve masaüstü/mobil görünümü doğrulamak
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Bu kural için checkpoint oluşturmak
+
+## Yeni İçerik Kartları Görsel Zenginleştirme — 2026-08-19
+
+- [x] Mevcut yeni içerik kartlarının gerçek kapak ve fallback görsel davranışını incelemek
+- [x] Referans görseldeki belge, matematik, fen ve sosyal bilimler temaları için ayrı görsel varlıklar hazırlamak
+- [x] Görsel varlıkları proje medya akışına bağlamak ve kartlarda konuya göre eşlemek
+- [x] Kart görsel alanını daha etkileyici hale getirirken Yeni rozeti ve metin okunurluğunu korumak
+- [x] Masaüstü ve mobil görsel kontrolü yapmak
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Bu görsel düzenleme için checkpoint oluşturmak
