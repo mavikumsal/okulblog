@@ -1256,3 +1256,14 @@
 - [x] Masaüstü ve mobil karşılaştırmalı görsel kontrol yapmak
 - [x] TypeScript, Vitest ve production build doğrulamak
 - [x] Düzeltme için yeni checkpoint oluşturmak
+
+## Yeni Eklenen İçerikler Görsel Uyum — 2026-08-19
+
+- [x] Sağlanan yeni içerikler referans görselini ve HTML bölümünü mevcut render ile karşılaştırmak
+- [x] Başlık, açıklama ve sağ aksiyon bağlantısını referans hiyerarşisine uyarlamak
+- [x] Dört eşit içerik kartını referans genişlik, yükseklik, boşluk ve köşe yarıçapına getirmek
+- [x] Kart görsel alanlarını ders/konu bazlı birbirinden farklı illüstrasyonlarla eşlemek
+- [x] Gerçek içerik başlığı, ders ve sınıf bilgilerini koruyarak referans meta satırını uygulamak
+- [x] Masaüstü ve mobil karşılaştırmalı görsel kontrol yapmak
+- [x] TypeScript, Vitest ve production build doğrulamak
+- [x] Düzeltme için yeni checkpoint oluşturmak
