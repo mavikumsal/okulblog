@@ -1175,4 +1175,17 @@
 - [x] Tüm bölüm boşluklarını yaklaşık 64–80px, kart iç boşluklarını ve başlık hizalarını tutarlı hale getir
 - [x] İlkokul/Ortaokul/Lise sekmelerini tıklayarak masaüstü ve mobilde dört doğru sınıfı doğrula; boş/tekrar görsel ve konsol hatalarını düzelt
 - [x] Lint, TypeScript, Vitest, production build ve son checkpoint işlemlerini tamamla
-- [ ] pasted_content_7.txt düzeltme iterasyonu için checkpoint oluşturmak
+- [x] pasted_content_7.txt düzeltme iterasyonu için checkpoint oluşturmak
+
+## Referans HTML/CSS Birebir Yeniden Kodlama — 2026-08-19
+
+- [x] Referans HTML dosyasındaki tüm CSS değişkenlerini, fontları, ölçüleri, gölgeleri ve breakpoint’leri çıkarmak
+- [x] Mevcut Home.tsx yapısını referans HTML section sırası ve class yapısıyla karşılaştırmak
+- [x] Ana sayfa header ve hero iskeletini referans yapı taşlarıyla yeniden kodlamak
+- [x] Sağ çalışma planı ana kartını referanstaki ölçü, radius, gölge, başlık, ilerleme halkası ve CTA ile eşlemek
+- [x] Çalışma planının arkasındaki iki mini kartı referans konum, açı, renk ve içerik yapısıyla yeniden oluşturmak
+- [x] Çalışma planındaki ders/sınıf, sıradaki konu, kategori yolu, içerik sayaçları ve haftalık seri alanlarını gerçek veriye bağlamak
+- [x] Referans sınıf kartları, Popüler Konular paneli ve alt içerik bölümlerini aynı grid/oranlarla yeniden kodlamak
+- [x] Tüm etkileşimleri ve gerçek tRPC veri akışlarını koruyarak statik demo veri kullanmamak
+- [x] Masaüstü, tablet ve mobilde referansla pixel karşılaştırması yapmak; TypeScript, Vitest, production build ve konsol kontrollerini tamamlamak
+- [ ] Birebir HTML/CSS yeniden kodlama için checkpoint oluşturmak
