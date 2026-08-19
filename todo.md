@@ -971,3 +971,8 @@
 - [x] Sağ panel taşmasını ve gereksiz boşluğu gerçek ana sayfada düzelt
 - [x] Gerçek sayaçları veritabanı verisiyle doğru etiketle ve bağla
 - [x] Canlı masaüstü/mobil kontrol, regresyon testi ve checkpoint tamamla
+
+## Yeni istek: hero kartlarını yan yana yerleştirme
+- [x] Öğrenme yolu ve Soru üretim özeti kartlarını masaüstünde yan yana yerleştir
+- [x] Mobilde kartları okunabilir akışta, taşma olmadan koru
+- [x] Tablet/masaüstü/mobil görsel doğrulama, test ve checkpoint tamamla
