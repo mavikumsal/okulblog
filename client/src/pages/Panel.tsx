@@ -1091,7 +1091,7 @@ function PanelContent() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 pb-12">
-      <div className="flex flex-col gap-5 rounded-[26px] border border-[#e4e5db] bg-[#fbfaf4] p-6 shadow-[0_12px_35px_rgba(37,61,77,.05)] sm:p-8 lg:flex-row lg:items-end lg:justify-between">
+      {section !== "genel" && <div className="flex flex-col gap-5 rounded-[26px] border border-[#e4e5db] bg-[#fbfaf4] p-6 shadow-[0_12px_35px_rgba(37,61,77,.05)] sm:p-8 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <p className="text-[11px] font-bold tracking-[.18em] text-[#668278] uppercase">
             {page.eyebrow}
@@ -1114,11 +1114,7 @@ function PanelContent() {
             </Badge>
           </div>
         </div>
-      </div>
-
-      {isAdmin && requestedSection === "overview" && (
-        <ContentQuickStart onNavigate={route => setLocation(route)} />
-      )}
+      </div>}
 
       {section === "restricted-settings" && <RestrictedNotice />}
 

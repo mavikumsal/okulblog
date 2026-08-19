@@ -1065,3 +1065,9 @@
 - [x] Dosyadan çıkan yeni gereksinimleri teknik uygulama planına dönüştür
 - [x] Onaylanan yeni gereksinimleri projeye entegre et
 - [x] Yeni değişiklikleri TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
+
+## Admin paneli referans görseli iterasyonu
+- [x] Yüklenen promptları ve referans görseli mevcut admin paneliyle karşılaştır
+- [x] Referans tasarımdaki açık farkları ve belirsiz gereksinimleri teknik plana dönüştür
+- [x] Panel arayüzünü mevcut gerçek veri ve yetki bağlantılarını koruyarak referansa yaklaştır
+- [x] Yeni panel iterasyonunu TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula

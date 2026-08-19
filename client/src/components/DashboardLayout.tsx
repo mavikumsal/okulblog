@@ -63,10 +63,10 @@ function menuGroup(label: string) {
   return "İçerik Merkezi";
 }
 
-const SIDEBAR_WIDTH_KEY = "sidebar-width";
-const DEFAULT_WIDTH = 280;
-const MIN_WIDTH = 200;
-const MAX_WIDTH = 480;
+const SIDEBAR_WIDTH_KEY = "sidebar-width-reference-v1";
+const DEFAULT_WIDTH = 228;
+const MIN_WIDTH = 220;
+const MAX_WIDTH = 320;
 
 export default function DashboardLayout({
   children,
@@ -197,46 +197,46 @@ function DashboardLayoutContent({
       <div className="relative" ref={sidebarRef}>
           <Sidebar
             collapsible="icon"
-            className="border-r border-[#dfe4e6] bg-[#f8faf9]"
+            className="border-r border-[#123b56] bg-[#08263d]"
             disableTransition={isResizing}
           >
-            <SidebarHeader className="h-[76px] justify-center border-b border-[#e7ecec] bg-[#f8faf9]">
+            <SidebarHeader className="h-[76px] justify-center border-b border-[#173e59] bg-[#08263d]">
               <div className="flex items-center gap-3 px-3 transition-all w-full">
                 <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                className="h-8 w-8 flex items-center justify-center rounded-lg text-[#b9d9d7] transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#079b98] shrink-0"
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4 text-muted-foreground" />
+                <PanelLeft className="h-4 w-4 text-[#b9d9d7]" />
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    okul<span className="font-serif italic text-[#8f7027]">blog</span>
+                  <span className="font-semibold tracking-tight truncate text-white">
+                    okul<span className="font-serif italic text-[#55c9c2]">blog</span>
                   </span>
                 </div>
               ) : null}
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
-            <SidebarMenu className="px-2 py-1">
+          <SidebarContent className="gap-0 bg-[#08263d]">
+            <SidebarMenu className="bg-[#08263d] px-2 py-1">
               {visibleMenuItems.map((item, index) => {
                 const isActive = location === item.path;
                 const group = menuGroup(item.label);
                 const previousGroup = index > 0 ? menuGroup(visibleMenuItems[index - 1].label) : undefined;
                 return (
                   <React.Fragment key={item.path}>
-                    {group !== previousGroup && <li className="px-3 pb-2 pt-4 first:pt-2 group-data-[collapsible=icon]:hidden"><span className="text-[10px] font-black uppercase tracking-[.16em] text-[#9aa8a5]">{group}</span></li>}
+                    {group !== previousGroup && <li className="px-3 pb-2 pt-4 first:pt-2 group-data-[collapsible=icon]:hidden"><span className="text-[10px] font-black uppercase tracking-[.16em] text-[#a9c0c5]">{group}</span></li>}
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-10 rounded-xl transition-all font-medium ${isActive ? "bg-[#193f59] text-white shadow-sm hover:bg-[#193f59] hover:text-white" : "text-[#52666c] hover:bg-[#e9f0ee] hover:text-[#193f59]"}`}
+                      className={`h-10 rounded-xl transition-all font-medium ${isActive ? "bg-[#079b98] text-white shadow-sm hover:bg-[#079b98] hover:text-white" : "text-[#d4e1e4] hover:bg-white/10 hover:text-white"}`}
                     >
                       <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-[#e4b45b]" : ""}`}
+                        className={`h-4 w-4 ${isActive ? "text-white" : "text-[#a9c0c5]"}`}
                       />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
@@ -247,20 +247,20 @@ function DashboardLayoutContent({
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-[#e7ecec] bg-[#f8faf9] p-3">
+          <SidebarFooter className="border-t border-[#173e59] bg-[#08263d] p-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <Avatar className="h-9 w-9 border shrink-0">
-                    <AvatarFallback className="text-xs font-medium">
+                <button className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-white/10 group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#079b98]">
+                  <Avatar className="h-9 w-9 shrink-0 border border-white/20 bg-[#1b5573]">
+                    <AvatarFallback className="bg-[#1b5573] text-xs font-medium text-white">
                       O
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium truncate leading-none">
+                    <p className="truncate text-sm font-medium leading-none text-white">
                       OkulBlog hesabı
                     </p>
-                    <p className="text-xs text-muted-foreground truncate mt-1.5">
+                    <p className="mt-1.5 truncate text-xs text-[#a9c0c5]">
                       Hesap seçenekleri
                     </p>
                   </div>
@@ -304,7 +304,7 @@ function DashboardLayoutContent({
           </div>
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <label className="hidden h-9 min-w-0 items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-3 text-[#7a898c] lg:flex lg:w-52 xl:w-64"><Search className="h-4 w-4 shrink-0" /><input value={globalSearch} onChange={event => setGlobalSearch(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && globalSearch.trim()) setLocation(`/panel/icerikler?search=${encodeURIComponent(globalSearch.trim())}`); }} placeholder="Panelde ara..." aria-label="Panelde ara" className="min-w-0 flex-1 bg-transparent text-xs text-[#193f59] outline-none placeholder:text-[#a0aeae]" /></label>
-            <div className="hidden items-center gap-1 rounded-xl border border-[#e0e7e5] bg-white px-2 py-1.5 text-[#65777b] xl:flex" aria-label="Tarih aralığı"><CalendarDays className="h-3.5 w-3.5" /><input type="date" aria-label="Başlangıç tarihi" className="w-[92px] bg-transparent text-[10px] outline-none" /><span className="text-[#c4cecc]">–</span><input type="date" aria-label="Bitiş tarihi" className="w-[92px] bg-transparent text-[10px] outline-none" /></div>
+            <button type="button" aria-label="Tarih aralığı: Son 30 gün" className="hidden h-9 items-center gap-2 rounded-xl border border-[#e0e7e5] bg-white px-3 text-xs font-semibold text-[#52666c] transition-colors hover:border-[#079b98] hover:text-[#193f59] xl:flex"><CalendarDays className="h-3.5 w-3.5" />Son 30 gün</button>
             <button aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} onClick={() => toggleTheme?.()} className="hidden h-9 w-9 items-center justify-center rounded-xl border border-[#e0e7e5] bg-white text-[#65777b] transition-colors hover:bg-[#edf3f1] hover:text-[#193f59] sm:flex">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
