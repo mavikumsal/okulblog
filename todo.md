@@ -1042,19 +1042,19 @@
 - [x] Mobil responsive doğrulama ve checkpoint tamamla
 
 ## Bekleyen geliştirme kuyruğu
-- [ ] OCR sonuçları için sayfa bazlı manuel düzeltme ve karşılaştırma ekranı ekle
-- [ ] Taslak onay kuyruğunda toplu onay ve toplu reddetme işlemleri ekle
-- [ ] AI doküman analiz kullanım ve maliyet istatistiklerini Admin dashboard’una ekle
+- [x] OCR sonuçları için sayfa bazlı manuel düzeltme ve karşılaştırma ekranı ekle
+- [x] Taslak onay kuyruğunda toplu onay ve toplu reddetme işlemleri ekle
+- [x] AI doküman analiz kullanım ve maliyet istatistiklerini Admin dashboard’una ekle
 
 ## Onaylanan stratejik geliştirme sırası
 - [x] Dokümanlar için sınıf/ders/ünite/kazanım odaklı katalog ve modern kitaplık/grid keşif görünümü oluştur
 - [x] Doküman detay sayfasında breadcrumb, kapak, metadata, önizleme, indirme, favori ve paylaşım akışını tamamla
-- [ ] Online test çözme, süre, sonuç analizi ve öğrenci ilerleme deneyimini güçlendir
-- [ ] Taslak kuyruğuna toplu onay/toplu reddetme işlemleri ekle
-- [ ] OCR sonuçları için sayfa bazlı manuel düzeltme ve karşılaştırma ekranı ekle
-- [ ] AI doküman analiz kullanım ve maliyet istatistiklerini Admin dashboard’una ekle
-- [ ] Tüm akışları TypeScript, Vitest, production build ve responsive demo kontrolleriyle doğrula
-- [ ] Son demo checkpoint’ini oluştur ve kullanıcıya sun
+- [x] Online test çözme, süre, sonuç analizi ve öğrenci ilerleme deneyimini güçlendir
+- [x] Taslak kuyruğuna toplu onay/toplu reddetme işlemleri ekle
+- [x] OCR sonuçları için sayfa bazlı manuel düzeltme ve karşılaştırma ekranı ekle
+- [x] AI doküman analiz kullanım ve maliyet istatistiklerini Admin dashboard’una ekle
+- [x] Tüm akışları TypeScript, Vitest, production build ve responsive demo kontrolleriyle doğrula
+- [x] Son demo checkpoint’ini oluştur ve kullanıcıya sun
 
 - [x] OCR taslak metni için admin manuel düzeltme alanı ve güvenli kaydetme
 - [x] AI kullanım ve OCR başarı istatistiklerini üretim dashboard’unda gösterme
