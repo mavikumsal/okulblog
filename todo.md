@@ -1106,3 +1106,34 @@
 - [x] Üye ilerleme, tamamlanma ve test geçmişi verileriyle kişisel Bugünkü Çalışma Planı oluştur
 - [x] Popüler konuları favori, çözülme ve görüntülenme sinyalleriyle dinamik sırala
 - [x] Yeni akışları TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
+
+## Medya kapakları ve görüntülenme analitiği
+- [x] Zamanlanmış işler ve Heartbeat altyapısı kurallarını incele
+- [x] Kapak görseli eksik içerikleri kategori bazında listeleyen toplu atama akışını tasarla
+- [x] Gerçek görüntülenme olayları ve günlük özet veri modelini oluştur
+- [x] Günlük aggregation görevini ve popüler konu sıralamasını gerçek görüntülenme verisine bağla
+- [x] Yeni medya/analitik akışını migration, TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
+
+## Sıradaki ana sayfa hedef tasarımı
+- [ ] / ana sayfasını yüklenen hedef görselin yerleşim, renk, boşluk ve oranlarına göre yeniden planla
+- [ ] Eski carousel, reklam alanı ve eski renkli kategori bileşenlerini yalnızca arayüzden kaldır
+- [ ] Koyu hero, hedef header, kişisel çalışma planı, istatistik şeridi, sınıf sekmeleri ve dört sınıf kartını uygula
+- [ ] Popüler Konular ve Senin için seçtiklerimiz bölümlerini gerçek verilerle bağla
+- [ ] Haberler, SSS, bülten ve footer bölümlerini hedef tasarım dilinde alt alanda koru
+- [ ] Ana sayfayı 1440px, tablet ve mobilde görsel karşılaştırıp TypeScript, Vitest, build ve konsol kontrolleriyle doğrula
+
+## Interactive Data and Media Iteration — 2026-08-19
+
+- [x] Public content detail page görüntülenme mutation’ını eklemek ve benzersiz ziyaret anahtarını frontend’den göndermek
+- [x] content_view_events kayıtlarını günlük content_view_daily aggregation ile idempotent biçimde güncellemek
+- [x] Günlük görüntülenme aggregation için Heartbeat callback endpoint’ini eklemek
+- [x] Popüler konu sıralamasında gerçek günlük görüntülenme toplamlarını kullanmak
+- [x] Medya Merkezi’nde kapaksız içerikleri kategori bazlı listelemek
+- [x] Medya Merkezi’nde çoklu içerik seçimiyle gerçek medya varlığını toplu kapak olarak atamak
+- [x] Toplu kapak atama için yetki, boş/hata/yükleme ve responsive testleri eklemek
+- [x] Ana sayfa ve dashboard gerçek veri akışlarını son kez TypeScript, Vitest, build ve görsel kontrollerle doğrulamak
+- [x] Bu iterasyon için checkpoint oluşturmak
+
+## Next iteration note
+
+- [ ] Sonraki kullanıcı görevi: kullanıcı tarafından sağlanacak referans görsele göre ilgili ekranı yüksek sadakatle uyarlamak

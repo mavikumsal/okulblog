@@ -6,6 +6,10 @@ import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   createCategoryNode,
+  recordContentView,
+  aggregateContentViewDaily,
+  listContentMissingCovers,
+  bulkAssignContentCover,
   importEducationCurriculum,
   createContentItem,
   createHomeSlide,
@@ -219,6 +223,7 @@ export const appRouter = router({
     homeSlides: publicProcedure.query(() => listActiveHomeSlides()),
     contentByCategory: publicProcedure.input(z.object({ categoryId: z.number().int().positive() })).query(({ input }) => listContentByCategory(input.categoryId)),
     popularEducationCategories: publicProcedure.query(() => listPopularEducationCategories()),
+    recordContentView: publicProcedure.input(z.object({ contentId: z.number().int().positive(), viewerKey: z.string().trim().min(8).max(160) })).mutation(({ ctx, input }) => recordContentView({ contentId: input.contentId, viewerKey: input.viewerKey, userId: ctx.user?.id ?? null })),
     outcome: publicProcedure.input(z.object({ outcomeId: z.number().int().positive() })).query(({ input }) => getOutcomeStudyData(input.outcomeId)),
     approvedQuestions: publicProcedure.query(() => listApprovedQuestions()),
   siteContact: publicProcedure.query(async () => {
@@ -753,6 +758,8 @@ export const appRouter = router({
       };
     }),
     mediaAssets: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]).optional(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).optional() }).optional()).query(({ input }) => listMediaAssets(input)),
+    contentMissingCovers: adminProcedure.input(z.object({ categoryId: z.number().int().positive().optional(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news"]).optional() }).optional()).query(({ input }) => listContentMissingCovers(input)),
+    bulkAssignContentCover: adminProcedure.input(z.object({ contentIds: z.array(z.number().int().positive()).min(1).max(100), mediaAssetId: z.number().int().positive() })).mutation(async ({ ctx, input }) => { const result = await bulkAssignContentCover(input); await recordSecurityEvent({ eventType: "content_bulk_cover_assigned", severity: "low", description: "Kapaksız yayınlanmış içeriklere toplu kapak atandı.", metadata: { ...input, updated: result.updated, updatedBy: ctx.user.id } }); return result; }),
     createMediaAsset: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), providerAssetId: z.string().trim().max(500).optional().nullable(), fileName: z.string().trim().min(1).max(255), publicUrl: z.string().trim().url().max(900).optional().nullable(), mimeType: z.string().trim().min(1).max(120), sizeBytes: z.number().int().nonnegative().optional().nullable(), folderPath: z.string().trim().max(500).optional().nullable(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).default("general"), metadata: z.record(z.string(), z.unknown()).optional() })).mutation(async ({ ctx, input }) => { await createMediaAsset({ ...input, uploadedBy: ctx.user.id }); return { success: true }; }),
     uploadMediaAsset: adminProcedure.input(z.object({ fileName: z.string().trim().min(1).max(255), mimeType: z.string().trim().min(1).max(120), dataBase64: z.string().min(1), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).default("general") })).mutation(async ({ ctx, input }) => { const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]; if (!allowedMimeTypes.includes(input.mimeType)) throw new TRPCError({ code: "BAD_REQUEST", message: "Bu dosya türüne izin verilmiyor." }); const buffer = Buffer.from(input.dataBase64, "base64"); if (buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Dosya boyutu en fazla 20 MB olabilir." }); const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-"); const result = await storagePut(`okulblog/media/${ctx.user.id}/${safeName}`, buffer, input.mimeType); await createMediaAsset({ provider: "s3", providerAssetId: result.key, fileName: input.fileName, publicUrl: result.url, mimeType: input.mimeType, sizeBytes: buffer.byteLength, contentType: input.contentType, metadata: { storageKey: result.key }, uploadedBy: ctx.user.id }); if (input.mimeType === "application/pdf") { const coverBuffer = await renderPdfCover(buffer); const cover = await storagePut(`okulblog/media/${ctx.user.id}/covers/${safeFileStem(input.fileName)}-cover.webp`, coverBuffer, "image/webp"); return { ...result, coverImageUrl: cover.url, coverGenerated: true as const }; } return { ...result, coverImageUrl: null, coverGenerated: false as const }; }),
     importDocumentFromUrl: adminProcedure.input(z.object({ sourceUrl: z.string().trim().url().max(1200), fileName: z.string().trim().max(255).optional(), contentType: z.enum(["document"]).default("document") })).mutation(async ({ ctx, input }) => {

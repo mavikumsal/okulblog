@@ -1178,6 +1178,7 @@ function PanelContent() {
             contentTargets={mediaTargetItems}
             linkMediaAsset={linkMediaAsset}
           />
+          <BulkCoverAssignmentPanel assets={mediaAssets.data ?? []} />
         </>
       )}
       {section === "reklam" && (
@@ -5480,6 +5481,34 @@ function AdminOnlyIntegrationSection({
       </div>
     </section>
   );
+}
+
+type CoverAsset = { id: number; fileName: string; publicUrl?: string | null; mimeType: string; status: string };
+type CoverCandidate = { id: number; title: string; contentType: string; categoryName?: string | null; categoryId?: number | null; createdAt: Date | string };
+
+function BulkCoverAssignmentPanel({ assets }: { assets: CoverAsset[] }) {
+  const [contentType, setContentType] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [assetId, setAssetId] = useState("");
+  const adminApi = trpc.admin as any;
+  const candidates = adminApi.contentMissingCovers?.useQuery
+    ? adminApi.contentMissingCovers.useQuery(contentType === "all" ? undefined : { contentType }, { staleTime: 0 })
+    : { data: [], isLoading: false, isError: false, refetch: async () => undefined };
+  const bulkAssign = adminApi.bulkAssignContentCover?.useMutation
+    ? adminApi.bulkAssignContentCover.useMutation({
+        onSuccess: (result: { updated: number }) => { toast.success(`${result.updated} içeriğe kapak atandı.`); setSelectedIds([]); candidates.refetch(); },
+        onError: (error: { message?: string }) => toast.error(error.message || "Toplu kapak atama başarısız."),
+      })
+    : { mutate: () => undefined, isPending: false };
+  const imageAssets = assets.filter(asset => asset.status !== "archived" && Boolean(asset.publicUrl) && asset.mimeType.startsWith("image/"));
+  const rows = (candidates.data ?? []) as CoverCandidate[];
+  const toggle = (id: number) => setSelectedIds(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
+  const allSelected = rows.length > 0 && rows.every(row => selectedIds.includes(row.id));
+  return <section className="mt-6 rounded-[28px] border border-[#d8e7e1] bg-white p-5 shadow-[0_18px_50px_rgba(24,52,79,.06)] sm:p-7" aria-labelledby="bulk-cover-title">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#318e83]">Medya Merkezi · toplu işlem</p><h2 id="bulk-cover-title" className="mt-2 text-2xl font-semibold tracking-[-.04em] text-[#18344f]">Eksik kapakları tamamla</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#6b7e88]">Yayınlanmış ve kapak görseli olmayan içerikleri gerçek bir görsel medya varlığıyla tek seferde ilişkilendirin.</p></div><div className="flex flex-col gap-2 sm:flex-row"><select value={contentType} onChange={event => { setContentType(event.target.value); setSelectedIds([]); }} className="h-10 rounded-xl border border-[#d8e7e1] bg-white px-3 text-sm text-[#29465a]"><option value="all">Tüm içerik türleri</option><option value="test">Testler</option><option value="document">Dokümanlar</option><option value="video">Videolar</option><option value="simulation">Simülasyonlar</option><option value="game">Oyunlar</option><option value="news">Haberler</option></select><select value={assetId} onChange={event => setAssetId(event.target.value)} className="h-10 min-w-[220px] rounded-xl border border-[#d8e7e1] bg-white px-3 text-sm text-[#29465a]"><option value="">Kapak görseli seçin</option>{imageAssets.map(asset => <option key={asset.id} value={asset.id}>{asset.fileName}</option>)}</select></div></div>
+    <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#f4f8f5] px-4 py-3"><label className="inline-flex items-center gap-2 text-sm font-bold text-[#29465a]"><input type="checkbox" checked={allSelected} onChange={() => setSelectedIds(allSelected ? [] : rows.map(row => row.id))} />Tümünü seç <span className="text-xs font-medium text-[#77908e]">({rows.length} kapaksız içerik)</span></label><Button type="button" disabled={!assetId || !selectedIds.length || bulkAssign.isPending} onClick={() => bulkAssign.mutate({ contentIds: selectedIds, mediaAssetId: Number(assetId) })} className="rounded-xl bg-[#0d9488] hover:bg-[#08776f]">{bulkAssign.isPending ? "Atanıyor…" : `${selectedIds.length} içeriğe kapağı ata`}</Button></div>
+    {candidates.isLoading ? <div className="mt-5 rounded-2xl border border-dashed border-[#cbd9d5] p-8 text-center text-sm text-[#6b7c79]">Kapaksız içerikler yükleniyor…</div> : candidates.isError ? <div className="mt-5 rounded-2xl border border-dashed border-[#efb4b4] bg-[#fff8f8] p-8 text-center text-sm text-[#9b4d4d]">Kapaksız içerikler yüklenemedi.</div> : rows.length === 0 ? <div className="mt-5 rounded-2xl border border-dashed border-[#cbd9d5] p-8 text-center text-sm text-[#6b7c79]">Bu filtrede kapak görseli eksik yayınlanmış içerik bulunmuyor.</div> : <div className="mt-5 grid gap-3 md:grid-cols-2">{rows.map(row => <label key={row.id} className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition ${selectedIds.includes(row.id) ? "border-[#0d9488] bg-[#effbf8]" : "border-[#e4ece8] bg-white hover:border-[#9bcfc7]"}`}><input type="checkbox" checked={selectedIds.includes(row.id)} onChange={() => toggle(row.id)} /><div className="min-w-0"><p className="truncate text-sm font-bold text-[#29465a]">{row.title}</p><p className="mt-1 text-xs text-[#7b8e95]">{row.categoryName || "Kategorisiz"} · {row.contentType}</p></div></label>)}</div>}
+  </section>;
 }
 
 export default function Panel() {

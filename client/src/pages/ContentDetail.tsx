@@ -1,5 +1,5 @@
 import { ArrowLeft, BookOpen, Check, CheckCircle2, Copy, Download, ExternalLink, FileText, Gamepad2, GraduationCap, Heart, Layers3, Newspaper, PlayCircle, Share2, Target } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -101,6 +101,20 @@ export default function ContentDetail() {
   const dashboard = trpc.member.dashboard.useQuery(undefined, { enabled: Boolean(user) });
   const toggleFavorite = trpc.member.toggleFavorite.useMutation({ onSuccess: () => favorites.refetch() });
   const updateProgress = trpc.member.progress.useMutation({ onSuccess: () => dashboard.refetch() });
+  const recordView = trpc.platform.recordContentView.useMutation();
+  const [viewerKey] = useState(() => {
+    if (typeof window === "undefined") return "server-viewer";
+    const storageKey = "okulblog-viewer-key";
+    const existing = window.localStorage.getItem(storageKey);
+    if (existing) return existing;
+    const generated = `${crypto.randomUUID()}-${Math.random().toString(36).slice(2)}`;
+    window.localStorage.setItem(storageKey, generated);
+    return generated;
+  });
+  useEffect(() => {
+    if (!item || item.status !== "published" || !Number.isInteger(id)) return;
+    recordView.mutate({ contentId: id, viewerKey });
+  }, [id, item?.id, item?.status, viewerKey]);
   const [copied, setCopied] = useState(false);
 
   const isFavorited = Boolean(favorites.data?.some(favorite => favorite.contentType === type && favorite.contentId === id));

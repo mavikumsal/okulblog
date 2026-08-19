@@ -1,6 +1,6 @@
-import { and, eq, asc, desc, inArray, isNull, gte, lte, count } from "drizzle-orm";
+import { and, eq, asc, desc, inArray, isNull, gte, lte, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, contentProgress, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, contentViewDaily, contentViewEvents, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { educationCurriculum } from "./educationCurriculum";
 
@@ -16,6 +16,80 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+export function normalizeViewDay(value = new Date()) {
+  return value.toISOString().slice(0, 10);
+}
+
+export function normalizeContentIds(contentIds: number[]) {
+  return Array.from(new Set(contentIds.filter(id => Number.isInteger(id) && id > 0))).slice(0, 100);
+}
+
+export async function recordContentView(input: { contentId: number; viewerKey: string; userId?: number | null }) {
+  const db = await getDb();
+  if (!db) return { recorded: false, reason: "database-unavailable" as const };
+  const viewerKey = input.viewerKey.trim().slice(0, 160);
+  if (!viewerKey) return { recorded: false, reason: "viewer-key-required" as const };
+  const [content] = await db.select({ id: contentItems.id }).from(contentItems).where(and(eq(contentItems.id, input.contentId), eq(contentItems.status, "published"))).limit(1);
+  if (!content) return { recorded: false, reason: "content-not-published" as const };
+  const viewDay = normalizeViewDay();
+  try {
+    await db.insert(contentViewEvents).values({ contentId: input.contentId, userId: input.userId ?? null, viewerKey, viewDay });
+  } catch (error) {
+    // The unique content/viewer/day index intentionally makes repeat views idempotent.
+    if (String(error).toLowerCase().includes("duplicate") || String(error).toLowerCase().includes("unique")) {
+      return { recorded: false, reason: "already-recorded" as const };
+    }
+    throw error;
+  }
+  await db.insert(contentViewDaily).values({ contentId: input.contentId, viewDay, viewCount: 1 }).onDuplicateKeyUpdate({ set: { viewCount: sql`${contentViewDaily.viewCount} + 1`, updatedAt: new Date() } });
+  return { recorded: true, viewDay };
+}
+
+export async function aggregateContentViewDaily() {
+  const db = await getDb();
+  if (!db) return { aggregated: 0, days: 0 };
+  const rows = await db
+    .select({ contentId: contentViewEvents.contentId, viewDay: contentViewEvents.viewDay, viewCount: count() })
+    .from(contentViewEvents)
+    .groupBy(contentViewEvents.contentId, contentViewEvents.viewDay);
+  for (const row of rows) {
+    await db.insert(contentViewDaily).values({ contentId: row.contentId, viewDay: row.viewDay, viewCount: Number(row.viewCount ?? 0) }).onDuplicateKeyUpdate({
+      set: { viewCount: Number(row.viewCount ?? 0), updatedAt: new Date() },
+    });
+  }
+  return { aggregated: rows.length, days: new Set(rows.map(row => row.viewDay)).size };
+}
+
+export async function getContentViewTotals() {
+  const db = await getDb();
+  if (!db) return new Map<number, number>();
+  const rows = await db.select({ contentId: contentViewDaily.contentId, viewCount: sql<number>`sum(${contentViewDaily.viewCount})` }).from(contentViewDaily).groupBy(contentViewDaily.contentId);
+  return new Map(rows.map(row => [row.contentId, Number(row.viewCount ?? 0)]));
+}
+
+export async function listContentMissingCovers(input?: { categoryId?: number; contentType?: "test" | "document" | "video" | "simulation" | "game" | "news" }) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [eq(contentItems.status, "published"), sql`(${contentItems.coverImageUrl} is null or ${contentItems.coverImageUrl} = '')`];
+  if (input?.categoryId) conditions.push(eq(contentItems.categoryId, input.categoryId));
+  if (input?.contentType) conditions.push(eq(contentItems.contentType, input.contentType));
+  const rows = await db.select().from(contentItems).where(and(...conditions)).orderBy(desc(contentItems.createdAt));
+  const categories = await db.select().from(categoryNodes);
+  const byId = new Map(categories.map(category => [category.id, category]));
+  return rows.map(row => ({ ...row, categoryName: row.categoryId ? byId.get(row.categoryId)?.name ?? null : null }));
+}
+
+export async function bulkAssignContentCover(input: { contentIds: number[]; mediaAssetId: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const asset = await db.select({ id: mediaAssets.id, publicUrl: mediaAssets.publicUrl, mimeType: mediaAssets.mimeType, status: mediaAssets.status }).from(mediaAssets).where(eq(mediaAssets.id, input.mediaAssetId)).limit(1);
+  if (!asset[0] || asset[0].status === "archived" || !asset[0].publicUrl || !asset[0].mimeType.startsWith("image/")) throw new Error("Geçerli bir görsel medya varlığı seçilmelidir.");
+  const ids = normalizeContentIds(input.contentIds);
+  if (!ids.length) return { updated: 0 };
+  await db.update(contentItems).set({ coverImageUrl: asset[0].publicUrl }).where(and(inArray(contentItems.id, ids), eq(contentItems.status, "published")));
+  return { updated: ids.length, coverImageUrl: asset[0].publicUrl };
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -1017,8 +1091,12 @@ export async function listPopularEducationCategories() {
   const db = await getDb();
   if (!db) return [];
   const categories = await db.select().from(categoryNodes).where(inArray(categoryNodes.id, ids));
+  const totals = await getContentViewTotals();
+  const published = await db.select({ id: contentItems.id, categoryId: contentItems.categoryId }).from(contentItems).where(and(eq(contentItems.status, "published"), inArray(contentItems.categoryId, ids)));
+  const categoryTotals = new Map<number, number>();
+  for (const item of published) if (item.categoryId) categoryTotals.set(item.categoryId, (categoryTotals.get(item.categoryId) ?? 0) + (totals.get(item.id) ?? 0));
   const byId = new Map(categories.map(category => [category.id, category]));
-  return ids.map(id => byId.get(id)).filter((category): category is typeof categories[number] => Boolean(category && category.categoryType === "education" && category.isActive));
+  return ids.map(id => byId.get(id)).filter((category): category is typeof categories[number] => Boolean(category && category.categoryType === "education" && category.isActive)).map(category => ({ ...category, viewCount: categoryTotals.get(category.id) ?? 0 }));
 }
 
 export function normalizePopularEducationCategoryIds(categoryIds: number[]) {

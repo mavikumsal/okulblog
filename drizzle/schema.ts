@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json, uniqueIndex, index } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -40,6 +40,29 @@ export const contentItems = mysqlTable("content_items", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
+
+export const contentViewEvents = mysqlTable("content_view_events", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull(),
+  userId: int("userId"),
+  viewerKey: varchar("viewerKey", { length: 160 }).notNull(),
+  viewDay: varchar("viewDay", { length: 10 }).notNull(),
+  occurredAt: timestamp("occurredAt").defaultNow().notNull(),
+}, (table) => ({
+  viewerDayUnique: uniqueIndex("content_view_events_viewer_day_unique").on(table.contentId, table.viewerKey, table.viewDay),
+  contentDayIndex: index("content_view_events_content_day_idx").on(table.contentId, table.viewDay),
+}));
+
+export const contentViewDaily = mysqlTable("content_view_daily", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull(),
+  viewDay: varchar("viewDay", { length: 10 }).notNull(),
+  viewCount: int("viewCount").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  contentDayUnique: uniqueIndex("content_view_daily_content_day_unique").on(table.contentId, table.viewDay),
+  contentIndex: index("content_view_daily_content_idx").on(table.contentId),
+}));
 
 export const questions = mysqlTable("questions", {
   id: int("id").autoincrement().primaryKey(),
