@@ -45,6 +45,7 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
+  Trash2,
   Users,
 } from "lucide-react";
 
@@ -210,6 +211,14 @@ function PanelContent() {
     },
     onError: () => toast.error("Kategori oluşturulamadı."),
   });
+  const deleteCategory = trpc.categories.remove.useMutation({
+    onSuccess: () => {
+      utils.categories.list.invalidate();
+      utils.platform.overview.invalidate();
+      toast.success("Kategori ve bağlı alt kayıtlar silindi.");
+    },
+    onError: error => toast.error(error.message || "Kategori silinemedi."),
+  });
   const importCurriculum = trpc.categories.importCurriculum.useMutation({
     onSuccess: result => {
       utils.categories.list.invalidate();
@@ -358,6 +367,14 @@ function PanelContent() {
     },
     onError: () => toast.error("Soru kaydedilemedi."),
   });
+  const deleteQuestion = trpc.questions.remove.useMutation({
+    onSuccess: () => {
+      utils.questions.list.invalidate();
+      utils.platform.overview.invalidate();
+      toast.success("Soru silindi.");
+    },
+    onError: error => toast.error(error.message || "Soru silinemedi."),
+  });
   const [aiTopic, setAiTopic] = useState("");
   const [aiProvider, setAiProvider] = useState<"openai" | "gemini">("openai");
   const [aiModel, setAiModel] = useState("gpt-5-mini");
@@ -453,6 +470,14 @@ function PanelContent() {
     },
     onError: () => toast.error("Test kaydedilemedi."),
   });
+  const deleteTest = trpc.tests.remove.useMutation({
+    onSuccess: () => {
+      utils.tests.list.invalidate();
+      utils.platform.overview.invalidate();
+      toast.success("Test silindi.");
+    },
+    onError: error => toast.error(error.message || "Test silinemedi."),
+  });
   const [contentCategoryId, setContentCategoryId] = useState("");
   const [contentInstitutionCategoryId, setContentInstitutionCategoryId] = useState("");
   const createContent = trpc.contents.create.useMutation({
@@ -467,6 +492,14 @@ function PanelContent() {
       toast.success("İçerik taslak olarak kaydedildi.");
     },
     onError: () => toast.error("İçerik kaydedilemedi."),
+  });
+  const deleteContent = trpc.contents.remove.useMutation({
+    onSuccess: () => {
+      utils.contents.list.invalidate({ contentType: selectedContentType });
+      utils.platform.overview.invalidate();
+      toast.success("İçerik silindi.");
+    },
+    onError: error => toast.error(error.message || "İçerik silinemedi."),
   });
   const archiveContent = trpc.contents.archive.useMutation({
     onSuccess: () => {
@@ -747,6 +780,13 @@ function PanelContent() {
       toast.success("Haber kategorisi eklendi.");
     },
     onError: () => toast.error("Haber kategorisi eklenemedi."),
+  });
+  const deleteNewsCategory = trpc.admin.removeNewsCategory.useMutation({
+    onSuccess: () => {
+      utils.admin.newsCategories.invalidate();
+      toast.success("Haber kategorisi silindi.");
+    },
+    onError: error => toast.error(error.message || "Haber kategorisi silinemedi."),
   });
   const homeSlides = trpc.admin.homeSlides.useQuery(undefined, {
     enabled: isAdmin,
@@ -1688,6 +1728,22 @@ function PanelContent() {
                             Düzenle
                           </Button>
                         )}
+                        {isAdmin && editingCategoryId !== item.id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={deleteCategory.isPending}
+                            onClick={() => {
+                              if (window.confirm(`“${item.name}” kategorisini silmek istediğinize emin misiniz? Alt kategori veya bağlı içerik varsa silme işlemi güvenlik nedeniyle durdurulur.`)) {
+                                deleteCategory.mutate({ id: item.id });
+                              }
+                            }}
+                            className="h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345] hover:bg-[#fff3ef]"
+                            aria-label={`${item.name} kategorisini sil`}
+                          >
+                            <Trash2 className="mr-1 h-3.5 w-3.5" />Sil
+                          </Button>
+                        )}
                         {item.categoryType === "institution" ? (
                           <>
                             <span
@@ -1886,9 +1942,28 @@ function PanelContent() {
                       <p className="text-sm font-semibold text-[#3b586a]">
                         {item.prompt}
                       </p>
-                      <Badge variant="outline" className="shrink-0 text-[10px]">
-                        {item.status === "approved" ? "Onaylı" : "Taslak"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="shrink-0 text-[10px]">
+                          {item.status === "approved" ? "Onaylı" : "Taslak"}
+                        </Badge>
+                        {isAdmin && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={deleteQuestion.isPending}
+                            onClick={() => {
+                              if (window.confirm("Bu soruyu silmek istediğinize emin misiniz? Testlerde kullanılan sorular silinemez.")) {
+                                deleteQuestion.mutate({ id: item.id });
+                              }
+                            }}
+                            className="h-8 rounded-lg border-[#e6b8ad] px-2 text-xs text-[#a65345] hover:bg-[#fff3ef]"
+                            aria-label={`${item.prompt.slice(0, 40)} sorusunu sil`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     <p className="mt-2 text-xs text-[#819095]">
                       {item.questionType === "multiple-choice"
@@ -2492,13 +2567,32 @@ function PanelContent() {
                           soru
                         </p>
                       </div>
-                      <Badge variant="outline" className="text-[10px]">
-                        {test.status === "published"
-                          ? "Yayında"
-                          : test.status === "archived"
-                            ? "Arşiv"
-                            : "Taslak"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px]">
+                          {test.status === "published"
+                            ? "Yayında"
+                            : test.status === "archived"
+                              ? "Arşiv"
+                              : "Taslak"}
+                        </Badge>
+                        {isAdmin && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={deleteTest.isPending}
+                            onClick={() => {
+                              if (window.confirm(`“${test.title}” testini kalıcı olarak silmek istediğinize emin misiniz?`)) {
+                                deleteTest.mutate({ id: test.id });
+                              }
+                            }}
+                            className="h-8 rounded-lg border-[#e6b8ad] px-2 text-xs text-[#a65345] hover:bg-[#fff3ef]"
+                            aria-label={`${test.title} testini sil`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -2521,7 +2615,7 @@ function PanelContent() {
             </div>
             <Badge variant="outline" className="shrink-0">{categoryContentList.data?.length ?? 0} içerik</Badge>
           </div>
-          {categoryContentList.isLoading ? <div className="mt-5 rounded-xl bg-[#f7f8f4] p-4 text-sm text-[#728087]">Kategori içerikleri yükleniyor…</div> : categoryContentList.isError ? <div className="mt-5 rounded-xl bg-[#fff3ef] p-4 text-sm text-[#a65345]">Kategori içerikleri yüklenemedi.</div> : categoryContentList.data?.length ? <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead><tr className="border-b border-[#e8eee9] text-xs uppercase tracking-[.12em] text-[#82918f]"><th className="px-3 py-3">Başlık</th><th className="px-3 py-3">Tür</th><th className="px-3 py-3">Durum</th><th className="px-3 py-3">İşlem</th></tr></thead><tbody>{categoryContentList.data.map(item => <tr key={item.id} className="border-b border-[#f0f3ef] last:border-0"><td className="px-3 py-3 font-semibold text-[#365368]">{item.title}</td><td className="px-3 py-3 text-[#728087]">{panelContentTypeLabels[item.contentType]}</td><td className="px-3 py-3"><Badge variant="outline">{item.status}</Badge></td><td className="px-3 py-3"><Button size="sm" variant="outline" className="h-8 rounded-lg" onClick={() => setLocation(`/icerik/${item.contentType}/${item.id}`)}>Detayı aç</Button></td></tr>)}</tbody></table></div> : <div className="mt-5 rounded-xl bg-[#f7f8f4] p-4 text-sm text-[#728087]">Bu kategoride bağlı içerik bulunmuyor.</div>}
+          {categoryContentList.isLoading ? <div className="mt-5 rounded-xl bg-[#f7f8f4] p-4 text-sm text-[#728087]">Kategori içerikleri yükleniyor…</div> : categoryContentList.isError ? <div className="mt-5 rounded-xl bg-[#fff3ef] p-4 text-sm text-[#a65345]">Kategori içerikleri yüklenemedi.</div> : categoryContentList.data?.length ? <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead><tr className="border-b border-[#e8eee9] text-xs uppercase tracking-[.12em] text-[#82918f]"><th className="px-3 py-3">Başlık</th><th className="px-3 py-3">Tür</th><th className="px-3 py-3">Durum</th><th className="px-3 py-3">İşlem</th></tr></thead><tbody>{categoryContentList.data.map(item => <tr key={item.id} className="border-b border-[#f0f3ef] last:border-0"><td className="px-3 py-3 font-semibold text-[#365368]">{item.title}</td><td className="px-3 py-3 text-[#728087]">{panelContentTypeLabels[item.contentType]}</td><td className="px-3 py-3"><Badge variant="outline">{item.status}</Badge></td><td className="px-3 py-3"><div className="flex items-center gap-2"><Button size="sm" variant="outline" className="h-8 rounded-lg" onClick={() => setLocation(`/icerik/${item.contentType}/${item.id}`)}>Detayı aç</Button>{isAdmin && <Button size="sm" variant="outline" disabled={deleteContent.isPending} onClick={() => { if (window.confirm(`“${item.title}” içeriğini kalıcı olarak silmek istediğinize emin misiniz?`)) deleteContent.mutate({ id: item.id, contentType: item.contentType }); }} className="h-8 rounded-lg border-[#e6b8ad] px-2 text-xs text-[#a65345] hover:bg-[#fff3ef]" aria-label={`${item.title} içeriğini sil`}><Trash2 className="h-3.5 w-3.5" /></Button>}</div></td></tr>)}</tbody></table></div> : <div className="mt-5 rounded-xl bg-[#f7f8f4] p-4 text-sm text-[#728087]">Bu kategoride bağlı içerik bulunmuyor.</div>}
         </section>
       )}
       {section === "icerikler" && (
@@ -2697,6 +2791,22 @@ function PanelContent() {
                           Arşivle
                         </Button>
                       )}
+                      {isAdmin && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-lg border-[#e6b8ad] px-2 text-xs text-[#a65345] hover:bg-[#fff3ef]"
+                          disabled={deleteContent.isPending}
+                          onClick={() => {
+                            if (window.confirm(`“${item.title}” içeriğini kalıcı olarak silmek istediğinize emin misiniz?`)) {
+                              deleteContent.mutate({ id: item.id, contentType: selectedContentType });
+                            }
+                          }}
+                          aria-label={`${item.title} içeriğini sil`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2760,13 +2870,10 @@ function PanelContent() {
               <div className="flex flex-wrap gap-2">
                 {(newsCategories.data ?? []).length ? (
                   newsCategories.data?.map(item => (
-                    <Badge
-                      key={item.id}
-                      variant="outline"
-                      className="px-3 py-1.5"
-                    >
-                      {item.name}
-                    </Badge>
+                    <div key={item.id} className="inline-flex items-center gap-1 rounded-full border border-[#e6e8e2] px-2 py-1">
+                      <Badge variant="outline" className="border-0 px-1 py-0.5">{item.name}</Badge>
+                      <Button type="button" size="sm" variant="ghost" disabled={deleteNewsCategory.isPending} onClick={() => { if (window.confirm(`“${item.name}” haber kategorisini silmek istediğinize emin misiniz?`)) deleteNewsCategory.mutate({ id: item.id }); }} className="h-6 w-6 rounded-full p-0 text-[#a65345] hover:bg-[#fff3ef]" aria-label={`${item.name} haber kategorisini sil`}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </div>
                   ))
                 ) : (
                   <span className="text-sm text-[#7b8b90]">

@@ -69,6 +69,11 @@ import {
   updateCategoryNode,
   updateHomeSlide,
   deleteHomeSlide,
+  deleteCategoryNode,
+  deleteQuestion,
+  deleteContentItem,
+  deleteTest,
+  deleteNewsCategory,
   upsertSearchConsoleToken,
   getSearchConsoleToken,
 } from "./db";
@@ -188,6 +193,7 @@ export const appRouter = router({
       await setCategoriesStatus(input);
       return { success: true, updated: input.ids.length };
     }),
+    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteCategoryNode(input.id)),
   }),
   permissions: router({
     forRole: protectedProcedure.input(z.object({ role: z.enum(["teacher", "moderator"]) })).query(({ input }) => getRolePermissions(input.role)),
@@ -221,6 +227,7 @@ export const appRouter = router({
       await assertSectionAccess(ctx.user, "Soru Havuzu");
       return listQuestions(input);
     }),
+    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteQuestion(input.id)),
     create: protectedProcedure.input(z.object({
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
       prompt: z.string().trim().min(12).max(1500),
@@ -250,6 +257,7 @@ export const appRouter = router({
       await assertSectionAccess(ctx.user, "Dokümanlar");
       return listContentByCategory(input.categoryId);
     }),
+    remove: adminProcedure.input(z.object({ id: z.number().int().positive(), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(({ input }) => deleteContentItem(input)),
     archive: protectedProcedure.input(z.object({ id: z.number().int().positive(), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(async ({ ctx, input }) => {
       const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;
       await assertSectionAccess(ctx.user, sectionMap[input.contentType]);
@@ -290,6 +298,7 @@ export const appRouter = router({
       await assertSectionAccess(ctx.user, "Testler");
       return listTests();
     }),
+    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteTest(input.id)),
     create: protectedProcedure.input(z.object({
       title: z.string().trim().min(3).max(220),
       description: z.string().trim().max(1000).optional(),
@@ -643,6 +652,9 @@ export const appRouter = router({
     createNewsCategory: adminProcedure.input(z.object({ name: z.string().trim().min(2).max(120) })).mutation(async ({ input }) => {
       await createNewsCategory(input.name);
       return { success: true };
+    }),
+    removeNewsCategory: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+      return deleteNewsCategory(input.id);
     }),
     saveSetting: adminProcedure.input(z.object({ settingKey: z.string().trim().min(2).max(120), settingValue: z.string().trim().max(4000) })).mutation(async ({ ctx, input }) => {
       if (["adsense_config", "private_ad_campaign", "custom_home_ad"].includes(input.settingKey) && /<script|javascript:/i.test(input.settingValue)) {

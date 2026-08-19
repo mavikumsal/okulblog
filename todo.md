@@ -986,3 +986,10 @@
 - [x] Odak etiketini üretim özeti kartının altına yatayda tam ortala
 - [x] Mobil ve masaüstünde etiket taşması/hizalamasını doğrula
 - [x] Test ve checkpoint tamamla
+
+## Yeni istek: admin silme özellikleri
+- [x] Ana ve alt kategori kayıtlarına silme butonu, onay penceresi ve bağlı kayıt kontrolü ekle
+- [x] Soru, doküman, test, video, simülasyon, haber ve oyun listelerine silme butonu ekle
+- [x] Silme işlemlerini yalnızca yetkili admin prosedürleriyle güvenli ve tekrar sorgulanabilir yap
+- [x] Silme sonrası listeleri, kategori sayaçlarını ve public görünümü yenile
+- [x] Yetki, regresyon, responsive admin görünümü, veri güvenliği ve checkpoint tamamla

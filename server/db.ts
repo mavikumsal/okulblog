@@ -300,6 +300,59 @@ export async function updateContentStatus(input: { id: number; status: "draft" |
   await db.update(contentItems).set({ status: input.status }).where(eq(contentItems.id, input.id));
 }
 
+export async function deleteCategoryNode(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const [node] = await db.select({ id: categoryNodes.id, name: categoryNodes.name }).from(categoryNodes).where(eq(categoryNodes.id, id)).limit(1);
+  if (!node) throw new Error("Kategori bulunamadı.");
+  const [child] = await db.select({ id: categoryNodes.id }).from(categoryNodes).where(eq(categoryNodes.parentId, id)).limit(1);
+  if (child) throw new Error("Önce bu kategorinin alt kategorilerini silin veya taşıyın.");
+  const [content] = await db.select({ id: contentItems.id }).from(contentItems).where(eq(contentItems.categoryId, id)).limit(1);
+  const [question] = await db.select({ id: questions.id }).from(questions).where(eq(questions.categoryId, id)).limit(1);
+  const [test] = await db.select({ id: tests.id }).from(tests).where(eq(tests.categoryId, id)).limit(1);
+  if (content || question || test) throw new Error("Bu kategoriye bağlı içerik veya soru bulunduğu için silinemiyor.");
+  await db.delete(categoryNodes).where(eq(categoryNodes.id, id));
+  return { success: true, deletedId: id };
+}
+
+export async function deleteContentItem(input: { id: number; contentType: "test" | "document" | "simulation" | "video" | "game" | "news" }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const [item] = await db.select({ id: contentItems.id }).from(contentItems).where(eq(contentItems.id, input.id)).limit(1);
+  if (!item) throw new Error("İçerik bulunamadı.");
+  await db.delete(favorites).where(and(eq(favorites.contentType, input.contentType), eq(favorites.contentId, input.id)));
+  await db.delete(contentProgress).where(and(eq(contentProgress.contentType, input.contentType), eq(contentProgress.contentId, input.id)));
+  await db.delete(mediaAssetLinks).where(and(eq(mediaAssetLinks.targetType, "content"), eq(mediaAssetLinks.targetId, input.id)));
+  await db.delete(contentItems).where(eq(contentItems.id, input.id));
+  return { success: true, deletedId: input.id };
+}
+
+export async function deleteQuestion(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const [item] = await db.select({ id: questions.id }).from(questions).where(eq(questions.id, id)).limit(1);
+  if (!item) throw new Error("Soru bulunamadı.");
+  const allTests = await db.select({ questionIds: tests.questionIds }).from(tests);
+  if (allTests.some(test => Array.isArray(test.questionIds) && (test.questionIds as unknown[]).some(value => Number(value) === id))) {
+    throw new Error("Bu soru bir teste bağlı olduğu için silinemiyor.");
+  }
+  await db.delete(questions).where(eq(questions.id, id));
+  return { success: true, deletedId: id };
+}
+
+export async function deleteTest(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const [item] = await db.select({ id: tests.id }).from(tests).where(eq(tests.id, id)).limit(1);
+  if (!item) throw new Error("Test bulunamadı.");
+  await db.delete(testAttempts).where(eq(testAttempts.testId, id));
+  await db.delete(favorites).where(and(eq(favorites.contentType, "test"), eq(favorites.contentId, id)));
+  await db.delete(contentProgress).where(and(eq(contentProgress.contentType, "test"), eq(contentProgress.contentId, id)));
+  await db.delete(mediaAssetLinks).where(and(eq(mediaAssetLinks.targetType, "test"), eq(mediaAssetLinks.targetId, id)));
+  await db.delete(tests).where(eq(tests.id, id));
+  return { success: true, deletedId: id };
+}
+
 export async function listQuestions(filters?: { topicTag?: string; gradeLevel?: string; difficulty?: "easy" | "medium" | "hard"; categoryId?: number }) {
   const db = await getDb();
   if (!db) return [];
@@ -789,6 +842,17 @@ export async function createNewsCategory(name: string) {
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   const slug = `${name.toLocaleLowerCase("tr-TR").replace(/[^a-z0-9ğüşöçıİ]+/gi, "-").replace(/(^-|-$)/g, "")}-${crypto.randomUUID().slice(0, 6)}`;
   await db.insert(newsCategories).values({ name, slug });
+}
+
+export async function deleteNewsCategory(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const [category] = await db.select({ id: newsCategories.id, name: newsCategories.name }).from(newsCategories).where(eq(newsCategories.id, id)).limit(1);
+  if (!category) throw new Error("Haber kategorisi bulunamadı.");
+  const [linkedContent] = await db.select({ id: contentItems.id }).from(contentItems).where(and(eq(contentItems.contentType, "news"), eq(contentItems.categoryId, id))).limit(1);
+  if (linkedContent) throw new Error("Bu haber kategorisine bağlı içerik bulunduğu için silinemiyor.");
+  await db.delete(newsCategories).where(eq(newsCategories.id, id));
+  return { success: true, deletedId: id };
 }
 
 export async function listContentByCategory(categoryId: number) {
