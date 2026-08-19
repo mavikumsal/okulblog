@@ -1026,6 +1026,6 @@
 - [x] Taslak kuyruğunda başlık, kısa özet, etiketler, kategori ve kapak düzenleme alanlarını ekle
 - [x] Admin’in taslağı onaylama, reddetme ve düzenlemeye geri gönderme akışlarını ekle
 - [x] Doküman içeriğini AI ile analiz edip başlık, özet ve önerilen etiketleri doldur
-- [ ] AI analizinde metin uzunluğu, maliyet, hata, yetki ve kullanıcı onayı kontrollerini ekle
-- [ ] PDF okuyucu, taslak kuyruğu ve AI metadata için Vitest testleri ekle
+- [x] AI analizinde metin uzunluğu, maliyet, hata, yetki ve kullanıcı onayı kontrollerini ekle
+- [x] PDF okuyucu, taslak kuyruğu ve AI metadata için Vitest testleri ekle
 - [x] Responsive görsel doğrulama ve checkpoint tamamla

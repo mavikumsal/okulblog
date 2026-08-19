@@ -96,6 +96,7 @@ import { decryptSearchConsoleToken, encryptSearchConsoleToken } from "./searchCo
 import { extractPdfText, renderPdfCover, renderPdfPages } from "./documentCover";
 import { ALLOWED_REMOTE_DOCUMENT_TYPES, uploadToBunnyStorage, validateRemoteDocumentUrl } from "./bunnyStorage";
 import { buildExportFile } from "./exportDocuments";
+import { buildDocumentAiPrompt, normalizeDocumentAiMetadata, sanitizeDocumentAiError, shouldAnalyzeDocumentText } from "./documentAiMetadata";
 
 export function canManagePopularEducationCategories(role: string | undefined) {
   return role === "admin";
@@ -741,7 +742,7 @@ export const appRouter = router({
       await recordSecurityEvent({ eventType: "document_imported", severity: "low", description: "Admin URL üzerinden doküman içe aktardı.", metadata: { sourceUrl: input.sourceUrl, provider, providerAssetId, mimeType, sizeBytes: buffer.byteLength, actorId: ctx.user.id } });
       return { success: true, provider, providerAssetId, publicUrl, coverImageUrl, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, sourceUrl: input.sourceUrl };
     }),
-    importDocumentDraftFromUrl: adminProcedure.input(z.object({ sourceUrl: z.string().trim().url().max(1200), fileName: z.string().trim().max(255).optional() })).mutation(async ({ ctx, input }) => {
+    importDocumentDraftFromUrl: adminProcedure.input(z.object({ sourceUrl: z.string().trim().url().max(1200), fileName: z.string().trim().max(255).optional(), analyzeWithAi: z.boolean().default(true) })).mutation(async ({ ctx, input }) => {
       let sourceUrl: URL;
       try { sourceUrl = validateRemoteDocumentUrl(input.sourceUrl); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Geçersiz kaynak URL." }); }
       const response = await fetch(sourceUrl, { redirect: "manual", signal: AbortSignal.timeout(45_000), headers: { "User-Agent": "OkulBlogDocumentImporter/1.0" } });
@@ -798,19 +799,20 @@ export const appRouter = router({
       let aiStatus: "not_started" | "completed" | "failed" = "not_started";
       let aiModel: string | null = null;
       let aiError: string | null = null;
-      if (extractedText.length >= 40) {
+      if (shouldAnalyzeDocumentText(input.analyzeWithAi, extractedText)) {
         try {
           aiModel = "gpt-5-mini";
-          const ai = await invokeLLM({ model: aiModel, messages: [{ role: "system", content: "Türkçe eğitim dokümanını analiz et. Yalnızca JSON döndür." }, { role: "user", content: `Başlık, kısa özet ve en fazla 6 etiket üret. Metin:\n${extractedText}` }], response_format: { type: "json_schema", json_schema: { name: "document_metadata", strict: true, schema: { type: "object", properties: { title: { type: "string" }, summary: { type: "string" }, tags: { type: "array", items: { type: "string" } } }, required: ["title", "summary", "tags"], additionalProperties: false } } } });
+          const ai = await invokeLLM({ model: aiModel, messages: [{ role: "system", content: "Türkçe eğitim dokümanını analiz et. Yalnızca JSON döndür. Başlık en fazla 220, özet en fazla 3000 karakter, etiket sayısı en fazla 6 olmalı." }, { role: "user", content: buildDocumentAiPrompt(extractedText) }], response_format: { type: "json_schema", json_schema: { name: "document_metadata", strict: true, schema: { type: "object", properties: { title: { type: "string" }, summary: { type: "string" }, tags: { type: "array", items: { type: "string" } } }, required: ["title", "summary", "tags"], additionalProperties: false } } } });
           const content = ai.choices[0]?.message?.content;
           const parsed = JSON.parse(typeof content === "string" ? content : "{}");
-          title = String(parsed.title || title).slice(0, 220); summary = String(parsed.summary || "").slice(0, 3000); tags = Array.isArray(parsed.tags) ? parsed.tags.map((tag: unknown) => String(tag).slice(0, 50)).slice(0, 6) : []; aiStatus = "completed";
-        } catch (error) { aiStatus = "failed"; aiError = error instanceof Error ? error.message.slice(0, 500) : "AI analizi başarısız."; }
+          ({ title, summary, tags } = normalizeDocumentAiMetadata(parsed, title));
+          aiStatus = "completed";
+        } catch (error) { aiStatus = "failed"; aiError = sanitizeDocumentAiError(error); }
       }
       const draftId = await createDocumentImportDraft({ mediaAssetId, sourceUrl: input.sourceUrl, title, summary, tags, coverImageUrl, previewPages, createdBy: ctx.user.id });
       if (aiStatus !== "not_started") await updateDocumentImportDraft(draftId, { aiStatus, aiModel, aiError });
       await recordSecurityEvent({ eventType: "document_import_draft_created", severity: "low", description: "Admin dokümanı taslak onay kuyruğuna aldı.", metadata: { draftId, mediaAssetId, provider, mimeType, sizeBytes: buffer.byteLength, actorId: ctx.user.id } });
-      return { success: true, draftId, mediaAssetId, provider, publicUrl, coverImageUrl, previewPages, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, title, summary, tags, aiStatus, aiError };
+      return { success: true, draftId, mediaAssetId, provider, publicUrl, coverImageUrl, previewPages, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, title, summary, tags, aiStatus, aiError, aiRequested: input.analyzeWithAi };
     }),
     documentImportDrafts: adminProcedure.input(z.object({ status: z.enum(["draft", "pending", "approved", "rejected"]).optional() }).optional()).query(({ input }) => listDocumentImportDrafts(input?.status)),
     updateDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(3).max(220), summary: z.string().trim().max(3000).optional().nullable(), tags: z.array(z.string().trim().min(1).max(50)).max(12).default([]), categoryId: z.number().int().positive().optional().nullable(), institutionCategoryId: z.number().int().positive().optional().nullable(), status: z.enum(["draft", "pending", "rejected"]).optional() })).mutation(async ({ input }) => { const { id, ...data } = input; await updateDocumentImportDraft(id, data); return { success: true }; }),

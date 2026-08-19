@@ -423,6 +423,7 @@ function PanelContent() {
     url: string;
   } | null>(null);
   const [remoteDocumentUrl, setRemoteDocumentUrl] = useState("");
+  const [analyzeImportedDocumentWithAi, setAnalyzeImportedDocumentWithAi] = useState(true);
   const [readerPageByDraft, setReaderPageByDraft] = useState<Record<number, number>>({});
   const [readerZoomByDraft, setReaderZoomByDraft] = useState<Record<number, number>>({});
   const [remoteDocumentResult, setRemoteDocumentResult] = useState<{
@@ -2311,8 +2312,9 @@ function PanelContent() {
                 <p className="text-[11px] leading-5 text-[#71838b]">PDF, DOCX veya PPTX bağlantısını girin. Sistem aktif depolama sağlayıcısını kullanır.</p>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Input id="remoteDocumentUrl" value={remoteDocumentUrl} onChange={event => setRemoteDocumentUrl(event.target.value)} placeholder="https://ornek.com/dokuman.pdf" className="h-10 rounded-xl bg-white" />
-                  <Button type="button" disabled={!remoteDocumentUrl.trim() || importDocumentFromUrl.isPending} onClick={() => importDocumentFromUrl.mutate({ sourceUrl: remoteDocumentUrl.trim() })} className="h-10 shrink-0 rounded-xl bg-[#18344f] text-xs">{importDocumentFromUrl.isPending ? "Aktarılıyor..." : "İndir ve aktar"}</Button>
+                  <Button type="button" disabled={!remoteDocumentUrl.trim() || importDocumentFromUrl.isPending} onClick={() => importDocumentFromUrl.mutate({ sourceUrl: remoteDocumentUrl.trim(), analyzeWithAi: analyzeImportedDocumentWithAi })} className="h-10 shrink-0 rounded-xl bg-[#18344f] text-xs">{importDocumentFromUrl.isPending ? "Aktarılıyor..." : "İndir ve aktar"}</Button>
                 </div>
+                <label className="flex items-start gap-2 rounded-lg bg-[#f5f7ff] p-2 text-[11px] leading-5 text-[#496374]"><input type="checkbox" checked={analyzeImportedDocumentWithAi} onChange={event => setAnalyzeImportedDocumentWithAi(event.target.checked)} className="mt-1 accent-[#5540e8]" /> <span><strong>AI ile analiz et</strong><br />PDF metninden başlık, kısa özet ve en fazla 6 önerilen etiketi taslak alanlarına doldurur. Analiz isteğe bağlıdır.</span></label>
                 {remoteDocumentResult && <div className="rounded-xl border border-[#dfe8df] bg-white p-3 text-xs text-[#496374]"><div className="flex items-center justify-between gap-2"><strong className="truncate">{remoteDocumentResult.fileName}</strong><Badge variant="outline">{remoteDocumentResult.provider === "bunny-storage" ? "Bunny" : "S3"}</Badge></div><p className="mt-1">{(remoteDocumentResult.sizeBytes / 1024 / 1024).toFixed(2)} MB · Depolamaya aktarıldı</p>{remoteDocumentResult.coverImageUrl && <img src={remoteDocumentResult.coverImageUrl} alt="Aktarılan doküman kapağı" className="mt-3 h-28 w-20 rounded-lg border object-cover" />}<a href={remoteDocumentResult.publicUrl} target="_blank" rel="noreferrer" className="mt-2 block truncate text-[#5540e8] underline">Dosya bağlantısını aç</a></div>}
                 <Label htmlFor="documentCoverSource">Yerel PDF seç veya önizle</Label>
                 <p className="text-[11px] leading-5 text-[#71838b]">PDF’nin ilk sayfası mevcut otomatik kapak akışıyla hazırlanır.</p>
