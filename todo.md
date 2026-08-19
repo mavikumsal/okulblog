@@ -1115,12 +1115,12 @@
 - [x] Yeni medya/analitik akışını migration, TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
 
 ## Sıradaki ana sayfa hedef tasarımı
-- [ ] / ana sayfasını yüklenen hedef görselin yerleşim, renk, boşluk ve oranlarına göre yeniden planla
-- [ ] Eski carousel, reklam alanı ve eski renkli kategori bileşenlerini yalnızca arayüzden kaldır
-- [ ] Koyu hero, hedef header, kişisel çalışma planı, istatistik şeridi, sınıf sekmeleri ve dört sınıf kartını uygula
-- [ ] Popüler Konular ve Senin için seçtiklerimiz bölümlerini gerçek verilerle bağla
-- [ ] Haberler, SSS, bülten ve footer bölümlerini hedef tasarım dilinde alt alanda koru
-- [ ] Ana sayfayı 1440px, tablet ve mobilde görsel karşılaştırıp TypeScript, Vitest, build ve konsol kontrolleriyle doğrula
+- [x] / ana sayfasını yüklenen hedef görselin yerleşim, renk, boşluk ve oranlarına göre yeniden planla
+- [x] Eski carousel, reklam alanı ve eski renkli kategori bileşenlerini yalnızca arayüzden kaldır
+- [x] Koyu hero, hedef header, kişisel çalışma planı, istatistik şeridi, sınıf sekmeleri ve dört sınıf kartını uygula
+- [x] Popüler Konular ve Senin için seçtiklerimiz bölümlerini gerçek verilerle bağla
+- [x] Haberler, SSS, bülten ve footer bölümlerini hedef tasarım dilinde alt alanda koru
+- [x] Ana sayfayı 1440px, tablet ve mobilde görsel karşılaştırıp TypeScript, Vitest, build ve konsol kontrolleriyle doğrula
 
 ## Interactive Data and Media Iteration — 2026-08-19
 
@@ -1136,4 +1136,4 @@
 
 ## Next iteration note
 
-- [ ] Sonraki kullanıcı görevi: kullanıcı tarafından sağlanacak referans görsele göre ilgili ekranı yüksek sadakatle uyarlamak
+- [x] Sonraki kullanıcı görevi: kullanıcı tarafından sağlanacak referans görsele göre ilgili ekranı yüksek sadakatle uyarlamak
