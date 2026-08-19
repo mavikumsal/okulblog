@@ -247,6 +247,20 @@ export const mediaTransferJobs = mysqlTable("media_transfer_jobs", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const auditLogs = mysqlTable("audit_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  action: mysqlEnum("action", ["delete", "bulk_delete"]).notNull(),
+  targetType: varchar("targetType", { length: 80 }).notNull(),
+  targetId: int("targetId"),
+  targetLabel: varchar("targetLabel", { length: 240 }),
+  actorId: int("actorId"),
+  actorName: varchar("actorName", { length: 220 }),
+  status: mysqlEnum("status", ["success", "failed"]).notNull(),
+  reason: text("reason"),
+  metadata: json("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const securityEvents = mysqlTable("security_events", {
   id: int("id").autoincrement().primaryKey(),
   eventType: varchar("eventType", { length: 120 }).notNull(),
@@ -257,6 +271,7 @@ export const securityEvents = mysqlTable("security_events", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export type AuditLog = typeof auditLogs.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type CategoryNode = typeof categoryNodes.$inferSelect;

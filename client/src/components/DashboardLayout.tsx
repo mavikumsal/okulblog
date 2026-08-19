@@ -21,7 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
-import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList, Cloud, Megaphone, SearchCheck, Heart, MessageCircle, ChevronDown, ExternalLink, Bell, Sun, Moon } from "lucide-react";
+import { BarChart3, FileText, FolderTree, LayoutDashboard, LogOut, PanelLeft, Settings, ShieldCheck, Sparkles, Target, Users, SlidersHorizontal, Building2, Newspaper, Gamepad2, Video, ClipboardList, Cloud, Megaphone, SearchCheck, Heart, MessageCircle, ChevronDown, ExternalLink, Bell, Sun, Moon, ScrollText } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -48,6 +48,7 @@ const menuItems = [
   { icon: Heart, label: "Üye Panelim", path: "/panel/uye-paneli" },
   { icon: BarChart3, label: "İstatistikler", path: "/panel/istatistikler", adminOnly: true },
   { icon: ShieldCheck, label: "Güvenlik", path: "/panel/guvenlik", adminOnly: true },
+  { icon: ScrollText, label: "Denetim Günlüğü", path: "/panel/audit", adminOnly: true },
   { icon: Cloud, label: "Bulut Depolama", path: "/panel/bulut-depolama", adminOnly: true },
   { icon: Megaphone, label: "Reklam Alanı", path: "/panel/reklam", adminOnly: true },
   { icon: SearchCheck, label: "Google Search Console", path: "/panel/search-console", adminOnly: true },
@@ -58,7 +59,7 @@ const menuItems = [
 function menuGroup(label: string) {
   if (label === "Genel Bakış") return "Genel";
   if (["AI Oluşturucu", "İstatistikler"].includes(label)) return "Üretim ve İçgörü";
-  if (["Üye Yönetimi", "Üye Panelim", "Güvenlik", "Bulut Depolama", "Reklam Alanı", "Google Search Console", "Site Ayarları", "Ana Sayfa Yönetimi"].includes(label)) return "Yönetim";
+  if (["Üye Yönetimi", "Üye Panelim", "Güvenlik", "Denetim Günlüğü", "Bulut Depolama", "Reklam Alanı", "Google Search Console", "Site Ayarları", "Ana Sayfa Yönetimi"].includes(label)) return "Yönetim";
   return "İçerik Merkezi";
 }
 

@@ -74,6 +74,8 @@ import {
   deleteContentItem,
   deleteTest,
   deleteNewsCategory,
+  recordAuditLog,
+  listAuditLogs,
   upsertSearchConsoleToken,
   getSearchConsoleToken,
 } from "./db";
@@ -193,7 +195,22 @@ export const appRouter = router({
       await setCategoriesStatus(input);
       return { success: true, updated: input.ids.length };
     }),
-    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteCategoryNode(input.id)),
+    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+      try {
+        const result = await deleteCategoryNode(input.id);
+        await recordAuditLog({ action: "delete", targetType: "category", targetId: input.id, actorId: ctx.user.id, actorName: ctx.user.name, status: "success" });
+        return result;
+      } catch (error) {
+        await recordAuditLog({ action: "delete", targetType: "category", targetId: input.id, actorId: ctx.user.id, actorName: ctx.user.name, status: "failed", reason: error instanceof Error ? error.message : "Bilinmeyen hata" });
+        throw error;
+      }
+    }),
+    bulkRemove: adminProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(100) })).mutation(async ({ ctx, input }) => {
+      const results = await Promise.allSettled(input.ids.map(id => deleteCategoryNode(id)));
+      const failed = results.filter(item => item.status === "rejected").length;
+      await recordAuditLog({ action: "bulk_delete", targetType: "category", actorId: ctx.user.id, actorName: ctx.user.name, status: failed ? "failed" : "success", reason: failed ? `${failed} kayıt silinemedi.` : null, metadata: { ids: input.ids, deleted: input.ids.length - failed } });
+      return { success: failed === 0, deleted: input.ids.length - failed, failed };
+    }),
   }),
   permissions: router({
     forRole: protectedProcedure.input(z.object({ role: z.enum(["teacher", "moderator"]) })).query(({ input }) => getRolePermissions(input.role)),
@@ -227,7 +244,22 @@ export const appRouter = router({
       await assertSectionAccess(ctx.user, "Soru Havuzu");
       return listQuestions(input);
     }),
-    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteQuestion(input.id)),
+    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+      try {
+        const result = await deleteQuestion(input.id);
+        await recordAuditLog({ action: "delete", targetType: "question", targetId: input.id, actorId: ctx.user.id, actorName: ctx.user.name, status: "success" });
+        return result;
+      } catch (error) {
+        await recordAuditLog({ action: "delete", targetType: "question", targetId: input.id, actorId: ctx.user.id, actorName: ctx.user.name, status: "failed", reason: error instanceof Error ? error.message : "Bilinmeyen hata" });
+        throw error;
+      }
+    }),
+    bulkRemove: adminProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(100) })).mutation(async ({ ctx, input }) => {
+      const results = await Promise.allSettled(input.ids.map(id => deleteQuestion(id)));
+      const failed = results.filter(item => item.status === "rejected").length;
+      await recordAuditLog({ action: "bulk_delete", targetType: "question", actorId: ctx.user.id, actorName: ctx.user.name, status: failed ? "failed" : "success", reason: failed ? `${failed} kayıt silinemedi.` : null, metadata: { ids: input.ids, deleted: input.ids.length - failed } });
+      return { success: failed === 0, deleted: input.ids.length - failed, failed };
+    }),
     create: protectedProcedure.input(z.object({
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
       prompt: z.string().trim().min(12).max(1500),
@@ -257,7 +289,22 @@ export const appRouter = router({
       await assertSectionAccess(ctx.user, "Dokümanlar");
       return listContentByCategory(input.categoryId);
     }),
-    remove: adminProcedure.input(z.object({ id: z.number().int().positive(), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(({ input }) => deleteContentItem(input)),
+    remove: adminProcedure.input(z.object({ id: z.number().int().positive(), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(async ({ ctx, input }) => {
+      try {
+        const result = await deleteContentItem(input);
+        await recordAuditLog({ action: "delete", targetType: input.contentType, targetId: input.id, actorId: ctx.user.id, actorName: ctx.user.name, status: "success" });
+        return result;
+      } catch (error) {
+        await recordAuditLog({ action: "delete", targetType: input.contentType, targetId: input.id, actorId: ctx.user.id, actorName: ctx.user.name, status: "failed", reason: error instanceof Error ? error.message : "Bilinmeyen hata" });
+        throw error;
+      }
+    }),
+    bulkRemove: adminProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(100), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(async ({ ctx, input }) => {
+      const results = await Promise.allSettled(input.ids.map(id => deleteContentItem({ id, contentType: input.contentType })));
+      const failed = results.filter(item => item.status === "rejected").length;
+      await recordAuditLog({ action: "bulk_delete", targetType: input.contentType, actorId: ctx.user.id, actorName: ctx.user.name, status: failed ? "failed" : "success", reason: failed ? `${failed} kayıt silinemedi.` : null, metadata: { ids: input.ids, deleted: input.ids.length - failed } });
+      return { success: failed === 0, deleted: input.ids.length - failed, failed };
+    }),
     archive: protectedProcedure.input(z.object({ id: z.number().int().positive(), contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]) })).mutation(async ({ ctx, input }) => {
       const sectionMap = { test: "Testler", document: "Dokümanlar", simulation: "Simülasyonlar", video: "Videolar", game: "Oyunlar", news: "Haberler" } as const;
       await assertSectionAccess(ctx.user, sectionMap[input.contentType]);
@@ -298,7 +345,22 @@ export const appRouter = router({
       await assertSectionAccess(ctx.user, "Testler");
       return listTests();
     }),
-    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteTest(input.id)),
+    remove: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+      try {
+        const result = await deleteTest(input.id);
+        await recordAuditLog({ action: "delete", targetType: "test", targetId: input.id, actorId: ctx.user.id, actorName: ctx.user.name, status: "success" });
+        return result;
+      } catch (error) {
+        await recordAuditLog({ action: "delete", targetType: "test", targetId: input.id, actorId: ctx.user.id, actorName: ctx.user.name, status: "failed", reason: error instanceof Error ? error.message : "Bilinmeyen hata" });
+        throw error;
+      }
+    }),
+    bulkRemove: adminProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(100) })).mutation(async ({ ctx, input }) => {
+      const results = await Promise.allSettled(input.ids.map(id => deleteTest(id)));
+      const failed = results.filter(item => item.status === "rejected").length;
+      await recordAuditLog({ action: "bulk_delete", targetType: "test", actorId: ctx.user.id, actorName: ctx.user.name, status: failed ? "failed" : "success", reason: failed ? `${failed} kayıt silinemedi.` : null, metadata: { ids: input.ids, deleted: input.ids.length - failed } });
+      return { success: failed === 0, deleted: input.ids.length - failed, failed };
+    }),
     create: protectedProcedure.input(z.object({
       title: z.string().trim().min(3).max(220),
       description: z.string().trim().max(1000).optional(),
@@ -436,6 +498,9 @@ export const appRouter = router({
       }
       return { ...result, coverImageUrl: null, coverGenerated: false as const };
     }),
+  }),
+  audit: router({
+    list: adminProcedure.input(z.object({ limit: z.number().int().min(1).max(250).optional() }).optional()).query(({ input }) => listAuditLogs(input?.limit ?? 100)),
   }),
   security: router({
     list: adminProcedure.query(() => listSecurityEvents()),

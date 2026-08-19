@@ -127,6 +127,13 @@
       "when": 1787126585455,
       "tag": "0017_mighty_plazm",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1787148028521,
+      "tag": "0018_supreme_quicksilver",
+      "breakpoints": true
     }
   ]
 }

@@ -993,3 +993,10 @@
 - [x] Silme işlemlerini yalnızca yetkili admin prosedürleriyle güvenli ve tekrar sorgulanabilir yap
 - [x] Silme sonrası listeleri, kategori sayaçlarını ve public görünümü yenile
 - [x] Yetki, regresyon, responsive admin görünümü, veri güvenliği ve checkpoint tamamla
+
+## Yeni istek: audit log ve toplu silme
+- [x] Silme işlemlerini kaydeden Admin-only audit log veri modeli ve kayıt akışı oluştur
+- [x] Audit log ekranında kullanıcı, zaman, modül, kayıt, işlem sonucu ve hata nedenini göster
+- [x] Kategori ve içerik listelerine satır checkbox’ı, tümünü seç ve seçili öğeleri sil aksiyonlarını ekle
+- [x] Toplu silmede bağlı kayıt güvenlik kontrolleri, özet onay ve kısmi başarı/hata sonuçlarını göster
+- [x] Yetki, veri bütünlüğü, test, responsive doğrulama ve checkpoint tamamla

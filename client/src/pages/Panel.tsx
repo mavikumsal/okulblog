@@ -156,6 +156,9 @@ function PanelContent() {
     enabled: Boolean(user),
   });
   const overview = trpc.platform.overview.useQuery();
+  const auditLogs = (trpc as any).audit?.list?.useQuery
+    ? (trpc as any).audit.list.useQuery({ limit: 250 }, { enabled: isAdmin && section === "audit" })
+    : { data: [], isLoading: false, isError: false };
   const memberDashboard = (trpc as any).member?.dashboard?.useQuery
     ? (trpc as any).member.dashboard.useQuery(undefined, {
         enabled: Boolean(user) && requestedSection === "uye-paneli",
@@ -190,6 +193,10 @@ function PanelContent() {
   const [categorySearch, setCategorySearch] = useState("");
   const [categoryLevelFilter, setCategoryLevelFilter] = useState("all");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<number[]>([]);
+  const [selectedTestIds, setSelectedTestIds] = useState<number[]>([]);
+  const [selectedContentIds, setSelectedContentIds] = useState<number[]>([]);
+  const [bulkAction, setBulkAction] = useState<null | { kind: "category" | "question" | "test" | "content"; ids: number[]; contentType?: "test" | "document" | "simulation" | "video" | "game" | "news" }>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
     null
   );
@@ -257,6 +264,10 @@ function PanelContent() {
         onError: () => toast.error("Toplu kategori durumu güncellenemedi."),
       })
     : { mutate: () => undefined, isPending: false };
+  const bulkRemoveCategories = (trpc.categories as any).bulkRemove?.useMutation ? (trpc.categories as any).bulkRemove.useMutation({
+    onSuccess: (result: { deleted: number; failed: number }) => { setSelectedCategoryIds([]); utils.categories.list.invalidate(); utils.platform.overview.invalidate(); setBulkAction(null); toast.success(`${result.deleted} kategori silindi${result.failed ? `, ${result.failed} kayıt güvenlik nedeniyle atlandı.` : "."}`); },
+    onError: (error: { message?: string }) => { setBulkAction(null); toast.error(error.message || "Toplu kategori silinemedi."); },
+  }) : { mutate: () => undefined, isPending: false };
   const updateCategoryStatus = trpc.categories.setStatus.useMutation({
     onSuccess: () => {
       utils.categories.list.invalidate();
@@ -375,6 +386,10 @@ function PanelContent() {
     },
     onError: error => toast.error(error.message || "Soru silinemedi."),
   });
+  const bulkRemoveQuestions = (trpc.questions as any).bulkRemove?.useMutation ? (trpc.questions as any).bulkRemove.useMutation({
+    onSuccess: (result: { deleted: number; failed: number }) => { setSelectedQuestionIds([]); utils.questions.list.invalidate(); utils.platform.overview.invalidate(); setBulkAction(null); toast.success(`${result.deleted} soru silindi${result.failed ? `, ${result.failed} soru atlandı.` : "."}`); },
+    onError: (error: { message?: string }) => { setBulkAction(null); toast.error(error.message || "Toplu soru silinemedi."); },
+  }) : { mutate: () => undefined, isPending: false };
   const [aiTopic, setAiTopic] = useState("");
   const [aiProvider, setAiProvider] = useState<"openai" | "gemini">("openai");
   const [aiModel, setAiModel] = useState("gpt-5-mini");
@@ -478,6 +493,14 @@ function PanelContent() {
     },
     onError: error => toast.error(error.message || "Test silinemedi."),
   });
+  const bulkRemoveTests = (trpc.tests as any).bulkRemove?.useMutation ? (trpc.tests as any).bulkRemove.useMutation({
+    onSuccess: (result: { deleted: number; failed: number }) => { setSelectedTestIds([]); utils.tests.list.invalidate(); utils.platform.overview.invalidate(); setBulkAction(null); toast.success(`${result.deleted} test silindi${result.failed ? `, ${result.failed} test atlandı.` : "."}`); },
+    onError: (error: { message?: string }) => { setBulkAction(null); toast.error(error.message || "Toplu test silinemedi."); },
+  }) : { mutate: () => undefined, isPending: false };
+  const bulkRemoveContents = (trpc.contents as any).bulkRemove?.useMutation ? (trpc.contents as any).bulkRemove.useMutation({
+    onSuccess: (result: { deleted: number; failed: number }) => { setSelectedContentIds([]); utils.contents.list.invalidate({ contentType: selectedContentType }); utils.platform.overview.invalidate(); setBulkAction(null); toast.success(`${result.deleted} içerik silindi${result.failed ? `, ${result.failed} içerik atlandı.` : "."}`); },
+    onError: (error: { message?: string }) => { setBulkAction(null); toast.error(error.message || "Toplu içerik silinemedi."); },
+  }) : { mutate: () => undefined, isPending: false };
   const [contentCategoryId, setContentCategoryId] = useState("");
   const [contentInstitutionCategoryId, setContentInstitutionCategoryId] = useState("");
   const createContent = trpc.contents.create.useMutation({
@@ -1645,7 +1668,7 @@ function PanelContent() {
                 {isAdmin && filteredCategoryOptions.length > 0 && <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f8f4] p-3">
                   <button type="button" onClick={() => setSelectedCategoryIds(selectedCategoryIds.length === filteredCategoryOptions.length ? [] : filteredCategoryOptions.map(item => item.id))} className="inline-flex items-center gap-2 text-xs font-bold text-[#456073] hover:text-[#5540e8]"><CheckSquare className="h-4 w-4" />{selectedCategoryIds.length === filteredCategoryOptions.length ? "Seçimi kaldır" : "Sonuçları seç"}</button>
                   <span className="text-xs text-[#82918f]">{selectedCategoryIds.length} seçili</span>
-                  {selectedCategoryIds.length > 0 && <><Button type="button" size="sm" disabled={bulkSetCategoryStatus.isPending} onClick={() => bulkSetCategoryStatus.mutate({ ids: selectedCategoryIds, isActive: true })} className="ml-auto h-8 rounded-lg bg-[#276e61] text-xs">Toplu aktif yap</Button><Button type="button" size="sm" variant="outline" disabled={bulkSetCategoryStatus.isPending} onClick={() => bulkSetCategoryStatus.mutate({ ids: selectedCategoryIds, isActive: false })} className="h-8 rounded-lg text-xs">Toplu pasif yap</Button></>}
+                  {selectedCategoryIds.length > 0 && <><Button type="button" size="sm" disabled={bulkSetCategoryStatus.isPending} onClick={() => bulkSetCategoryStatus.mutate({ ids: selectedCategoryIds, isActive: true })} className="ml-auto h-8 rounded-lg bg-[#276e61] text-xs">Toplu aktif yap</Button><Button type="button" size="sm" variant="outline" disabled={bulkSetCategoryStatus.isPending} onClick={() => bulkSetCategoryStatus.mutate({ ids: selectedCategoryIds, isActive: false })} className="h-8 rounded-lg text-xs">Toplu pasif yap</Button><Button type="button" size="sm" variant="outline" disabled={bulkRemoveCategories.isPending} onClick={() => setBulkAction({ kind: "category", ids: selectedCategoryIds })} className="h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button></>}
                 </div>}
                 {categoryNodes.isLoading ? (
                   <p className="text-sm text-[#7d8c91]">Yükleniyor...</p>
@@ -1655,7 +1678,9 @@ function PanelContent() {
                       key={item.id}
                       className="flex flex-col gap-2 rounded-xl bg-[#f7f8f4] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                        {isAdmin && <input type="checkbox" checked={selectedCategoryIds.includes(item.id)} onChange={event => setSelectedCategoryIds(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id))} className="mt-1 h-4 w-4 accent-[#5540e8]" aria-label={`${item.name} kategorisini seç`} />}
+
                         {editingCategoryId === item.id ? (
                           <div className="flex gap-2">
                             <Input
@@ -1927,6 +1952,7 @@ function PanelContent() {
                 {questions.data?.length ?? 0} soru
               </Badge>
             </div>
+            {isAdmin && (questions.data ?? []).length > 0 && <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f8f4] p-3"><button type="button" onClick={() => setSelectedQuestionIds(selectedQuestionIds.length === (questions.data ?? []).length ? [] : (questions.data ?? []).map(item => item.id))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{selectedQuestionIds.length === (questions.data ?? []).length ? "Seçimi kaldır" : "Tüm soruları seç"}</button><span className="text-xs text-[#82918f]">{selectedQuestionIds.length} seçili</span>{selectedQuestionIds.length > 0 && <Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "question", ids: selectedQuestionIds })} className="ml-auto h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button>}</div>}
             <div className="mt-5 space-y-3">
               {questions.isLoading ? (
                 <div className="rounded-xl bg-[#f7f8f4] p-5 text-sm text-[#728087]">
@@ -1939,9 +1965,12 @@ function PanelContent() {
                     className="rounded-xl border border-[#eef0eb] px-4 py-3"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <p className="text-sm font-semibold text-[#3b586a]">
+                      <div className="flex min-w-0 items-start gap-3">
+                        {isAdmin && <input type="checkbox" checked={selectedQuestionIds.includes(item.id)} onChange={event => setSelectedQuestionIds(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id))} className="mt-1 h-4 w-4 accent-[#5540e8]" aria-label={`Soru ${item.id} seç`} />}
+                        <p className="text-sm font-semibold text-[#3b586a]">
                         {item.prompt}
-                      </p>
+                        </p>
+                      </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="shrink-0 text-[10px]">
                           {item.status === "approved" ? "Onaylı" : "Taslak"}
@@ -2433,6 +2462,8 @@ function PanelContent() {
               </div>
               <Badge variant="outline">{testList.data?.length ?? 0} test</Badge>
             </div>
+            {isAdmin && (testList.data ?? []).length > 0 && <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f8f4] p-3"><button type="button" onClick={() => setSelectedTestIds(selectedTestIds.length === (testList.data ?? []).length ? [] : (testList.data ?? []).map(item => item.id))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{selectedTestIds.length === (testList.data ?? []).length ? "Seçimi kaldır" : "Tüm testleri seç"}</button><span className="text-xs text-[#82918f]">{selectedTestIds.length} seçili</span>{selectedTestIds.length > 0 && <Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "test", ids: selectedTestIds })} className="ml-auto h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button>}</div>}
+
             {false && isAdmin && (
               <div className="mt-5 rounded-2xl bg-[#f7f8f4] p-4">
                 <p className="text-sm font-bold text-[#29465a]">Medya Merkezi bağlantısı</p>
@@ -2550,48 +2581,18 @@ function PanelContent() {
                 </div>
               ) : (testList.data ?? []).length ? (
                 testList.data?.map(test => (
-                  <div
-                    key={test.id}
-                    className="rounded-xl border border-[#eef0eb] px-4 py-4"
-                  >
+                  <div key={test.id} className="rounded-xl border border-[#eef0eb] px-4 py-4">
                     <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-[#365368]">
-                          {test.title}
-                        </p>
-                        <p className="mt-1 text-xs text-[#7b8b90]">
-                          {test.description || "Açıklama eklenmedi."} ·{" "}
-                          {Array.isArray(test.questionIds)
-                            ? test.questionIds.length
-                            : 0}{" "}
-                          soru
-                        </p>
+                      <div className="flex min-w-0 items-start gap-3">
+                        {isAdmin && <input type="checkbox" checked={selectedTestIds.includes(test.id)} onChange={event => setSelectedTestIds(current => event.target.checked ? [...current, test.id] : current.filter(id => id !== test.id))} className="mt-1 h-4 w-4 accent-[#5540e8]" aria-label={`${test.title} testini seç`} />}
+                        <div>
+                          <p className="text-sm font-semibold text-[#365368]">{test.title}</p>
+                          <p className="mt-1 text-xs text-[#7b8b90]">{test.description || "Açıklama eklenmedi."} · {Array.isArray(test.questionIds) ? test.questionIds.length : 0} soru</p>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px]">
-                          {test.status === "published"
-                            ? "Yayında"
-                            : test.status === "archived"
-                              ? "Arşiv"
-                              : "Taslak"}
-                        </Badge>
-                        {isAdmin && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            disabled={deleteTest.isPending}
-                            onClick={() => {
-                              if (window.confirm(`“${test.title}” testini kalıcı olarak silmek istediğinize emin misiniz?`)) {
-                                deleteTest.mutate({ id: test.id });
-                              }
-                            }}
-                            className="h-8 rounded-lg border-[#e6b8ad] px-2 text-xs text-[#a65345] hover:bg-[#fff3ef]"
-                            aria-label={`${test.title} testini sil`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
+                        <Badge variant="outline" className="text-[10px]">{test.status === "published" ? "Yayında" : test.status === "archived" ? "Arşiv" : "Taslak"}</Badge>
+                        {isAdmin && <Button type="button" size="sm" variant="outline" disabled={deleteTest.isPending} onClick={() => { if (window.confirm(`“${test.title}” testini kalıcı olarak silmek istediğinize emin misiniz?`)) deleteTest.mutate({ id: test.id }); }} className="h-8 rounded-lg border-[#e6b8ad] px-2 text-xs text-[#a65345] hover:bg-[#fff3ef]" aria-label={`${test.title} testini sil`}><Trash2 className="h-3.5 w-3.5" /></Button>}
                       </div>
                     </div>
                   </div>
@@ -2636,6 +2637,7 @@ function PanelContent() {
               {contentList.data?.length ?? 0} kayıt
             </Badge>
           </div>
+          {isAdmin && (contentList.data ?? []).length > 0 && <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f8f4] p-3"><button type="button" onClick={() => setSelectedContentIds(selectedContentIds.length === (contentList.data ?? []).length ? [] : (contentList.data ?? []).map(item => item.id))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{selectedContentIds.length === (contentList.data ?? []).length ? "Seçimi kaldır" : "Tüm içerikleri seç"}</button><span className="text-xs text-[#82918f]">{selectedContentIds.length} seçili</span>{selectedContentIds.length > 0 && <Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "content", ids: selectedContentIds, contentType: selectedContentType })} className="ml-auto h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button>}</div>}
           {false && isAdmin && (
             <div className="mt-5 rounded-2xl bg-[#f7f8f4] p-4">
               <p className="text-sm font-bold text-[#29465a]">Medya Merkezi bağlantısı</p>
@@ -2754,12 +2756,14 @@ function PanelContent() {
               </div>
             ) : (contentList.data ?? []).length ? (
               contentList.data?.map(item => (
-                <div
+                  <div
                   key={item.id}
                   className="rounded-xl border border-[#eef0eb] px-4 py-4"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div>
+                    <div className="flex min-w-0 items-start gap-3">
+                      {isAdmin && <input type="checkbox" checked={selectedContentIds.includes(item.id)} onChange={event => setSelectedContentIds(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id))} className="mt-1 h-4 w-4 accent-[#5540e8]" aria-label={`${item.title} içeriğini seç`} />}
+                      <div>
                       <p className="text-sm font-semibold text-[#365368]">
                         {item.title}
                       </p>
@@ -2807,6 +2811,7 @@ function PanelContent() {
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}
+                    </div>
                     </div>
                   </div>
                 </div>
@@ -3676,6 +3681,19 @@ function PanelContent() {
           </div>
         </section>
       )}
+      {section === "audit" && (
+        <section className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.16em] text-[#7b928f]">Güvenlik ve hesap verebilirlik</p>
+              <h2 className="mt-2 text-xl font-bold text-[#29465a]">Denetim Günlüğü</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#71838b]">Kategori, soru, test ve içerik silme işlemlerinin kim tarafından, ne zaman ve hangi sonuçla yapıldığını gösterir.</p>
+            </div>
+            <Badge variant="outline">{auditLogs.data?.length ?? 0} kayıt</Badge>
+          </div>
+          {!isAdmin ? <RestrictedNotice /> : auditLogs.isLoading ? <div className="mt-6 rounded-xl bg-[#f7f8f4] p-5 text-sm text-[#71838b]">Denetim kayıtları yükleniyor...</div> : auditLogs.isError ? <div className="mt-6 rounded-xl bg-[#fff3ef] p-5 text-sm text-[#a65345]">Denetim kayıtları yüklenemedi.</div> : (auditLogs.data ?? []).length === 0 ? <div className="mt-6 rounded-xl bg-[#f7f8f4] p-5 text-sm text-[#71838b]">Henüz silme işlemi kaydı bulunmuyor.</div> : <div className="mt-6 overflow-x-auto rounded-xl border border-[#edf0eb]"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-[#f7f8f4] text-xs uppercase tracking-[.1em] text-[#82918f]"><tr><th className="px-4 py-3">Zaman</th><th className="px-4 py-3">İşlemi yapan</th><th className="px-4 py-3">Modül / kayıt</th><th className="px-4 py-3">İşlem</th><th className="px-4 py-3">Sonuç</th><th className="px-4 py-3">Açıklama</th></tr></thead><tbody>{auditLogs.data?.map((log: { id: number; createdAt: number | string | Date; actorName?: string | null; actorId?: number | null; targetType: string; targetLabel?: string | null; targetId?: number | null; action: string; status: string; reason?: string | null }) => <tr key={log.id} className="border-t border-[#edf0eb]"><td className="whitespace-nowrap px-4 py-3 text-xs text-[#71838b]">{new Date(log.createdAt).toLocaleString("tr-TR")}</td><td className="px-4 py-3 font-semibold text-[#365368]">{log.actorName || `Kullanıcı #${log.actorId ?? "?"}`}</td><td className="px-4 py-3"><span className="font-semibold text-[#365368]">{log.targetType}</span><span className="block text-xs text-[#82918f]">{log.targetLabel || (log.targetId ? `#${log.targetId}` : "Toplu kayıt")}</span></td><td className="px-4 py-3"><Badge variant="outline">{log.action === "bulk_delete" ? "Toplu silme" : "Silme"}</Badge></td><td className="px-4 py-3"><Badge className={log.status === "success" ? "bg-[#e7f4eb] text-[#347052]" : "bg-[#fff0ec] text-[#a65345]"}>{log.status === "success" ? "Başarılı" : "Başarısız"}</Badge></td><td className="max-w-[240px] px-4 py-3 text-xs text-[#71838b]">{log.reason || "—"}</td></tr>)}</tbody></table></div>}
+        </section>
+      )}
       {section === "guvenlik" && (
         <section className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
           <h2 className="text-xl font-bold text-[#29465a]">
@@ -3713,6 +3731,15 @@ function PanelContent() {
             <RestrictedNotice />
           )}
         </section>
+      )}
+      {bulkAction && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#18344f]/45 p-4" role="dialog" aria-modal="true" aria-labelledby="bulk-delete-title">
+          <div className="w-full max-w-md rounded-[24px] border border-[#eadfbd] bg-white p-6 shadow-2xl">
+            <div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#fff0ec] text-[#a65345]"><Trash2 size={19} /></span><div><h2 id="bulk-delete-title" className="text-lg font-bold text-[#29465a]">Toplu silme onayı</h2><p className="mt-1 text-sm leading-6 text-[#71838b]">{bulkAction.ids.length} kayıt seçildi. Bağlı alt kayıt veya test ilişkisi bulunan öğeler güvenlik nedeniyle silinmeyebilir.</p></div></div>
+            <div className="mt-5 rounded-xl bg-[#fffaf0] p-4 text-xs leading-5 text-[#7b6a45]">Bu işlem geri alınamaz. Başarısız kayıtlar audit günlüğüne nedenleriyle birlikte yazılır.</div>
+            <div className="mt-5 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setBulkAction(null)} className="rounded-xl">Vazgeç</Button><Button type="button" disabled={bulkRemoveCategories.isPending || bulkRemoveQuestions.isPending || bulkRemoveTests.isPending || bulkRemoveContents.isPending} onClick={() => { if (bulkAction.kind === "category") bulkRemoveCategories.mutate({ ids: bulkAction.ids }); else if (bulkAction.kind === "question") bulkRemoveQuestions.mutate({ ids: bulkAction.ids }); else if (bulkAction.kind === "test") bulkRemoveTests.mutate({ ids: bulkAction.ids }); else if (bulkAction.contentType) bulkRemoveContents.mutate({ ids: bulkAction.ids, contentType: bulkAction.contentType }); }} className="rounded-xl bg-[#a65345] hover:bg-[#8e463b]">{bulkRemoveCategories.isPending || bulkRemoveQuestions.isPending || bulkRemoveTests.isPending || bulkRemoveContents.isPending ? "Siliniyor..." : "Kalıcı olarak sil"}</Button></div>
+          </div>
+        </div>
       )}
     </div>
   );

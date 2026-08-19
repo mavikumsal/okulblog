@@ -1,6 +1,6 @@
 import { and, eq, asc, desc, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, contentProgress, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { educationCurriculum } from "./educationCurriculum";
 
@@ -298,6 +298,38 @@ export async function updateContentStatus(input: { id: number; status: "draft" |
   const db = await getDb();
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   await db.update(contentItems).set({ status: input.status }).where(eq(contentItems.id, input.id));
+}
+
+export async function recordAuditLog(input: {
+  action: "delete" | "bulk_delete";
+  targetType: string;
+  targetId?: number | null;
+  targetLabel?: string | null;
+  actorId?: number | null;
+  actorName?: string | null;
+  status: "success" | "failed";
+  reason?: string | null;
+  metadata?: Record<string, unknown> | null;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(auditLogs).values({
+    action: input.action,
+    targetType: input.targetType,
+    targetId: input.targetId ?? null,
+    targetLabel: input.targetLabel ?? null,
+    actorId: input.actorId ?? null,
+    actorName: input.actorName ?? null,
+    status: input.status,
+    reason: input.reason ?? null,
+    metadata: input.metadata ?? null,
+  });
+}
+
+export async function listAuditLogs(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(Math.min(Math.max(limit, 1), 250));
 }
 
 export async function deleteCategoryNode(id: number) {
