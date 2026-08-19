@@ -1267,3 +1267,12 @@
 - [x] Masaüstü ve mobil karşılaştırmalı görsel kontrol yapmak
 - [x] TypeScript, Vitest ve production build doğrulamak
 - [x] Düzeltme için yeni checkpoint oluşturmak
+
+## Yeni Rozeti ve Yayın Tarihi — 2026-08-19
+
+- [x] Yeni eklenen içerik kartlarının köşesine dikkat çekici Yeni rozeti eklemek
+- [x] Kartlarda gerçek createdAt verisini Türkçe yerel yayınlanma tarihi olarak göstermek
+- [x] Tarih verisi olmayan kayıtlarda sahte tarih göstermemek
+- [x] Rozet ve tarih yerleşimini masaüstü/mobil görünümde doğrulamak
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Bu düzenleme için checkpoint oluşturmak
