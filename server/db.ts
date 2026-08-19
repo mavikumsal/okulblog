@@ -1,6 +1,6 @@
 import { and, eq, asc, desc, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, contentProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { educationCurriculum } from "./educationCurriculum";
 
@@ -300,15 +300,51 @@ export async function updateContentStatus(input: { id: number; status: "draft" |
   await db.update(contentItems).set({ status: input.status }).where(eq(contentItems.id, input.id));
 }
 
-export async function listQuestions(filters?: { topicTag?: string; gradeLevel?: string; difficulty?: "easy" | "medium" | "hard" }) {
+export async function listQuestions(filters?: { topicTag?: string; gradeLevel?: string; difficulty?: "easy" | "medium" | "hard"; categoryId?: number }) {
   const db = await getDb();
   if (!db) return [];
   const conditions = [
     filters?.topicTag ? eq(questions.topicTag, filters.topicTag) : undefined,
     filters?.gradeLevel ? eq(questions.gradeLevel, filters.gradeLevel) : undefined,
     filters?.difficulty ? eq(questions.difficulty, filters.difficulty) : undefined,
+    filters?.categoryId ? eq(questions.categoryId, filters.categoryId) : undefined,
   ].filter((condition): condition is NonNullable<typeof condition> => Boolean(condition));
   return db.select().from(questions).where(conditions.length ? and(...conditions) : undefined).orderBy(asc(questions.createdAt));
+}
+
+export async function listApprovedQuestions(categoryIds?: number[]) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [eq(questions.status, "approved"), categoryIds?.length ? inArray(questions.categoryId, categoryIds) : undefined].filter((condition): condition is NonNullable<typeof condition> => Boolean(condition));
+  return db.select().from(questions).where(and(...conditions)).orderBy(asc(questions.createdAt));
+}
+
+export async function getOutcomeStudyData(outcomeId: number) {
+  const db = await getDb();
+  if (!db) return { outcome: undefined, questions: [], document: undefined };
+  const outcome = (await db.select().from(categoryNodes).where(and(eq(categoryNodes.id, outcomeId), eq(categoryNodes.level, "outcome"))).limit(1))[0];
+  if (!outcome) return { outcome: undefined, questions: [], document: undefined };
+  const outcomeQuestions = await db.select().from(questions).where(and(eq(questions.categoryId, outcomeId), eq(questions.status, "approved"))).orderBy(asc(questions.createdAt));
+  const documents = await db.select().from(contentItems).where(and(eq(contentItems.categoryId, outcomeId), eq(contentItems.contentType, "document"), eq(contentItems.status, "published"))).orderBy(desc(contentItems.createdAt)).limit(1);
+  return { outcome, questions: outcomeQuestions, document: documents[0] };
+}
+
+export async function getOutcomeProgress(userId: number, outcomeId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return (await db.select().from(outcomeProgress).where(and(eq(outcomeProgress.userId, userId), eq(outcomeProgress.outcomeId, outcomeId))).limit(1))[0];
+}
+
+export async function markOutcomeProgress(input: { userId: number; outcomeId: number; status: "started" | "completed"; questionCount?: number; documentViewed?: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const existing = (await db.select().from(outcomeProgress).where(and(eq(outcomeProgress.userId, input.userId), eq(outcomeProgress.outcomeId, input.outcomeId))).limit(1))[0];
+  if (existing) {
+    await db.update(outcomeProgress).set({ status: input.status, questionCount: input.questionCount ?? existing.questionCount, documentViewed: input.documentViewed ?? existing.documentViewed }).where(eq(outcomeProgress.id, existing.id));
+  } else {
+    await db.insert(outcomeProgress).values({ userId: input.userId, outcomeId: input.outcomeId, status: input.status, questionCount: input.questionCount ?? 0, documentViewed: input.documentViewed ?? false });
+  }
+  return { success: true };
 }
 
 export async function getQuestionProductionStats(input: { userId: number; role: "admin" | "teacher" }) {

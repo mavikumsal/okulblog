@@ -57,6 +57,10 @@ import {
   saveSiteSetting,
   setRolePermission,
   listQuestions,
+  getOutcomeStudyData,
+  listApprovedQuestions,
+  getOutcomeProgress,
+  markOutcomeProgress,
   getQuestionProductionStats,
   recordSecurityEvent,
   setInstitutionCategoryStatus,
@@ -148,6 +152,8 @@ export const appRouter = router({
     homeSlides: publicProcedure.query(() => listActiveHomeSlides()),
     contentByCategory: publicProcedure.input(z.object({ categoryId: z.number().int().positive() })).query(({ input }) => listContentByCategory(input.categoryId)),
     popularEducationCategories: publicProcedure.query(() => listPopularEducationCategories()),
+    outcome: publicProcedure.input(z.object({ outcomeId: z.number().int().positive() })).query(({ input }) => getOutcomeStudyData(input.outcomeId)),
+    approvedQuestions: publicProcedure.query(() => listApprovedQuestions()),
   siteContact: publicProcedure.query(async () => {
     const settings = await listSiteSettings();
     const allowed = new Set(["contact_enabled", "contact_title", "contact_description", "contact_email", "contact_phone", "contact_address"]);
@@ -274,6 +280,8 @@ export const appRouter = router({
     favorites: protectedProcedure.query(({ ctx }) => listFavorites(ctx.user.id)),
     toggleFavorite: protectedProcedure.input(z.object({ contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]), contentId: z.number().int().positive() })).mutation(({ ctx, input }) => toggleFavorite({ ...input, userId: ctx.user.id })),
     progress: protectedProcedure.input(z.object({ contentType: z.enum(["test", "document", "simulation", "video", "game", "news"]), contentId: z.number().int().positive(), status: z.enum(["started", "completed"]) })).mutation(({ ctx, input }) => markContentProgress({ ...input, userId: ctx.user.id })),
+    outcomeProgress: protectedProcedure.input(z.object({ outcomeId: z.number().int().positive() })).query(({ ctx, input }) => getOutcomeProgress(ctx.user.id, input.outcomeId)),
+    updateOutcomeProgress: protectedProcedure.input(z.object({ outcomeId: z.number().int().positive(), status: z.enum(["started", "completed"]), questionCount: z.number().int().min(0).optional(), documentViewed: z.boolean().optional() })).mutation(({ ctx, input }) => markOutcomeProgress({ ...input, userId: ctx.user.id })),
     submitAttempt: protectedProcedure.input(z.object({ testId: z.number().int().positive(), correctCount: z.number().int().min(0), wrongCount: z.number().int().min(0), blankCount: z.number().int().min(0), score: z.number().int().min(0).max(100), durationSeconds: z.number().int().min(0) })).mutation(async ({ ctx, input }) => { await createTestAttempt({ ...input, userId: ctx.user.id }); return { success: true }; }),
   }),
   tests: router({

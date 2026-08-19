@@ -93,6 +93,16 @@ export const contentProgress = mysqlTable("content_progress", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const outcomeProgress = mysqlTable("outcome_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  outcomeId: int("outcomeId").notNull(),
+  status: mysqlEnum("status", ["started", "completed"]).default("completed").notNull(),
+  questionCount: int("questionCount").default(0).notNull(),
+  documentViewed: boolean("documentViewed").default(false).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const testAttempts = mysqlTable("test_attempts", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
@@ -253,6 +263,7 @@ export type CategoryNode = typeof categoryNodes.$inferSelect;
 export type ContentItem = typeof contentItems.$inferSelect;
 export type Question = typeof questions.$inferSelect;
 export type Test = typeof tests.$inferSelect;
+export type OutcomeProgress = typeof outcomeProgress.$inferSelect;
 export type StoredFile = typeof storedFiles.$inferSelect;
 export type MediaAsset = typeof mediaAssets.$inferSelect;
 export type MediaTransferJob = typeof mediaTransferJobs.$inferSelect;

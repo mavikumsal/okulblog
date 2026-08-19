@@ -947,3 +947,10 @@
 - [x] Her aktif kazanıma bir çalışma dokümanı içeriği bağla veya doküman oluşturma akışını hazırla
 - [x] Soru ve dokümanların public kategori ağacında, detay sayfasında ve Admin listelerinde görünmesini doğrula
 - [x] Veri bütünlüğü, test, build ve yarın devam edilecek checkpoint notunu tamamla
+
+## Yeni istek: kazanım çalışma akışları
+- [x] Kazanım detayına çoktan seçmeli soru çözme ve anında doğru/yanlış geri bildirimi ekle
+- [x] Farklı kazanımlardan soruları seçerek özel deneme oluşturma akışı ekle
+- [x] Kazanım yanında soru/doküman etkileşimine bağlı “Tamamlandı” ilerleme checkbox’ı ekle
+- [x] Üye ilerlemesini güvenli biçimde kaydet, public ve profil akışında göster
+- [x] Test, build, responsive doğrulama ve checkpoint tamamla

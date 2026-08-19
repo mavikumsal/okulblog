@@ -10,6 +10,7 @@ import TestRunner from "./pages/TestRunner";
 import QA from "./pages/QA";
 import ContentHub from "./pages/ContentHub";
 import ContentDetail from "./pages/ContentDetail";
+import OutcomeDetail from "./pages/OutcomeDetail";
 import LatestPreview from "./pages/LatestPreview";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/panel" component={Panel} />
       <Route path="/test/:id" component={TestRunner} />
       <Route path="/soru-cevap" component={QA} />
+      <Route path="/kazanim/:id" component={OutcomeDetail} />
       <Route path="/icerik/:type/:id" component={ContentDetail} />
       <Route path="/icerik/:type" component={ContentHub} />
       <Route path="/panel/:section" component={Panel} />
