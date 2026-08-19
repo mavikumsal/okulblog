@@ -422,6 +422,24 @@ function PanelContent() {
     mimeType: string;
     url: string;
   } | null>(null);
+  const [remoteDocumentUrl, setRemoteDocumentUrl] = useState("");
+  const [remoteDocumentResult, setRemoteDocumentResult] = useState<{
+    provider: string;
+    fileName: string;
+    publicUrl: string;
+    coverImageUrl: string | null;
+    sizeBytes: number;
+  } | null>(null);
+  const importDocumentFromUrl = (trpc.admin as any).importDocumentFromUrl?.useMutation ? (trpc.admin as any).importDocumentFromUrl.useMutation({
+    onSuccess: (result: { provider: string; fileName: string; publicUrl: string; coverImageUrl: string | null; sizeBytes: number }) => {
+      setRemoteDocumentResult(result);
+      setRemoteDocumentUrl("");
+      if (!contentTitle.trim()) setContentTitle(result.fileName.replace(/\\.[^.]+$/, ""));
+      if (result.coverImageUrl) setContentCoverUrl(result.coverImageUrl);
+      toast.success(`Doküman aktif ${result.provider === "bunny-storage" ? "Bunny" : "S3"} depolamaya aktarıldı.`);
+    },
+    onError: (error: { message?: string }) => toast.error(error.message || "URL’den doküman aktarılamadı."),
+  }) : { mutate: () => undefined, isPending: false };
   const documentUpload = trpc.admin.uploadMediaAsset.useMutation({
     onSuccess: result => {
       if (result.coverImageUrl) {
@@ -2259,8 +2277,15 @@ function PanelContent() {
                 />
               </div>
               {selectedContentType === "document" && <div className="space-y-2 rounded-xl border border-[#e4ebe4] bg-[#fbfdf9] p-3">
-                <Label htmlFor="documentCoverSource">PDF’den otomatik kapak oluştur</Label>
-                <p className="text-[11px] leading-5 text-[#71838b]">PDF’nin ilk sayfası 900×1200 WebP kapak görseline dönüştürülür ve S3’e kaydedilir.</p>
+                <Label htmlFor="remoteDocumentUrl">URL’den aktif depolamaya aktar</Label>
+                <p className="text-[11px] leading-5 text-[#71838b]">PDF, DOCX veya PPTX bağlantısını girin. Sistem aktif depolama sağlayıcısını kullanır.</p>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Input id="remoteDocumentUrl" value={remoteDocumentUrl} onChange={event => setRemoteDocumentUrl(event.target.value)} placeholder="https://ornek.com/dokuman.pdf" className="h-10 rounded-xl bg-white" />
+                  <Button type="button" disabled={!remoteDocumentUrl.trim() || importDocumentFromUrl.isPending} onClick={() => importDocumentFromUrl.mutate({ sourceUrl: remoteDocumentUrl.trim(), contentType: "document" })} className="h-10 shrink-0 rounded-xl bg-[#18344f] text-xs">{importDocumentFromUrl.isPending ? "Aktarılıyor..." : "İndir ve aktar"}</Button>
+                </div>
+                {remoteDocumentResult && <div className="rounded-xl border border-[#dfe8df] bg-white p-3 text-xs text-[#496374]"><div className="flex items-center justify-between gap-2"><strong className="truncate">{remoteDocumentResult.fileName}</strong><Badge variant="outline">{remoteDocumentResult.provider === "bunny-storage" ? "Bunny" : "S3"}</Badge></div><p className="mt-1">{(remoteDocumentResult.sizeBytes / 1024 / 1024).toFixed(2)} MB · Depolamaya aktarıldı</p>{remoteDocumentResult.coverImageUrl && <img src={remoteDocumentResult.coverImageUrl} alt="Aktarılan doküman kapağı" className="mt-3 h-28 w-20 rounded-lg border object-cover" />}<a href={remoteDocumentResult.publicUrl} target="_blank" rel="noreferrer" className="mt-2 block truncate text-[#5540e8] underline">Dosya bağlantısını aç</a></div>}
+                <Label htmlFor="documentCoverSource">Yerel PDF seç veya önizle</Label>
+                <p className="text-[11px] leading-5 text-[#71838b]">PDF’nin ilk sayfası mevcut otomatik kapak akışıyla hazırlanır.</p>
                 <input id="documentCoverSource" type="file" accept="application/pdf,.docx,.pptx" disabled={documentUpload.isPending} onChange={event => { const file = event.target.files?.[0]; if (!file) return; const previewUrl = URL.createObjectURL(file); setDocumentPreview({ name: file.name, sizeBytes: file.size, mimeType: file.type || "application/octet-stream", url: previewUrl }); const reader = new FileReader(); reader.onload = () => { const dataBase64 = String(reader.result).split(",")[1] ?? ""; documentUpload.mutate({ fileName: file.name, mimeType: file.type || "application/octet-stream", dataBase64, contentType: "document" }); }; reader.readAsDataURL(file); event.currentTarget.value = ""; }} className="block w-full rounded-xl border border-input bg-white p-2 text-xs" />
                 {documentPreview && <div className="mt-3 overflow-hidden rounded-2xl border border-[#dfe8df] bg-white">
                   <div className="flex items-center justify-between gap-3 border-b border-[#edf1ec] px-3 py-2">
@@ -2293,6 +2318,7 @@ function PanelContent() {
                     title: contentTitle,
                     contentType: selectedContentType,
                     summary: contentSummary,
+                    body: remoteDocumentResult ? `Dokümanı görüntüle veya indir: ${remoteDocumentResult.publicUrl}` : undefined,
                     coverImageUrl: contentCoverUrl.trim() || undefined,
                     categoryId: Number(contentCategoryId),
                     institutionCategoryId: contentInstitutionCategoryId ? Number(contentInstitutionCategoryId) : null,

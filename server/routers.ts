@@ -90,6 +90,7 @@ import { buildGoogleDriveAuthorizationUrl, createGoogleDriveResumableUpload, exc
 import { buildSearchConsoleActions, buildSearchConsoleAuthorizationUrl, createSearchConsoleOAuthState, exchangeSearchConsoleCode, getSearchConsoleMissingConfig, getSearchConsoleTokenMetadata, refreshSearchConsoleToken, verifySearchConsoleOAuthState } from "./searchConsoleProvider";
 import { decryptSearchConsoleToken, encryptSearchConsoleToken } from "./searchConsoleTokenVault";
 import { renderPdfCover } from "./documentCover";
+import { ALLOWED_REMOTE_DOCUMENT_TYPES, uploadToBunnyStorage, validateRemoteDocumentUrl } from "./bunnyStorage";
 import { buildExportFile } from "./exportDocuments";
 
 export function canManagePopularEducationCategories(role: string | undefined) {
@@ -696,6 +697,46 @@ export const appRouter = router({
     mediaAssets: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]).optional(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).optional() }).optional()).query(({ input }) => listMediaAssets(input)),
     createMediaAsset: adminProcedure.input(z.object({ provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream"]), providerAssetId: z.string().trim().max(500).optional().nullable(), fileName: z.string().trim().min(1).max(255), publicUrl: z.string().trim().url().max(900).optional().nullable(), mimeType: z.string().trim().min(1).max(120), sizeBytes: z.number().int().nonnegative().optional().nullable(), folderPath: z.string().trim().max(500).optional().nullable(), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).default("general"), metadata: z.record(z.string(), z.unknown()).optional() })).mutation(async ({ ctx, input }) => { await createMediaAsset({ ...input, uploadedBy: ctx.user.id }); return { success: true }; }),
     uploadMediaAsset: adminProcedure.input(z.object({ fileName: z.string().trim().min(1).max(255), mimeType: z.string().trim().min(1).max(120), dataBase64: z.string().min(1), contentType: z.enum(["test", "document", "video", "simulation", "game", "news", "general"]).default("general") })).mutation(async ({ ctx, input }) => { const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]; if (!allowedMimeTypes.includes(input.mimeType)) throw new TRPCError({ code: "BAD_REQUEST", message: "Bu dosya türüne izin verilmiyor." }); const buffer = Buffer.from(input.dataBase64, "base64"); if (buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Dosya boyutu en fazla 20 MB olabilir." }); const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-"); const result = await storagePut(`okulblog/media/${ctx.user.id}/${safeName}`, buffer, input.mimeType); await createMediaAsset({ provider: "s3", providerAssetId: result.key, fileName: input.fileName, publicUrl: result.url, mimeType: input.mimeType, sizeBytes: buffer.byteLength, contentType: input.contentType, metadata: { storageKey: result.key }, uploadedBy: ctx.user.id }); if (input.mimeType === "application/pdf") { const coverBuffer = await renderPdfCover(buffer); const cover = await storagePut(`okulblog/media/${ctx.user.id}/covers/${safeFileStem(input.fileName)}-cover.webp`, coverBuffer, "image/webp"); return { ...result, coverImageUrl: cover.url, coverGenerated: true as const }; } return { ...result, coverImageUrl: null, coverGenerated: false as const }; }),
+    importDocumentFromUrl: adminProcedure.input(z.object({ sourceUrl: z.string().trim().url().max(1200), fileName: z.string().trim().max(255).optional(), contentType: z.enum(["document"]).default("document") })).mutation(async ({ ctx, input }) => {
+      let sourceUrl: URL;
+      try { sourceUrl = validateRemoteDocumentUrl(input.sourceUrl); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Geçersiz kaynak URL." }); }
+      const response = await fetch(sourceUrl, { redirect: "manual", signal: AbortSignal.timeout(45_000), headers: { "User-Agent": "OkulBlogDocumentImporter/1.0" } });
+      if (!response.ok || response.headers.get("location")) throw new TRPCError({ code: "BAD_REQUEST", message: "Kaynak dosya doğrudan indirilebilir olmalı; yönlendirmeli veya başarısız bağlantılar kabul edilmiyor." });
+      const mimeType = (response.headers.get("content-type") || "").split(";", 1)[0].toLowerCase();
+      if (!ALLOWED_REMOTE_DOCUMENT_TYPES.has(mimeType)) throw new TRPCError({ code: "UNSUPPORTED_MEDIA_TYPE", message: "Yalnızca PDF, DOCX ve PPTX dokümanları içe aktarılabilir." });
+      const declaredSize = Number(response.headers.get("content-length") || 0);
+      if (declaredSize > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Doküman boyutu en fazla 20 MB olabilir." });
+      const buffer = Buffer.from(await response.arrayBuffer());
+      if (buffer.byteLength === 0 || buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Doküman boyutu geçersiz veya 20 MB sınırını aşıyor." });
+      const settings = await listSiteSettings();
+      const settingMap = new Map(settings.map(item => [item.settingKey, item.settingValue]));
+      const activeProvider = settingMap.get("active_storage_provider") || "s3";
+      const originalName = input.fileName || sourceUrl.pathname.split("/").pop() || "dokuman.pdf";
+      let provider: "s3" | "bunny-storage" = "s3";
+      let providerAssetId: string;
+      let publicUrl: string;
+      let coverImageUrl: string | null = null;
+      if (activeProvider === "bunny-storage") {
+        const storageZone = settingMap.get("bunny_storage_zone") || process.env.BUNNY_STORAGE_ZONE;
+        const accessKey = settingMap.get("bunny_storage_access_key") || process.env.BUNNY_STORAGE_ACCESS_KEY;
+        const pullZoneUrl = settingMap.get("bunny_pull_zone_url") || process.env.BUNNY_PULL_ZONE_URL;
+        if (!storageZone || !accessKey || !pullZoneUrl) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Aktif Bunny depolama için Storage Zone, AccessKey ve Pull Zone bilgileri eksik." });
+        const uploaded = await uploadToBunnyStorage({ data: buffer, fileName: originalName, mimeType, storageZone, accessKey, pullZoneUrl, endpoint: settingMap.get("bunny_storage_endpoint") || undefined });
+        provider = "bunny-storage"; providerAssetId = uploaded.providerAssetId; publicUrl = uploaded.publicUrl;
+      } else {
+        const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "-");
+        const uploaded = await storagePut(`okulblog/imported/${ctx.user.id}/${safeName}`, buffer, mimeType);
+        providerAssetId = uploaded.key; publicUrl = uploaded.url;
+      }
+      if (mimeType === "application/pdf") {
+        const coverBuffer = await renderPdfCover(buffer);
+        const cover = provider === "s3" ? await storagePut(`okulblog/imported/${ctx.user.id}/covers/${safeFileStem(originalName)}-cover.webp`, coverBuffer, "image/webp") : null;
+        coverImageUrl = cover?.url ?? null;
+      }
+      await createMediaAsset({ provider, providerAssetId, fileName: originalName, publicUrl, mimeType, sizeBytes: buffer.byteLength, contentType: input.contentType, metadata: { sourceUrl: input.sourceUrl, activeProvider, coverImageUrl }, uploadedBy: ctx.user.id });
+      await recordSecurityEvent({ eventType: "document_imported", severity: "low", description: "Admin URL üzerinden doküman içe aktardı.", metadata: { sourceUrl: input.sourceUrl, provider, providerAssetId, mimeType, sizeBytes: buffer.byteLength, actorId: ctx.user.id } });
+      return { success: true, provider, providerAssetId, publicUrl, coverImageUrl, fileName: originalName, mimeType, sizeBytes: buffer.byteLength, sourceUrl: input.sourceUrl };
+    }),
     archiveMediaAsset: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { await archiveMediaAsset(input.id); return { success: true }; }),
     linkMediaAsset: adminProcedure.input(z.object({ mediaAssetId: z.number().int().positive(), targetType: z.enum(["content", "test"]), targetId: z.number().int().positive(), role: z.string().trim().min(1).max(80).default("attachment") })).mutation(async ({ ctx, input }) => { const asset = await getMediaAsset(input.mediaAssetId); if (!asset || asset.status === "archived") throw new TRPCError({ code: "NOT_FOUND", message: "Bağlanacak medya varlığı bulunamadı veya arşivlenmiş." }); await createMediaAssetLink({ ...input, createdBy: ctx.user.id }); return { success: true }; }),
     mediaAssetLinks: adminProcedure.input(z.object({ targetType: z.enum(["content", "test"]), targetId: z.number().int().positive() })).query(({ input }) => listMediaAssetLinks(input)),

@@ -1002,19 +1002,19 @@
 - [x] Yetki, veri bütünlüğü, test, responsive doğrulama ve checkpoint tamamla
 
 ## Yeni istek: URL’den doküman içe aktarma ve yayınlama
-- [ ] Admin için URL’den doküman indirme formu ve güvenli aktarım akışı tasarla
-- [ ] İndirilen dosyayı aktif depolama sağlayıcısına yükleme ve metadata kaydı ekle
-- [ ] Dosya türü, boyutu, yönlendirme, SSRF ve kötü amaçlı URL kontrollerini uygula
-- [ ] İçe aktarılan doküman için kapak/önizleme ve teknik metadata hazırlama akışı ekle
-- [ ] Admin’in Eğitim/Kurum kategorisi seçerek dokümanı paylaşmasını sağla
-- [ ] URL içe aktarma, depolama aktarımı, hata ve yetki senaryoları için Vitest testleri ekle
-- [ ] Mobil responsive doğrulama ve checkpoint tamamla
+- [x] Admin için URL’den doküman indirme formu ve güvenli aktarım akışı tasarla
+- [x] İndirilen dosyayı aktif depolama sağlayıcısına yükleme ve metadata kaydı ekle
+- [x] Dosya türü, boyutu, yönlendirme, SSRF ve kötü amaçlı URL kontrollerini uygula
+- [x] İçe aktarılan doküman için kapak/önizleme ve teknik metadata hazırlama akışı ekle
+- [x] Admin’in Eğitim/Kurum kategorisi seçerek dokümanı paylaşmasını sağla
+- [x] URL içe aktarma, depolama aktarımı, hata ve yetki senaryoları için Vitest testleri ekle
+- [x] Mobil responsive doğrulama ve checkpoint tamamla
 
 ## Yeni istek: Bunny API örneği ve doküman önizleme
-- [ ] Aktif sağlayıcı seçimine uyan Bunny Storage/CDN sunucu entegrasyonu tasarla
-- [ ] Bunny API anahtarını sunucu ortamında kullanacak güvenli örnek akış oluştur
-- [ ] URL’den indirilen dosya için tür, boyut, ad ve kaynak bilgisi önizleme alanı ekle
-- [ ] PDF kapak/ilk sayfa önizlemesini ve uygun dosya türü gösterimini ekle
-- [ ] Önizlemeden kategori seçimi, taslak kaydı ve yayınlama akışını bağla
-- [ ] Bunny ve önizleme akışı için yetki, hata, güvenlik ve Vitest kontrollerini ekle
-- [ ] Responsive doğrulama ve checkpoint tamamla
+- [x] Aktif sağlayıcı seçimine uyan Bunny Storage/CDN sunucu entegrasyonu tasarla
+- [x] Bunny API anahtarını sunucu ortamında kullanacak güvenli örnek akış oluştur
+- [x] URL’den indirilen dosya için tür, boyut, ad ve kaynak bilgisi önizleme alanı ekle
+- [x] PDF kapak/ilk sayfa önizlemesini ve uygun dosya türü gösterimini ekle
+- [x] Önizlemeden kategori seçimi, taslak kaydı ve yayınlama akışını bağla
+- [x] Bunny ve önizleme akışı için yetki, hata, güvenlik ve Vitest kontrollerini ekle
+- [x] Responsive doğrulama ve checkpoint tamamla
