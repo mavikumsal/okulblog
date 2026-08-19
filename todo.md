@@ -1087,3 +1087,9 @@
 - [x] Dikkat Gerekenler alanına onay, entegrasyon ve sistem uyarılarını gerçek durumlarla bağla
 - [x] Karşılama, üst bar, KPI, grafik, dağılım ve sidebar ölçülerini prompta göre rafine et
 - [x] 1440px görsel kontrol, TypeScript, Vitest, production build ve konsol doğrulamasını tamamla
+
+## Son İçerikler tablo yönetimi
+- [x] Son İçerikler için açılır/kapanır durum ve tür filtre paneli ekle
+- [x] Tablo içi hızlı aramayı gerçek başlık ve tür verilerine bağla
+- [x] Filtre ve arama sonuçlarına sayfalama ekle, sayfa değişiminde aksiyonları koru
+- [x] Tablo etkileşimlerini TypeScript, Vitest, production build ve responsive kontrolleriyle doğrula
