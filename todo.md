@@ -1330,3 +1330,14 @@
 - [x] Mobil, tablet ve masaüstü görsel doğrulaması yapmak
 - [x] TypeScript, Vitest ve production build çalıştırmak
 - [x] Bu sayfa ayrıştırması için checkpoint oluşturmak
+
+## Bülten ve Footer Referans Uyarlaması — 2026-08-19
+
+- [x] Mevcut bülten abonelik bandı ve footer yapısını referansla karşılaştırmak
+- [x] Mint bülten bandını kalp zarf görseli, metin ve e-posta formuyla referansa uyarlamak
+- [x] Abonelik formunun gerçek doğrulama ve başarı/uyarı durumlarını korumak
+- [x] Lacivert footer marka alanını, üç kolon bağlantıyı ve alt telif satırını referansa göre düzenlemek
+- [x] Destek, Keşfet ve Kurumsal bağlantılarını mevcut gerçek rotalarla eşlemek
+- [x] Masaüstü, tablet ve mobil responsive görünümü kontrol etmek
+- [x] TypeScript, Vitest ve production build çalıştırmak
+- [x] Bu düzenleme için checkpoint oluşturmak
