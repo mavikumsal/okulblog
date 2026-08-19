@@ -981,3 +981,8 @@
 - [x] Öğrenme yolu kartını hero alanında hafifçe yukarı al ve dikey olarak daha iyi ortala
 - [x] Mobil/tablet/masaüstü görünümde taşma ve hizalama kontrolü yap
 - [x] Test ve checkpoint tamamla
+
+## Yeni istek: Odak etiketi hizası
+- [x] Odak etiketini üretim özeti kartının altına yatayda tam ortala
+- [x] Mobil ve masaüstünde etiket taşması/hizalamasını doğrula
+- [x] Test ve checkpoint tamamla

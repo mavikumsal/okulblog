@@ -252,9 +252,8 @@ export default function Home() {
                 <div className="mt-2 grid grid-cols-3 gap-1.5 sm:mt-3 sm:gap-2">{([['document', FileText, 'Doküman'], ['test', Target, 'Test'], ['video', Video, 'Video']] as const).map(([type, Icon, label]) => <button key={type} type="button" onClick={() => setLocation(buildClassTypeUrl(heroLearning.className, type))} className="rounded-2xl p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5540e8]/40" aria-label={`${heroLearning.className} ${label} içeriklerini aç`}><Icon size={16} /><p className="mt-3 text-[11px] font-bold">{label} <span className="opacity-70">{heroLearning.counts[type]}</span></p></button>)}</div>
                 <div className="mt-2 flex items-center justify-between rounded-2xl border border-[#e3e5dc] bg-white px-3 py-2.5"><div><p className="text-xs font-bold">Sıradaki çalışma</p><p className="mt-0.5 text-[11px] text-[#77858a]">Okuduğunu anlama</p></div><ArrowRight size={17} className="text-[#739b90]" /></div>
               </div>
-              {(user?.role === "admin" || user?.role === "teacher") && <QuestionProductionDashboard compact className="mt-0 w-full max-w-none shadow-[0_12px_30px_rgba(0,0,0,.2)]" />}
+              {(user?.role === "admin" || user?.role === "teacher") && <div className="flex flex-col items-center gap-2"><QuestionProductionDashboard compact className="mt-0 w-full max-w-none shadow-[0_12px_30px_rgba(0,0,0,.2)]" /><div className="rounded-xl bg-[#ffd21a] px-3 py-2 text-center text-[#111827] shadow-xl"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div></div>}
               </div>
-              <div className="absolute -bottom-2 -right-2 rounded-xl bg-[#ffd21a] px-3 py-2 text-[#111827] shadow-xl sm:-right-5"><p className="text-[10px] font-bold tracking-[.12em] uppercase">Odak</p><p className="mt-1 text-sm font-bold">Bir hedef. Bir yol.</p></div>
             </div>
           </div>
         </section>
