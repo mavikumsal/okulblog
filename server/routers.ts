@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { encryptSecret, maskSearchConsoleToken } from "./searchConsoleTokenVault";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -747,6 +748,56 @@ export const appRouter = router({
       return { success: true };
     }),
     settings: adminProcedure.query(() => listSiteSettings()),
+    integrationSettings: adminProcedure.query(async () => {
+      const secretKeys = new Set([
+        "google_oauth_client_secret",
+        "gemini_api_key",
+        "openai_api_key",
+        "bunny_storage_access_key",
+        "bunny_storage_api_key",
+        "s3_access_key",
+        "s3_secret_key",
+      ]);
+      const settings = await listSiteSettings();
+      return settings
+        .filter(setting => setting.settingKey.startsWith("integration_") || secretKeys.has(setting.settingKey))
+        .map(setting => ({
+          settingKey: setting.settingKey,
+          configured: Boolean(setting.settingValue),
+          maskedValue: maskSearchConsoleToken(setting.settingValue),
+          updatedAt: setting.updatedAt,
+        }));
+    }),
+    saveIntegrationSetting: adminProcedure.input(z.object({
+      settingKey: z.enum([
+        "google_oauth_client_id",
+        "google_oauth_client_secret",
+        "google_oauth_redirect_url",
+        "search_console_property_url",
+        "adsense_publisher_id",
+        "gemini_api_key",
+        "openai_api_key",
+        "bunny_storage_zone",
+        "bunny_storage_access_key",
+        "bunny_pull_zone_url",
+        "s3_access_key",
+        "s3_secret_key",
+      ]),
+      settingValue: z.string().trim().max(4000),
+    })).mutation(async ({ ctx, input }) => {
+      const secretKeys = new Set([
+        "google_oauth_client_secret",
+        "gemini_api_key",
+        "openai_api_key",
+        "bunny_storage_access_key",
+        "s3_access_key",
+        "s3_secret_key",
+      ]);
+      const value = secretKeys.has(input.settingKey) ? encryptSecret(input.settingValue) : input.settingValue;
+      await saveSiteSetting({ settingKey: input.settingKey, settingValue: value, updatedBy: ctx.user.id });
+      await recordSecurityEvent({ eventType: "integration_setting_changed", severity: "medium", description: "Admin entegrasyon ayarını güncelledi.", metadata: { settingKey: input.settingKey, updatedBy: ctx.user.id } });
+      return { success: true, settingKey: input.settingKey, maskedValue: maskSearchConsoleToken(input.settingValue) };
+    }),
     aiProviderStatus: adminProcedure.query(async () => {
       const config = getAiProviderConfig({ OPENAI_API_KEY: process.env.OPENAI_API_KEY, GEMINI_API_KEY: process.env.GEMINI_API_KEY });
       const catalog = await listLLMModels();

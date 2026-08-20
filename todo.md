@@ -1680,3 +1680,12 @@
 - [x] Çakışma durumunda URL ve kategori uyarılarını editörde görünür kıl
 - [x] SEO geçmiş modalındaki 429, OAuth ve 5xx hataları için tek tıkla Yeniden Dene aksiyonu ekle
 - [x] Yerel geliştirme kapanış özellikleri için Vitest, TypeScript, production build ve responsive doğrulaması yap
+
+## Yeni İstek: Canlıya Geçiş Öncesi Hazırlık ve TRPC Hata Düzeltmesi
+
+- [x] `/` sayfasında JSON bekleyen TRPC isteğinin HTML fallback almasına neden olan route/proxy hatasını düzelt
+- [x] Tam yetkili admin için şifreli Entegrasyon Ayarları sayfası ve güvenli API yönetimi ekle
+- [x] Google OAuth, Search Console, AdSense, Gemini/OpenAI ve Bunny/S3 ayarlarını AES-256-GCM ile sakla
+- [x] Ana sayfa ve blog okuma sayfalarına dinamik AdSense uyumlu reklam yer tutucuları ekle
+- [x] SEO retry aksiyonuna spinner, başarılı toast ve hata kodlu toast geri bildirimi ekle
+- [x] Bu paket için Vitest, TypeScript, production build ve `/` API smoke doğrulaması yap
