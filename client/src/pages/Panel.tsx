@@ -229,6 +229,12 @@ function PanelContent() {
   const seoDashboardQueue = (trpc.admin as any)?.searchIndexingQueue?.useQuery
     ? (trpc.admin as any).searchIndexingQueue.useQuery({ limit: 100 }, { enabled: isAdmin && section === "genel" })
     : { data: [], isLoading: false, isError: false };
+  const seoRetryMutation = (trpc.admin as any)?.retrySearchIndexing?.useMutation
+    ? (trpc.admin as any).retrySearchIndexing.useMutation({
+        onSuccess: () => { void seoDashboardQueue.refetch?.(); toast.success("İndeksleme kaydı yeniden kuyruğa alındı."); },
+        onError: (error: { message?: string }) => toast.error(error.message ?? "İndeksleme kaydı yeniden denenemedi."),
+      })
+    : { mutate: (_input: { id: number }) => toast.error("Retry prosedürü henüz etkin değil."), isPending: false };
   const auditLogs = (trpc as any).audit?.list?.useQuery
     ? (trpc as any).audit.list.useQuery({ limit: 250 }, { enabled: isAdmin && section === "audit" })
     : { data: [], isLoading: false, isError: false };
@@ -1648,6 +1654,8 @@ function PanelContent() {
             seoQueue={(seoDashboardQueue.data ?? []) as Array<{ status: string; lastError?: string | null; updatedAt?: string | Date; createdAt?: string | Date }>}
             rangeDays={dashboardRangeDays}
             onNavigate={route => setLocation(route)}
+            onRetrySeo={(id) => seoRetryMutation.mutate({ id })}
+            seoRetryPending={Boolean(seoRetryMutation.isPending)}
           />
           {(isAdmin || user?.role === "teacher") && <QuestionProductionDashboard className="mt-5" />}
           <div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]">

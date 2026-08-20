@@ -1672,3 +1672,11 @@
 - [x] SEO indeksleme widget’ına tıklanabilir ayrıntılı geçmiş Dialog modalı ekle
 - [x] Başarılı, bekleyen ve hatalı URL’leri; 429, OAuth ve 5xx gibi teknik hata detaylarını göster
 - [x] Yeni SEO editör özellikleri için Vitest, TypeScript, production build ve responsive doğrulaması yap
+
+## Yeni İstek: Yerel Geliştirme Kapanış Özellikleri
+
+- [x] Medya Merkezi görsellerini listeleyen ve ogImage alanına tek tıkla seçim yaptıran Image Picker galerisi ekle
+- [x] SEO önerisi forma uygulanırken slug ve kategori çakışmalarını doğrulayan güvenli tRPC akışı ekle
+- [x] Çakışma durumunda URL ve kategori uyarılarını editörde görünür kıl
+- [x] SEO geçmiş modalındaki 429, OAuth ve 5xx hataları için tek tıkla Yeniden Dene aksiyonu ekle
+- [x] Yerel geliştirme kapanış özellikleri için Vitest, TypeScript, production build ve responsive doğrulaması yap

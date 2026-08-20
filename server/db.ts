@@ -1,4 +1,4 @@
-import { and, eq, asc, desc, inArray, isNull, gte, lte, lt, count, sql } from "drizzle-orm";
+import { and, eq, ne, asc, desc, inArray, isNull, gte, lte, lt, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { categoryNodes, contentItems, contentProgress, contentViewDaily, contentViewEvents, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, documentImportHistory, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, searchIndexingQueue, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -132,6 +132,29 @@ export async function listCategoryNodes(categoryType?: "education" | "institutio
   return result;
 }
 
+export async function checkSeoSlugConflict(input: { slug: string; categoryName?: string; excludeContentId?: number }) {
+  const db = await getDb();
+  if (!db) return { slugConflict: false, categoryConflict: false, conflicts: [] as Array<{ type: string; id: number; label: string }> };
+  const slug = input.slug.trim().toLowerCase();
+  const normalizedCategory = input.categoryName?.trim().toLocaleLowerCase("tr-TR");
+  const contentWhere = input.excludeContentId
+    ? and(eq(contentItems.slug, slug), ne(contentItems.id, input.excludeContentId))
+    : eq(contentItems.slug, slug);
+  const [contentMatches, categoryMatches] = await Promise.all([
+    db.select({ id: contentItems.id, title: contentItems.title }).from(contentItems).where(contentWhere).limit(5),
+    normalizedCategory
+      ? db.select({ id: categoryNodes.id, name: categoryNodes.name }).from(categoryNodes).where(sql`lower(${categoryNodes.name}) = ${normalizedCategory}`).limit(5)
+      : Promise.resolve([] as Array<{ id: number; name: string }>),
+  ]);
+  return {
+    slugConflict: contentMatches.length > 0,
+    categoryConflict: categoryMatches.length > 0,
+    conflicts: [
+      ...contentMatches.map(item => ({ type: "slug", id: item.id, label: item.title })),
+      ...categoryMatches.map(item => ({ type: "category", id: item.id, label: item.name })),
+    ],
+  };
+}
 export async function createCategoryNode(input: {
   name: string;
   categoryType: "education" | "institution";

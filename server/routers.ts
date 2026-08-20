@@ -41,6 +41,7 @@ import {
   updateUserRole,
   listNewsCategories,
   listCategoryNodes,
+  checkSeoSlugConflict,
   listPopularEducationCategories,
   getPopularEducationCategoryIds,
   savePopularEducationCategoryIds,
@@ -1123,6 +1124,7 @@ export const appRouter = router({
     searchConsoleTokenExchange: adminProcedure.input(z.object({ code: z.string().trim().min(4).max(2000), propertyUrl: z.string().trim().url().max(700) })).mutation(async ({ ctx, input }) => { try { const tokens = await exchangeSearchConsoleCode(input.code); await upsertSearchConsoleToken({ propertyUrl: input.propertyUrl, encryptedAccessToken: encryptSearchConsoleToken(tokens.access_token), encryptedRefreshToken: tokens.refresh_token ? encryptSearchConsoleToken(tokens.refresh_token) : null, accessTokenExpiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null, createdBy: ctx.user.id }); return { expiresIn: tokens.expires_in ?? null, hasRefreshToken: Boolean(tokens.refresh_token), propertyUrl: input.propertyUrl }; } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Search Console OAuth başarısız." }); } }),
     searchConsoleTokenRefresh: adminProcedure.input(z.object({ propertyUrl: z.string().trim().url().max(700) })).mutation(async ({ input }) => { try { const stored = await getSearchConsoleToken(input.propertyUrl); if (!stored?.encryptedRefreshToken) throw new Error("Bu mülk için yenileme tokenı bulunamadı."); const tokens = await refreshSearchConsoleToken(decryptSearchConsoleToken(stored.encryptedRefreshToken)); await upsertSearchConsoleToken({ propertyUrl: input.propertyUrl, encryptedAccessToken: encryptSearchConsoleToken(tokens.access_token), encryptedRefreshToken: stored.encryptedRefreshToken, accessTokenExpiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null, createdBy: stored.createdBy }); return { expiresIn: tokens.expires_in ?? null, propertyUrl: input.propertyUrl }; } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Search Console token yenilenemedi." }); } }),
     searchIndexingQueue: adminProcedure.input(z.object({ limit: z.number().int().positive().max(200).optional() }).optional()).query(({ input }) => listSearchIndexingQueue(input?.limit ?? 100)),
+    checkSeoSlugConflict: adminProcedure.input(z.object({ slug: z.string().trim().min(1).max(240), categoryName: z.string().trim().max(180).optional(), excludeContentId: z.number().int().positive().optional() })).query(({ input }) => checkSeoSlugConflict(input)),
     enqueueSearchIndexing: adminProcedure.input(z.object({ url: z.string().trim().url().max(900), entityType: z.string().trim().min(2).max(60), entityId: z.number().int().positive().nullable().optional() })).mutation(async ({ ctx, input }) => ({ id: await enqueueSearchIndexing({ ...input, createdBy: ctx.user.id }) })),
     retrySearchIndexing: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
       const item = await getSearchIndexingQueueItem(input.id);
