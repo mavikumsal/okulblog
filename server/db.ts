@@ -463,7 +463,7 @@ export async function updateContentStatus(input: { id: number; status: "draft" |
 }
 
 export async function recordAuditLog(input: {
-  action: "delete" | "bulk_delete";
+  action: "delete" | "bulk_delete" | "bulk_create";
   targetType: string;
   targetId?: number | null;
   targetLabel?: string | null;
@@ -690,6 +690,47 @@ export async function createQuestion(input: {
     status: input.status ?? "draft",
   });
   return Number(result[0].insertId);
+}
+
+export async function createQuestions(input: Array<{
+  questionType: "multiple-choice" | "true-false" | "open-ended";
+  prompt: string;
+  imageUrl?: string | null;
+  explanationImageUrl?: string | null;
+  options?: string[];
+  answer?: string;
+  explanation?: string;
+  sourceFileName?: string | null;
+  sourcePage?: number | null;
+  sourceRegion?: unknown;
+  topicTag?: string | null;
+  gradeLevel?: string | null;
+  categoryId?: number | null;
+  institutionCategoryId?: number | null;
+  difficulty: "easy" | "medium" | "hard";
+  status?: "draft" | "approved" | "archived";
+  createdBy: number;
+}>) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  if (!input.length) return [];
+  return db.transaction(async tx => {
+    const ids: number[] = [];
+    for (const question of input) {
+      const result = await tx.insert(questions).values({
+        ...question,
+        options: question.options ?? [],
+        sourceFileName: question.sourceFileName ?? null,
+        sourcePage: question.sourcePage ?? null,
+        sourceRegion: question.sourceRegion ?? null,
+        categoryId: question.categoryId ?? null,
+        institutionCategoryId: question.institutionCategoryId ?? null,
+        status: question.status ?? "draft",
+      });
+      ids.push(Number(result[0].insertId));
+    }
+    return ids;
+  });
 }
 
 export async function createContentItem(input: {

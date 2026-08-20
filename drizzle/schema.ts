@@ -73,6 +73,9 @@ export const questions = mysqlTable("questions", {
   options: json("options"),
   answer: text("answer"),
   explanation: text("explanation"),
+  sourceFileName: varchar("sourceFileName", { length: 255 }),
+  sourcePage: int("sourcePage"),
+  sourceRegion: json("sourceRegion"),
   topicTag: varchar("topicTag", { length: 180 }),
   gradeLevel: varchar("gradeLevel", { length: 80 }),
   categoryId: int("categoryId"),
@@ -315,7 +318,7 @@ export const mediaTransferJobs = mysqlTable("media_transfer_jobs", {
 
 export const auditLogs = mysqlTable("audit_logs", {
   id: int("id").autoincrement().primaryKey(),
-  action: mysqlEnum("action", ["delete", "bulk_delete"]).notNull(),
+  action: mysqlEnum("action", ["delete", "bulk_delete", "bulk_create"]).notNull(),
   targetType: varchar("targetType", { length: 80 }).notNull(),
   targetId: int("targetId"),
   targetLabel: varchar("targetLabel", { length: 240 }),

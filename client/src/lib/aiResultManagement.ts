@@ -1,3 +1,14 @@
+export type AiSourceRegion = {
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  pageWidth: number;
+  pageHeight: number;
+  coordinateSpace: "pdf-points";
+};
+
 export type AiDraftResult = {
   id: string;
   questionType: "multiple-choice" | "true-false" | "open-ended";
@@ -7,6 +18,7 @@ export type AiDraftResult = {
   explanation: string;
   sourceFileName?: string;
   sourcePage?: number;
+  sourceRegion?: AiSourceRegion | null;
 };
 
 export function updateAiDraftResult(
@@ -29,4 +41,16 @@ export function getAiModelCapabilityLabels(model: { capabilities?: unknown } | u
 
 export function formatAiQuotaStatus(quota: unknown) {
   return typeof quota === "string" && quota.trim() ? quota : "API anahtarı sonrası görünür";
+}
+
+export function selectAiDraftResults(results: AiDraftResult[], selectedIds: string[]) {
+  return results.filter(result => selectedIds.includes(result.id));
+}
+
+export function validateAiDraftResultsForBulkSave(results: AiDraftResult[]) {
+  const invalid = results.find(result =>
+    result.prompt.trim().length < 12 ||
+    (result.questionType === "multiple-choice" && result.options.filter(Boolean).length < 2),
+  );
+  return { valid: !invalid, invalidId: invalid?.id ?? null };
 }

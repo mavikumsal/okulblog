@@ -1,0 +1,1 @@
+ALTER TABLE `audit_logs` MODIFY COLUMN `action` enum('delete','bulk_delete','bulk_create') NOT NULL;

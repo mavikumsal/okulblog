@@ -1583,3 +1583,11 @@
 - [x] Model bazlı yetenek filtreleri ve API anahtarı varsa kota/limit göstergesi
 - [x] AI üretim sonuçlarını PDF ve Word olarak dışa aktarma
 - [x] AI sonuç yönetimi için Vitest, TypeScript, production build ve responsive doğrulama
+
+## AI Soru Toplu Onay ve OCR Sayfa Eşleştirme
+
+- [x] AI sonuçlarında toplu seçim, seçili soruları onaylama ve Soru Havuzu’na kaydetme akışı
+- [x] Toplu kayıt öncesi kategori, zorluk ve kazanım alanlarının doğrulanması
+- [x] Çok sayfalı PDF OCR çıktısında koordinat ve sayfa bilgisini soru taslağına taşıma
+- [x] OCR koordinatlarıyla soru–sayfa eşleştirmesini otomatikleştirme ve kaynak önizlemesini seçili sayfaya bağlama
+- [x] Toplu onay ve OCR eşleştirme için Vitest, TypeScript, build ve responsive doğrulama

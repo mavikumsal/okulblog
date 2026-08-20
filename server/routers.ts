@@ -22,6 +22,7 @@ import {
   createQaAnswer,
   setQaStatus,
   createQuestion,
+  createQuestions,
   createStoredFile,
   createTest,
   listTests,
@@ -336,6 +337,46 @@ export const appRouter = router({
       const failed = results.filter(item => item.status === "rejected").length;
       await recordAuditLog({ action: "bulk_delete", targetType: "question", actorId: ctx.user.id, actorName: ctx.user.name, status: failed ? "failed" : "success", reason: failed ? `${failed} kayıt silinemedi.` : null, metadata: { ids: input.ids, deleted: input.ids.length - failed } });
       return { success: failed === 0, deleted: input.ids.length - failed, failed };
+    }),
+    bulkSaveAi: protectedProcedure.input(z.object({
+      status: z.enum(["draft", "approved"]).default("draft"),
+      categoryId: z.number().int().positive(),
+      institutionCategoryId: z.number().int().positive().nullable().optional(),
+      questions: z.array(z.object({
+        id: z.string().trim().min(1).max(120),
+        questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
+        prompt: z.string().trim().min(12).max(1500),
+        options: z.array(z.string().trim().min(1).max(300)).max(5).optional(),
+        answer: z.string().trim().max(800).optional(),
+        explanation: z.string().trim().max(1200).optional(),
+        topicTag: z.string().trim().max(180).nullable().optional(),
+        gradeLevel: z.string().trim().max(80).nullable().optional(),
+        difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
+        sourceFileName: z.string().trim().max(255).nullable().optional(),
+        sourcePage: z.number().int().positive().nullable().optional(),
+        sourceRegion: z.object({ page: z.number().int().positive(), x: z.number().nonnegative(), y: z.number().nonnegative(), width: z.number().positive(), height: z.number().positive(), pageWidth: z.number().positive(), pageHeight: z.number().positive(), coordinateSpace: z.literal("pdf-points") }).nullable().optional(),
+      })).min(1).max(100),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Soru Havuzu");
+      const ids = await createQuestions(input.questions.map(question => ({
+        questionType: question.questionType,
+        prompt: question.prompt,
+        options: question.options ?? [],
+        answer: question.answer,
+        explanation: question.explanation,
+        sourceFileName: question.sourceFileName ?? null,
+        sourcePage: question.sourcePage ?? null,
+        sourceRegion: question.sourceRegion ?? null,
+        topicTag: question.topicTag ?? null,
+        gradeLevel: question.gradeLevel ?? null,
+        categoryId: input.categoryId,
+        institutionCategoryId: input.institutionCategoryId ?? null,
+        difficulty: question.difficulty,
+        status: input.status,
+        createdBy: ctx.user.id,
+      })));
+      await recordAuditLog({ action: "bulk_create", targetType: "question", actorId: ctx.user.id, actorName: ctx.user.name, status: "success", metadata: { source: "ai", status: input.status, draftIds: input.questions.map(question => question.id), questionIds: ids } });
+      return { success: true, saved: ids.length, ids, status: input.status };
     }),
     create: protectedProcedure.input(z.object({
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),

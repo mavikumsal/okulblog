@@ -19,6 +19,17 @@ export type AnswerKeyQuality = {
   invalidAnswerMarkers: number;
 };
 
+export type OcrSourceRegion = {
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  pageWidth: number;
+  pageHeight: number;
+  coordinateSpace: "pdf-points";
+};
+
 export type ParsedPdfQuestion = {
   sourceNumber: string;
   prompt: string;
@@ -38,6 +49,7 @@ export type ParsedPdfQuestion = {
   /** Preserved first OCR extraction used to show later manual edits. */
   ocrSourceText: string;
   page: number;
+  sourceRegion: OcrSourceRegion | null;
   warning: string | null;
 };
 
@@ -77,12 +89,23 @@ function parseAnswerKey(lines: string[]): Map<string, string> {
   return result;
 }
 
-function extractBlocks(lines: string[], page: number, answerKey: Map<string, string>, hasEmbeddedImage: boolean, embeddedImageDataBase64: string | null, embeddedImageRole: "question" | "answer" | null, sourcePageImageDataBase64: string | null): ParsedPdfQuestion[] {
+type OcrLine = { text: string; x: number; y: number; width: number; height: number };
+
+type QuestionBlock = { number: string; page: number; lines: OcrLine[]; region: OcrSourceRegion };
+
+function extendRegion(region: OcrSourceRegion, line: OcrLine) {
+  const right = Math.max(region.x + region.width, line.x + line.width);
+  const bottom = Math.min(region.y, line.y - line.height);
+  const top = Math.max(region.y + region.height, line.y);
+  return { ...region, x: Math.min(region.x, line.x), y: bottom, width: right - Math.min(region.x, line.x), height: top - bottom };
+}
+
+function extractBlocks(lines: OcrLine[], page: number, pageSize: { width: number; height: number }, answerKey: Map<string, string>, hasEmbeddedImage: boolean, embeddedImageDataBase64: string | null, embeddedImageRole: "question" | "answer" | null, sourcePageImageDataBase64: string | null): ParsedPdfQuestion[] {
   const result: ParsedPdfQuestion[] = [];
-  let current: { number: string; page: number; lines: string[] } | null = null;
+  let current: QuestionBlock | null = null;
   const flush = () => {
     if (!current) return;
-    const content = current.lines.filter(Boolean);
+    const content = current.lines.map(line => line.text).filter(Boolean);
     const options: string[] = [];
     const promptLines: string[] = [];
     for (const line of content) {
@@ -113,19 +136,22 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
       ocrText: content.join(" "),
       ocrSourceText: content.join(" "),
       page: current.page,
+      sourceRegion: current.region,
       warning: compactOptions.length < 2 ? "A–D seçenekleri otomatik bulunamadı; soru türünü ve cevabı kontrol edin." : key ? null : "Cevap anahtarı bulunamadı; doğru cevabı seçin.",
     });
     current = null;
   };
   for (const raw of lines) {
-    const line = cleanLine(raw);
-    if (!line || NOISE.test(line)) continue;
-    const start = line.match(QUESTION_START);
+    const line = { ...raw, text: cleanLine(raw.text) };
+    if (!line.text || NOISE.test(line.text)) continue;
+    const start = line.text.match(QUESTION_START);
     if (start) {
       flush();
-      current = { number: start[1], page, lines: [start[2]] };
+      const region: OcrSourceRegion = { page, x: line.x, y: line.y - line.height, width: line.width, height: line.height, pageWidth: pageSize.width, pageHeight: pageSize.height, coordinateSpace: "pdf-points" };
+      current = { number: start[1], page, lines: [{ ...line, text: start[2] }], region };
     } else if (current) {
       current.lines.push(line);
+      current.region = extendRegion(current.region, line);
     }
   }
   flush();
@@ -135,22 +161,32 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
 export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promise<PdfQuestionParseResult> {
   const document = await getDocument({ data: new Uint8Array(buffer) }).promise;
   const allLines: string[] = [];
-  const pageLines: Array<{ page: number; lines: string[]; hasEmbeddedImage: boolean; embeddedImageDataBase64: string | null; embeddedImageRole: "question" | "answer" | null; sourcePageImageDataBase64: string | null }> = [];
+  const pageLines: Array<{ page: number; lines: OcrLine[]; pageSize: { width: number; height: number }; hasEmbeddedImage: boolean; embeddedImageDataBase64: string | null; embeddedImageRole: "question" | "answer" | null; sourcePageImageDataBase64: string | null }> = [];
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
     const operatorList = await page.getOperatorList();
     const hasEmbeddedImage = operatorList.fnArray.some((operator) => operator === OPS.paintImageXObject || operator === OPS.paintXObject);
     const content = await page.getTextContent();
-    const grouped = new Map<number, Array<{ x: number; text: string }>>();
+    const grouped = new Map<number, OcrLine[]>();
     for (const item of content.items) {
       if (!("str" in item) || !item.str.trim()) continue;
       const x = Number(item.transform?.[4] ?? 0);
-      const y = Math.round(Number(item.transform?.[5] ?? 0) / 2) * 2;
-      const row = grouped.get(y) ?? [];
-      row.push({ x, text: item.str });
-      grouped.set(y, row);
+      const y = Number(item.transform?.[5] ?? 0);
+      const width = Math.max(1, Number(item.width ?? item.str.length * 4));
+      const height = Math.max(1, Math.abs(Number(item.height ?? item.transform?.[3] ?? 10)));
+      const rowKey = Math.round(y / 2) * 2;
+      const row = grouped.get(rowKey) ?? [];
+      row.push({ x, y, width, height, text: item.str });
+      grouped.set(rowKey, row);
     }
-    const lines = Array.from(grouped.entries()).sort((a: [number, Array<{ x: number; text: string }>], b: [number, Array<{ x: number; text: string }>]) => b[0] - a[0]).map((entry: [number, Array<{ x: number; text: string }>]) => entry[1].sort((a: { x: number; text: string }, b: { x: number; text: string }) => a.x - b.x).map((item: { x: number; text: string }) => item.text).join(" "));
+    const lines = Array.from(grouped.entries()).sort((a, b) => b[0] - a[0]).map(([, row]) => {
+      const sorted = row.sort((a, b) => a.x - b.x);
+      const x = Math.min(...sorted.map(item => item.x));
+      const right = Math.max(...sorted.map(item => item.x + item.width));
+      const y = Math.max(...sorted.map(item => item.y));
+      const height = Math.max(...sorted.map(item => item.height));
+      return { text: sorted.map(item => item.text).join(" "), x, y, width: right - x, height };
+    });
     let embeddedImageDataBase64: string | null = null;
     let embeddedImageRole: "question" | "answer" | null = null;
     const pageViewport = page.getViewport({ scale: 0.7 });
@@ -163,13 +199,14 @@ export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promi
       await page.render({ canvas: canvas as never, canvasContext: canvas.getContext("2d") as never, viewport }).promise;
       const normalized = await sharp(canvas.toBuffer("image/png")).resize(250, 250, { fit: "cover", position: "centre" }).webp({ quality: 82 }).toBuffer();
       embeddedImageDataBase64 = normalized.toString("base64");
-      embeddedImageRole = lines.some((line) => ANSWER_KEY.test(line)) ? "answer" : "question";
+      embeddedImageRole = lines.some((line) => ANSWER_KEY.test(line.text)) ? "answer" : "question";
     }
-    pageLines.push({ page: pageNumber, lines, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64 });
-    allLines.push(...lines);
+    const pageSize = { width: page.getViewport({ scale: 1 }).width, height: page.getViewport({ scale: 1 }).height };
+    pageLines.push({ page: pageNumber, lines, pageSize, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64 });
+    allLines.push(...lines.map(line => line.text));
   }
   const answerKey = parseAnswerKey(allLines);
-  const questions = pageLines.flatMap(({ page, lines, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64 }) => extractBlocks(lines, page, answerKey, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64));
+  const questions = pageLines.flatMap(({ page, lines, pageSize, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64 }) => extractBlocks(lines, page, pageSize, answerKey, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64));
   return {
     fileName,
     pageCount: document.numPages,
@@ -415,6 +452,7 @@ export async function parseImageQuestionPair(
     ocrText: `${item.prompt} ${item.options.join(" ")}`.trim(),
     ocrSourceText: `${item.prompt} ${item.options.join(" ")}`.trim(),
     page: 1,
+    sourceRegion: { page: 1, x: 0, y: 0, width: 1, height: 1, pageWidth: 1, pageHeight: 1, coordinateSpace: "pdf-points" },
     warning: "Görsel OCR sonucu; manuel kontrol önerilir.",
   }));
   const matchedQuestions = applyAnswerKeyToQuestions(questions, answerKey);
@@ -427,11 +465,11 @@ export async function parseImageQuestionPair(
   return { fileName: questionFileName, pageCount: 1, questions: matchedQuestions, warnings: matchedQuestions.length ? ["Görsel OCR kullanıldı; düşük güvenli alanları manuel kontrol edin."] : ["Görselde soru bulunamadı."], answerKeyFileName, answerKeyQuality, answerKeyCount: answerKey.size, matchedCount: matchedQuestions.filter(question => question.answerMatched).length, unmatchedCount: matchedQuestions.filter(question => !question.answerMatched).length };
 }
 
-export async function extractAiSourceText(buffer: Buffer, fileName: string, mimeType: string): Promise<{ text: string; pageCount: number; warnings: string[] }> {
+export async function extractAiSourceText(buffer: Buffer, fileName: string, mimeType: string): Promise<{ text: string; pageCount: number; warnings: string[]; sourcePages: Array<{ page: number; sourceNumber: string; prompt: string; sourceRegion: OcrSourceRegion | null }> }> {
   if (mimeType === "application/pdf") {
     const parsed = await parsePdfQuestions(buffer, fileName);
     const text = parsed.questions.map((question) => [question.sourceNumber, question.prompt, ...question.options].filter(Boolean).join(" ")).join("\n").trim();
-    return { text: text.slice(0, 12000), pageCount: parsed.pageCount, warnings: parsed.warnings };
+    return { text: text.slice(0, 12000), pageCount: parsed.pageCount, warnings: parsed.warnings, sourcePages: parsed.questions.map(question => ({ page: question.page, sourceNumber: question.sourceNumber, prompt: question.prompt, sourceRegion: question.sourceRegion })) };
   }
   const image = (await sharp(buffer).resize(1800, 2400, { fit: "inside", withoutEnlargement: true }).webp({ quality: 84 }).toBuffer()).toString("base64");
   const response = await invokeLLM({
@@ -446,5 +484,5 @@ export async function extractAiSourceText(buffer: Buffer, fileName: string, mime
     if (part && typeof part === "object" && "text" in part && typeof part.text === "string") return part.text;
     return "";
   }).join(" ") : "";
-  return { text: text.trim().slice(0, 12000), pageCount: 1, warnings: text.trim() ? ["Görsel OCR kullanıldı; okunabilirlik için önizleme önerilir."] : ["Görselden metin çıkarılamadı."] };
+  return { text: text.trim().slice(0, 12000), pageCount: 1, warnings: text.trim() ? ["Görsel OCR kullanıldı; okunabilirlik için önizleme önerilir."] : ["Görselden metin çıkarılamadı."], sourcePages: [{ page: 1, sourceNumber: "1", prompt: text.trim().slice(0, 5000), sourceRegion: { page: 1, x: 0, y: 0, width: 1, height: 1, pageWidth: 1, pageHeight: 1, coordinateSpace: "pdf-points" } }] };
 }

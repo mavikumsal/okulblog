@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { getDraftTitleSaveState } from "@/lib/draftTitleSave";
-import { formatAiQuotaStatus, getAiModelCapabilityLabels, removeAiDraftResult, updateAiDraftResult, type AiDraftResult } from "@/lib/aiResultManagement";
+import { formatAiQuotaStatus, getAiModelCapabilityLabels, removeAiDraftResult, selectAiDraftResults, updateAiDraftResult, validateAiDraftResultsForBulkSave, type AiDraftResult } from "@/lib/aiResultManagement";
 import ExportDocumentActions from "@/components/ExportDocumentActions";
 import { getDocumentAiStatusLabel, getDocumentPreviewTags } from "@/lib/documentImportPreview";
 import {
@@ -31,7 +31,7 @@ import { getPanelSectionFromRoute } from "@shared/panelRoute";
 import { filterDocumentImportHistory } from "@/lib/documentImportHistory";
 import { buildDocumentDraftFilterInput, DEFAULT_DOCUMENT_DRAFT_STATUS_FILTER, type DocumentDraftAiFilter, type DocumentDraftStatusFilter } from "@/lib/documentImportDraftFilters";
 import { toast } from "sonner";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import {
   Activity,
@@ -439,6 +439,10 @@ function PanelContent() {
   const [aiDraft, setAiDraft] = useState<AiDraftResult | null>(null);
   const [aiResults, setAiResults] = useState<AiDraftResult[]>([]);
   const [aiSelectedResultId, setAiSelectedResultId] = useState<string | null>(null);
+  const [aiSelectedResultIds, setAiSelectedResultIds] = useState<string[]>([]);
+  const [aiSavedResultIds, setAiSavedResultIds] = useState<string[]>([]);
+  const [aiSourcePages, setAiSourcePages] = useState<Array<{ page: number; sourceNumber: string; prompt: string; sourceRegion: AiDraftResult["sourceRegion"] }>>([]);
+  const aiSourcePagesRef = useRef<Array<{ page: number; sourceNumber: string; prompt: string; sourceRegion: AiDraftResult["sourceRegion"] }>>([]);
   const [aiSourcePreviewUrl, setAiSourcePreviewUrl] = useState<string | null>(null);
   useEffect(() => {
     const sourceFile = aiSourceFiles[0];
@@ -452,10 +456,23 @@ function PanelContent() {
   }, [aiSourceFiles]);
   const prepareAiSource = (trpc.ai as any).prepareSourceContext?.useMutation
     ? (trpc.ai as any).prepareSourceContext.useMutation()
-    : { mutateAsync: async () => ({ text: "", pageCount: 0, warnings: ["OCR hazırlama endpointi hazır değil."] }) };
+    : { mutateAsync: async () => ({ text: "", pageCount: 0, warnings: ["OCR hazırlama endpointi hazır değil."], sourcePages: [] }) };
+  const bulkSaveAiQuestions = (trpc.questions as any).bulkSaveAi?.useMutation
+    ? (trpc.questions as any).bulkSaveAi.useMutation({
+        onSuccess: (result: { saved: number; status: "draft" | "approved" }) => {
+          setAiSavedResultIds(previous => Array.from(new Set([...previous, ...aiSelectedResultIds])));
+          setAiSelectedResultIds([]);
+          toast.success(`${result.saved} soru Soru Havuzu'na ${result.status === "approved" ? "onaylı" : "taslak"} olarak kaydedildi.`);
+          utils.questions.list.invalidate();
+          utils.platform.overview.invalidate();
+        },
+        onError: (error: { message?: string }) => toast.error(error.message || "AI soruları Soru Havuzu'na kaydedilemedi."),
+      })
+    : { mutate: () => undefined, isPending: false };
   const aiQuestion = trpc.ai.generateQuestion.useMutation({
     onSuccess: draft => {
-      const result: AiDraftResult = { ...draft, id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, sourceFileName: aiSourceFiles[0]?.name, sourcePage: 1 };
+      const source = aiSourcePagesRef.current[0];
+      const result: AiDraftResult = { ...draft, id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, sourceFileName: aiSourceFiles[0]?.name, sourcePage: source?.page ?? 1, sourceRegion: source?.sourceRegion ?? null };
       setAiDraft(result);
       setAiResults(previous => [...previous, result]);
       setAiSelectedResultId(result.id);
@@ -1234,8 +1251,44 @@ function PanelContent() {
   const removeAiResult = (id: string) => {
     setAiResults(previous => removeAiDraftResult(previous, id));
     setAiSelectedResultId(previous => previous === id ? null : previous);
+    setAiSelectedResultIds(previous => previous.filter(item => item !== id));
     setAiDraft(previous => previous?.id === id ? null : previous);
     toast.success("AI sonucu listeden kaldırıldı.");
+  };
+
+  const saveSelectedAiQuestions = (status: "draft" | "approved") => {
+    const selected = selectAiDraftResults(aiResults, aiSelectedResultIds);
+    if (!selected.length) {
+      toast.error("Önce en az bir AI sorusu seçin.");
+      return;
+    }
+    if (!questionCategoryId) {
+      toast.error("Toplu kayıt için kategori seçilmelidir.");
+      return;
+    }
+    const validation = validateAiDraftResultsForBulkSave(selected);
+    const invalid = selected.find(result => result.id === validation.invalidId);
+    if (!validation.valid && invalid) {
+      toast.error("Seçilen sorulardan en az biri eksik metin veya seçenek içeriyor. Önce düzenleyin.");
+      setAiSelectedResultId(invalid.id);
+      return;
+    }
+    bulkSaveAiQuestions.mutate({
+      status,
+      categoryId: Number(questionCategoryId),
+      questions: selected.map(result => ({
+        id: result.id,
+        questionType: result.questionType,
+        prompt: result.prompt,
+        options: result.options,
+        answer: result.answer,
+        explanation: result.explanation,
+        difficulty: questionDifficulty,
+        sourceFileName: result.sourceFileName ?? null,
+        sourcePage: result.sourcePage ?? null,
+        sourceRegion: result.sourceRegion ?? null,
+      })),
+    });
   };
 
   const handleAiGenerate = async () => {
@@ -1252,6 +1305,8 @@ function PanelContent() {
           const payload = await response.json().catch(() => ({}));
           if (!response.ok || !payload.storageKey) throw new Error(payload.error || "Kaynak dosya yüklenemedi.");
           const result = await prepareAiSource.mutateAsync({ fileName: file.name, storageKey: payload.storageKey, mimeType: file.type as "application/pdf" | "image/jpeg" | "image/png" | "image/webp" });
+          aiSourcePagesRef.current = result.sourcePages ?? [];
+          setAiSourcePages(result.sourcePages ?? []);
           prepared.push(`### ${file.name}\n${result.text}`);
           if (result.warnings?.length) prepared.push(`Uyarılar: ${result.warnings.join("; ")}`);
         }
@@ -2381,12 +2436,13 @@ function PanelContent() {
                 </Button>
                 {aiResults.length > 0 && <div className="mt-5 space-y-4 rounded-2xl border border-[#dfe8df] bg-[#f8fbf7] p-4 text-[#29465a]">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div><p className="text-sm font-bold">Üretim sonuçları</p><p className="text-[11px] text-[#71838b]">{aiResults.length} soru taslak olarak incelemede.</p></div>
-                    <ExportDocumentActions title={aiTopic || "OkulBlog AI Soruları"} questions={aiResults} compact />
+                    <div><p className="text-sm font-bold">Üretim sonuçları</p><p className="text-[11px] text-[#71838b]">{aiResults.length} soru incelemede · {aiSourcePages.length ? `${aiSourcePages.length} OCR kaynak eşleşmesi` : "metin kaynağı"}.</p></div>
+                    <div className="flex flex-wrap items-center gap-2"><ExportDocumentActions title={aiTopic || "OkulBlog AI Soruları"} questions={aiResults} compact /><Button type="button" size="sm" variant="outline" className="h-9 rounded-xl" onClick={() => setAiSelectedResultIds(aiResults.filter(result => !aiSavedResultIds.includes(result.id)).map(result => result.id))}>Tümünü seç</Button></div>
                   </div>
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d9e6dc] bg-white px-3 py-3"><div className="flex items-center gap-2 text-xs text-[#477767]"><input aria-label="AI sorularının tümünü seç" type="checkbox" checked={aiResults.length > 0 && aiResults.every(result => aiSelectedResultIds.includes(result.id) || aiSavedResultIds.includes(result.id))} onChange={event => setAiSelectedResultIds(event.target.checked ? aiResults.filter(result => !aiSavedResultIds.includes(result.id)).map(result => result.id) : [])} /><span>{aiSelectedResultIds.length} seçili</span></div><div className="flex flex-wrap gap-2"><Button type="button" size="sm" variant="outline" disabled={!aiSelectedResultIds.length || bulkSaveAiQuestions.isPending} onClick={() => saveSelectedAiQuestions("draft")} className="h-9 rounded-xl">Taslak olarak kaydet</Button><Button type="button" size="sm" disabled={!aiSelectedResultIds.length || bulkSaveAiQuestions.isPending} onClick={() => saveSelectedAiQuestions("approved")} className="h-9 rounded-xl bg-[#2f7668] hover:bg-[#245e53]"><CheckCircle2 size={14} /> Onayla ve havuza kaydet</Button></div></div>
                   <div className="grid gap-3 lg:grid-cols-[minmax(0,.85fr)_minmax(0,1.15fr)]">
                     <div className="space-y-2">
-                      {aiResults.map((result, index) => <button type="button" key={result.id} onClick={() => setAiSelectedResultId(result.id)} className={cn("w-full rounded-xl border px-3 py-3 text-left transition", aiSelectedResultId === result.id ? "border-[#68558e] bg-[#eeeafd]" : "border-[#e1e6df] bg-white hover:border-[#cfc4e8]")}><div className="flex items-center justify-between gap-2"><span className="text-xs font-bold">Soru {index + 1}</span><Badge className="border-0 bg-[#e7f1eb] text-[#477767]">Taslak</Badge></div><p className="mt-1 line-clamp-2 text-xs leading-5">{result.prompt}</p></button>)}
+                      {aiResults.map((result, index) => <div key={result.id} className={cn("flex items-start gap-2 rounded-xl border px-3 py-3 transition", aiSelectedResultId === result.id ? "border-[#68558e] bg-[#eeeafd]" : "border-[#e1e6df] bg-white hover:border-[#cfc4e8]")}><input aria-label={`Soru ${index + 1} seç`} type="checkbox" checked={aiSelectedResultIds.includes(result.id)} disabled={aiSavedResultIds.includes(result.id)} onChange={event => setAiSelectedResultIds(previous => event.target.checked ? Array.from(new Set([...previous, result.id])) : previous.filter(item => item !== result.id))} className="mt-1" /><button type="button" onClick={() => setAiSelectedResultId(result.id)} className="min-w-0 flex-1 text-left"><div className="flex items-center justify-between gap-2"><span className="text-xs font-bold">Soru {index + 1}</span><Badge className={cn("border-0", aiSavedResultIds.includes(result.id) ? "bg-[#d9eee7] text-[#266b5d]" : "bg-[#e7f1eb] text-[#477767]")}>{aiSavedResultIds.includes(result.id) ? "Havuza kaydedildi" : "Taslak"}</Badge></div><p className="mt-1 line-clamp-2 text-xs leading-5">{result.prompt}</p><p className="mt-1 text-[10px] text-[#7d8d93]">Kaynak sayfa: {result.sourcePage ?? "—"}{result.sourceRegion ? " · OCR koordinatı eşlendi" : ""}</p></button></div>)}
                     </div>
                     {(() => {
                       const selected = aiResults.find(item => item.id === aiSelectedResultId) ?? aiResults[aiResults.length - 1];

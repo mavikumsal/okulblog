@@ -28,3 +28,29 @@ describe("AI result management", () => {
     expect(formatAiQuotaStatus(undefined)).toBe("API anahtarı sonrası görünür");
   });
 });
+
+import { selectAiDraftResults, validateAiDraftResultsForBulkSave } from "./aiResultManagement";
+
+const coordinateQuestion: AiDraftResult = {
+  ...first,
+  prompt: "Türkiye'nin başkenti aşağıdakilerden hangisidir?",
+  options: ["Ankara", "İstanbul", "İzmir", "Bursa"],
+  sourceFileName: "kaynak.pdf",
+  sourcePage: 3,
+  sourceRegion: { page: 3, x: 40, y: 120, width: 420, height: 180, pageWidth: 595, pageHeight: 842, coordinateSpace: "pdf-points" },
+};
+
+describe("AI bulk question management", () => {
+  it("selects only the requested draft results", () => {
+    expect(selectAiDraftResults([coordinateQuestion, { ...coordinateQuestion, id: "q-2" }], ["q-2"])).toEqual([{ ...coordinateQuestion, id: "q-2" }]);
+  });
+
+  it("accepts a valid question carrying OCR source coordinates", () => {
+    expect(validateAiDraftResultsForBulkSave([coordinateQuestion])).toEqual({ valid: true, invalidId: null });
+  });
+
+  it("rejects short prompts and multiple-choice questions without enough options", () => {
+    const invalid = { ...coordinateQuestion, id: "bad", prompt: "Kısa", options: ["Tek seçenek"] };
+    expect(validateAiDraftResultsForBulkSave([invalid])).toEqual({ valid: false, invalidId: "bad" });
+  });
+});
