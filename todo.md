@@ -1485,3 +1485,9 @@
 - [x] Admin’de soru bazlı önizleme, düzenleme, seçme ve taslak kaydetme arayüzünü ekle
 - [x] Pilot aktarım için hata, düşük güven ve telif/izin uyarılarını görünür kıl
 - [x] OCR/eşleştirme ve Admin akışı için Vitest, TypeScript, build ve görsel doğrulama yap
+
+- [x] Düşük güvenli OCR soruları için orijinal sayfa görseli üzerinde kırpma alanı ekle
+- [x] OCR metnini manuel düzeltme ve görsel kırpma sonucunu soru taslağına bağla
+- [x] Soru önizlemesinde orijinal PDF ve OCR metnini split-screen göster
+- [x] Seçili sorulara toplu kategori, zorluk derecesi ve kazanım atama akışı ekle
+- [x] Yeni akışlar için güvenli kaydetme, test, responsive doğrulama ve hata durumlarını ekle

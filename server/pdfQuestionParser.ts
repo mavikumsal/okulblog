@@ -16,6 +16,8 @@ export type ParsedPdfQuestion = {
   embeddedImageDataBase64: string | null;
   embeddedImageUrl: string | null;
   embeddedImageRole: "question" | "answer" | null;
+  sourcePageImageDataBase64: string | null;
+  ocrText: string;
   page: number;
   warning: string | null;
 };
@@ -56,7 +58,7 @@ function parseAnswerKey(lines: string[]): Map<string, string> {
   return result;
 }
 
-function extractBlocks(lines: string[], page: number, answerKey: Map<string, string>, hasEmbeddedImage: boolean, embeddedImageDataBase64: string | null, embeddedImageRole: "question" | "answer" | null): ParsedPdfQuestion[] {
+function extractBlocks(lines: string[], page: number, answerKey: Map<string, string>, hasEmbeddedImage: boolean, embeddedImageDataBase64: string | null, embeddedImageRole: "question" | "answer" | null, sourcePageImageDataBase64: string | null): ParsedPdfQuestion[] {
   const result: ParsedPdfQuestion[] = [];
   let current: { number: string; page: number; lines: string[] } | null = null;
   const flush = () => {
@@ -88,6 +90,8 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
       embeddedImageDataBase64,
       embeddedImageUrl: null,
       embeddedImageRole,
+      sourcePageImageDataBase64,
+      ocrText: content.join(" "),
       page: current.page,
       warning: compactOptions.length < 2 ? "A–D seçenekleri otomatik bulunamadı; soru türünü ve cevabı kontrol edin." : key ? null : "Cevap anahtarı bulunamadı; doğru cevabı seçin.",
     });
@@ -111,7 +115,7 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
 export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promise<PdfQuestionParseResult> {
   const document = await getDocument({ data: new Uint8Array(buffer) }).promise;
   const allLines: string[] = [];
-  const pageLines: Array<{ page: number; lines: string[]; hasEmbeddedImage: boolean; embeddedImageDataBase64: string | null; embeddedImageRole: "question" | "answer" | null }> = [];
+  const pageLines: Array<{ page: number; lines: string[]; hasEmbeddedImage: boolean; embeddedImageDataBase64: string | null; embeddedImageRole: "question" | "answer" | null; sourcePageImageDataBase64: string | null }> = [];
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
     const operatorList = await page.getOperatorList();
@@ -129,6 +133,10 @@ export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promi
     const lines = Array.from(grouped.entries()).sort((a: [number, Array<{ x: number; text: string }>], b: [number, Array<{ x: number; text: string }>]) => b[0] - a[0]).map((entry: [number, Array<{ x: number; text: string }>]) => entry[1].sort((a: { x: number; text: string }, b: { x: number; text: string }) => a.x - b.x).map((item: { x: number; text: string }) => item.text).join(" "));
     let embeddedImageDataBase64: string | null = null;
     let embeddedImageRole: "question" | "answer" | null = null;
+    const pageViewport = page.getViewport({ scale: 0.7 });
+    const pageCanvas = createCanvas(Math.ceil(pageViewport.width), Math.ceil(pageViewport.height));
+    await page.render({ canvas: pageCanvas as never, canvasContext: pageCanvas.getContext("2d") as never, viewport: pageViewport }).promise;
+    const sourcePageImageDataBase64 = (await sharp(pageCanvas.toBuffer("image/png")).resize(1100, 1500, { fit: "inside", withoutEnlargement: true }).webp({ quality: 72 }).toBuffer()).toString("base64");
     if (hasEmbeddedImage) {
       const viewport = page.getViewport({ scale: 0.5 });
       const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
@@ -137,11 +145,11 @@ export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promi
       embeddedImageDataBase64 = normalized.toString("base64");
       embeddedImageRole = lines.some((line) => ANSWER_KEY.test(line)) ? "answer" : "question";
     }
-    pageLines.push({ page: pageNumber, lines, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole });
+    pageLines.push({ page: pageNumber, lines, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64 });
     allLines.push(...lines);
   }
   const answerKey = parseAnswerKey(allLines);
-  const questions = pageLines.flatMap(({ page, lines, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole }) => extractBlocks(lines, page, answerKey, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole));
+  const questions = pageLines.flatMap(({ page, lines, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64 }) => extractBlocks(lines, page, answerKey, hasEmbeddedImage, embeddedImageDataBase64, embeddedImageRole, sourcePageImageDataBase64));
   return {
     fileName,
     pageCount: document.numPages,

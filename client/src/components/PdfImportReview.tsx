@@ -14,6 +14,12 @@ export type PdfReviewQuestion = {
   hasEmbeddedImage: boolean;
   embeddedImageUrl?: string | null;
   embeddedImageRole?: "question" | "answer" | null;
+  sourcePageImageDataBase64?: string | null;
+  ocrText?: string;
+  cropImageDataUrl?: string | null;
+  categoryId?: number | null;
+  difficulty?: "easy" | "medium" | "hard";
+  learningOutcome?: string | null;
   page: number;
   warning: string | null;
 };
