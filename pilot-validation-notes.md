@@ -1,0 +1,39 @@
+# Pilot aktarım doğrulama notu
+
+- 20 Ağustos 2026: `/panel/soru-havuzu` Admin oturumuyla açıldı.
+- Güncel dosyada duplicate React/useMemo importu görünmüyor; TypeScript ve production build başarılı.
+- Soru havuzu ekranında `Yayın + cevap anahtarı pilot aktarımı` bölümü ve `Pilot aktarımı başlat` akışı mevcut.
+- Mevcut soru havuzunda 36 soru görünüyor; bunlar önceki örnek sorular. Gerçek pilot PDF’leri henüz bu oturumda yüklenip başlatılmadı.
+- Bir sonraki adım: pilot kartındaki iki file input’a `questions-1.pdf` ve `answers-1.pdf` yüklemek, ardından staging/parsing sonucunu doğrulamak.
+
+Kaynak: Admin Soru Havuzu ekranı ve terminal TypeScript/build çıktısı.
+
+Not: Sayfa uzun olduğu için görsel viewport üstte kaldı; browser markdown içeriği pilot kartının metnini doğruluyor.
+
+## 20 Ağustos 2026 — Azure 403 düzeltmesi
+
+- Pilot testinde tRPC `files.stageQuestionPdf` çağrısı, PDF bytes base64 olarak JSON gövdesinde taşındığı için Azure Application Gateway tarafından `403 Forbidden` HTML yanıtıyla engellendi; istemci bunu JSON olarak parse etmeye çalışınca `Unexpected token '<'` hatası oluştu.
+- Çözüm olarak `/api/question-import/stage` Express route’u eklendi. Route admin oturumunu doğruluyor, `application/pdf` ikili gövdesini doğrudan alıyor, S3 staging’e yazıyor ve `{fileName, storageKey, publicUrl, sizeBytes}` döndürüyor.
+- `ExternalQuestionPairImport` artık iki PDF’i doğrudan PUT ile staging route’una yükleyip mevcut `parseQuestionPdfPairFromStorage` tRPC prosedürünü çağırıyor. TypeScript incremental kontrolü 0 hata verdi.
+- Gerçek pilot OCR/eşleştirme sonucu bu çözümden sonra yeniden çalıştırılacak.
+
+## 20 Ağustos 2026 — Güncel POST teşhisi
+
+- Eski `i1td8...` önizleme bundle’ı `/api/question-import/stage` için PUT çağrısı yapıyor ve Azure Application Gateway 403 döndürüyordu.
+- Kaynak `ExternalQuestionPairImport.tsx` artık POST kullanıyor; restart sonrası güncel `i1td8...` önizleme açıldı ve kartta dosya alanları görünür durumda.
+- Güncel sayfada pilot dosyaları henüz yeniden seçilip POST isteği ağ günlüğünde doğrulanmadı. Sonraki adım güncel inputlara iki PDF yükleyip düğmeye basmak ve ağ kaydında POST sonucunu kontrol etmektir.
+
+## 20 Ağustos 2026 — Aktif önizleme ve tRPC doğrulama
+
+- Aktif proje önizleme URL’si: `https://3000-i1td8lumdpldbbd38jey4-fa514f4d.us3.manus.computer`.
+- Tarayıcıda pilot inputları `questions-1.pdf` ve `answers-1.pdf` olarak seçili görünüyor.
+- Eski özel `/api/question-import/stage` çağrıları Azure Application Gateway tarafından 403 HTML yanıtıyla engellendi; ağ günlüğünde `content-type: application/pdf` görüldü.
+- Kaynak bileşeninde staging çağrısı tRPC `files.stageQuestionPdf` prosedürüne çevrilmiş durumda; ancak bazı tarayıcı denemelerinde eski bundle çağrısı sürdüğü için zorunlu yenileme ve aktif preview URL kontrolü gerekiyor.
+- Gerçek pilot OCR/eşleştirme sonucu henüz doğrulanmadı.
+
+Son aktif önizleme taramasında pilot kartı görünür; iki input `Soru yayını PDF’i` ve `Cevap anahtarı PDF’i` olarak render ediliyor. Tarayıcı ekranında önceki `PDF staging yüklemesi başarısız (403)` toast’ı kalmış durumda. Kaynak bileşeninde güncel tRPC staging çağrısı görülüyor; gerçek güncel tRPC isteğinin ağ günlüğünde henüz kesin doğrulaması yok.
+
+Son ekran doğrulaması: Pilot kartı görünür; iki PDF inputu seçili görünüyor ve `Pilot aktarımı başlat` butonu mevcut. Ağ günlüğünde 13:15 sonrası yalnızca sayfa tRPC GET çağrıları görüldü; yeni staging çağrısı kaydı oluşmadı. Bu, son tıklamaların pilot butonuna değil başka viewport öğelerine gitmiş olabileceğini gösteriyor. Tıklama koordinatı pilot butonunun yaklaşık orta ekran konumuna alınarak yeniden denenmeli.
+38. Son doğrulama: My Browser’da questions-1.pdf ve answers-1.pdf görünür pilot inputlarına başarıyla yüklendi. Pilot kartı ve başlatma düğmesi DOM’da mevcut; ekran Admin önizleme modunda. Alt çubuk sayfanın canlı/public olarak paylaşılmadığını belirtiyor; bu yerel pilot testini engellemiyor, ancak yayın öncesi son kullanıcı doğrulaması için Publish gerektiriyor. Multipart staging kaynağı ExternalQuestionPairImport.tsx satır 96-131’de POST FormData kullanıyor; son gerçek OCR çağrısı henüz kesin başarıyla sonuçlanmadı.
+39. Doğrudan parser doğrulaması: pilot-assets/compressed/questions-1.pdf (383,619 B) ve answers-1.pdf (374,054 B) her biri 1 sayfa. Metin katmanı bulunmadığı için questionCount=0, answerKeyCount=0, matchedCount=0 ve iki OCR uyarısı üretildi. Mevcut parser görüntüleri render ediyor ve kaynak sayfa önizlemesi hazırlıyor; ancak taranmış sayfalardaki metni OCR’a dönüştüren motor henüz bağlı değil. Bu nedenle OCR/eşleştirme pilot sonucu şu aşamada başarısız değil, beklenen 'OCR gerekir' durumunda duruyor. TypeScript, parser testleri (3/3) ve production build başarılı.
+40. Görsel inceleme: questions-1.pdf tek sayfalık kapak görseli; soru metni/şıklar içermiyor. answers-1.pdf tek sayfalık etkinlik/çizelge sayfası; klasik 1-A, 2-B cevap anahtarı içermiyor. Bu iki dosya soru-cevap pilotu için teknik olarak geçerli eşleşen yayın/cevap anahtarı çifti değil. Parser’ın sıfır soru ve sıfır eşleşme vermesi bu nedenle beklenen sonuçtur; OCR motoru eklenmiş olsa bile bu sayfalardan soru blokları çıkarılamaz. Gerçek pilot için soru içeren yayın sayfası ve ona ait harfli cevap anahtarı sayfası seçilmeli.

@@ -99,7 +99,7 @@ import { getAiProviderConfig, maskSecret } from "./aiProviderConfig";
 import { listProviderModels } from "./aiProviderCatalog";
 import { invokeLLM, listLLMModels } from "./_core/llm";
 import { parsePdfQuestions, parsePdfQuestionPair } from "./pdfQuestionParser";
-import { storagePut, storagePutStable } from "./storage";
+import { storageGetSignedUrl, storagePut, storagePutStable } from "./storage";
 import { describeCoverReplacement, getStableDocumentCoverKey } from "./documentCoverLifecycle";
 import { notifyOwner } from "./_core/notification";
 import { buildGoogleDriveAuthorizationUrl, createGoogleDriveResumableUpload, exchangeGoogleDriveCode, getGoogleDriveMissingConfig } from "./googleDriveProvider";
@@ -549,6 +549,47 @@ export const appRouter = router({
       const stored = await storagePut(`okulblog/${ctx.user.id}/question-imports/${safeName}`, buffer, "application/pdf");
       await createStoredFile({ fileName: input.fileName, storageKey: stored.key, publicUrl: stored.url, mimeType: "application/pdf", sizeBytes: buffer.byteLength, uploadedBy: ctx.user.id });
       return { ...parsed, questions, topicTag: input.topicTag ?? null, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null, originalFileUrl: stored.url };
+    }),
+    stageQuestionPdf: protectedProcedure.input(z.object({
+      fileName: z.string().trim().min(1).max(255),
+      dataBase64: z.string().min(1),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Soru Havuzu");
+      const buffer = Buffer.from(input.dataBase64, "base64");
+      if (buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "PDF dosyası en fazla 20 MB olabilir." });
+      const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+      const stored = await storagePut(`okulblog/${ctx.user.id}/question-import-staging/${safeName}`, buffer, "application/pdf");
+      return { fileName: input.fileName, storageKey: stored.key, publicUrl: stored.url, sizeBytes: buffer.byteLength };
+    }),
+    parseQuestionPdfPairFromStorage: protectedProcedure.input(z.object({
+      questionFileName: z.string().trim().min(1).max(255),
+      questionStorageKey: z.string().trim().min(1).max(500),
+      answerKeyFileName: z.string().trim().min(1).max(255),
+      answerKeyStorageKey: z.string().trim().min(1).max(500),
+      topicTag: z.string().trim().max(180).nullable().optional(),
+      gradeLevel: z.string().trim().max(80).nullable().optional(),
+      categoryId: z.number().int().positive().nullable().optional(),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Soru Havuzu");
+      const prefix = `okulblog/${ctx.user.id}/question-import-staging/`;
+      if (!input.questionStorageKey.startsWith(prefix) || !input.answerKeyStorageKey.startsWith(prefix)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Bu PDF staging kaydına erişilemiyor." });
+      }
+      const [questionSignedUrl, answerSignedUrl] = await Promise.all([
+        storageGetSignedUrl(input.questionStorageKey),
+        storageGetSignedUrl(input.answerKeyStorageKey),
+      ]);
+      const [questionResponse, answerResponse] = await Promise.all([fetch(questionSignedUrl), fetch(answerSignedUrl)]);
+      if (!questionResponse.ok || !answerResponse.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "Staging PDF’leri okunamadı." });
+      const [questionBuffer, answerKeyBuffer] = await Promise.all([
+        questionResponse.arrayBuffer().then(buffer => Buffer.from(buffer)),
+        answerResponse.arrayBuffer().then(buffer => Buffer.from(buffer)),
+      ]);
+      if (questionBuffer.byteLength > 20 * 1024 * 1024 || answerKeyBuffer.byteLength > 20 * 1024 * 1024) {
+        throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Her PDF dosyası en fazla 20 MB olabilir." });
+      }
+      const parsed = await parsePdfQuestionPair(questionBuffer, input.questionFileName, answerKeyBuffer, input.answerKeyFileName);
+      return { ...parsed, topicTag: input.topicTag ?? null, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null };
     }),
     parseQuestionPdfPair: protectedProcedure.input(z.object({
       questionFileName: z.string().trim().min(1).max(255),

@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import multer from "multer";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -10,6 +11,7 @@ import { createContext } from "./context";
 import { sdk } from "./sdk";
 import { aggregateContentViewDaily, listRetryableDocumentImportHistory } from "../db";
 import { retryFailedDocumentImport, documentImportRetryPolicy } from "../documentImportRetry";
+import { storagePut } from "../storage";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -34,11 +36,27 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  app.post("/api/trpc/files.stageQuestionPdfUpload", upload.single("file"), async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user || user.role !== "admin") return res.status(403).json({ error: "Bu işlem için admin yetkisi gerekir." });
+      const fileName = String(req.query.fileName ?? "question-import.pdf").trim();
+      const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 255) || "question-import.pdf";
+      const buffer = req.file?.buffer ?? (Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body ?? ""));
+      if (!buffer.length) return res.status(400).json({ error: "PDF gövdesi boş." });
+      if (buffer.byteLength > 20 * 1024 * 1024) return res.status(413).json({ error: "PDF dosyası en fazla 20 MB olabilir." });
+      const stored = await storagePut(`okulblog/${user.id}/question-import-staging/${safeName}`, buffer, "application/pdf");
+      return res.json({ fileName, storageKey: stored.key, publicUrl: stored.url, sizeBytes: buffer.byteLength });
+    } catch (error) {
+      return res.status(500).json({ error: error instanceof Error ? error.message : "PDF staging yüklemesi başarısız." });
+    }
+  });
   app.post("/api/scheduled/aggregateContentViews", async (req, res) => {
     try {
       const user = await sdk.authenticateRequest(req);

@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Check, Crop, FileKey2, FileText, Image as ImageIcon, Move, Save, ShieldAlert, UploadCloud } from "lucide-react";
+import { COOKIE_NAME } from "@shared/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,14 +18,6 @@ type Props = {
 };
 
 type CropInteraction = { mode: "move" | "resize"; startX: number; startY: number; initial: CropBox };
-
-function toBase64(buffer: ArrayBuffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  const chunk = 0x8000;
-  for (let index = 0; index < bytes.length; index += chunk) binary += String.fromCharCode(...Array.from(bytes.subarray(index, index + chunk)));
-  return btoa(binary);
-}
 
 function confidenceTone(value: PdfReviewQuestion["confidence"]) {
   return value === "high" ? "bg-[#e5f3ed] text-[#286d60]" : value === "medium" ? "bg-[#fff4d9] text-[#94702a]" : "bg-[#fdebea] text-[#a4514c]";
@@ -47,8 +40,7 @@ export default function ExternalQuestionPairImport({ topicTag, gradeLevel, categ
   const [cropMode, setCropMode] = useState(false);
   const [cropInteraction, setCropInteraction] = useState<CropInteraction | null>(null);
   const cropCanvasRef = useRef<HTMLDivElement | null>(null);
-  const pairProcedure = (trpc.files as any).parseQuestionPdfPair ?? trpc.files.parseQuestionPdf;
-  const parsePair = pairProcedure.useMutation({
+  const parseStagedPair = trpc.files.parseQuestionPdfPairFromStorage.useMutation({
     onSuccess: (result: { questions: PdfReviewQuestion[]; matchedCount: number }) => {
       const next = result.questions as PdfReviewQuestion[];
       setItems(next);
@@ -101,14 +93,50 @@ export default function ExternalQuestionPairImport({ topicTag, gradeLevel, categ
     setCropMode(false);
     toast.success(`Soru ${activeItem.sourceNumber} için kırpılmış görsel hazırlandı.`);
   };
-  const run = async () => {
+    const run = async () => {
     if (!questionFile || !answerFile) { toast.error("Soru PDF’i ve cevap anahtarı PDF’ini birlikte seçin."); return; }
-    parsePair.mutate({ questionFileName: questionFile.name, questionDataBase64: toBase64(await questionFile.arrayBuffer()), answerKeyFileName: answerFile.name, answerKeyDataBase64: toBase64(await answerFile.arrayBuffer()), topicTag: topicTag.trim() || null, gradeLevel: gradeLevel || null, categoryId: categoryId ?? null });
+    try {
+      const stageDirect = async (file: File) => {
+        const form = new FormData();
+        form.append("file", file, file.name);
+        let authorization: Record<string, string> = {};
+        try {
+          const raw = sessionStorage.getItem("manus-cookie");
+          const prefix = `${COOKIE_NAME}=`;
+          const pair = raw?.split(";").find(value => value.trim().startsWith(prefix));
+          const token = pair?.trim().slice(prefix.length);
+          if (token) authorization = { Authorization: `Bearer ${token}` };
+        } catch {
+          // Cookie auth remains available when sessionStorage is unavailable.
+        }
+        const response = await fetch(`/api/trpc/files.stageQuestionPdfUpload?fileName=${encodeURIComponent(file.name)}`, {
+          method: "POST",
+          body: form,
+          credentials: "include",
+          headers: authorization,
+        });
+        const raw = await response.text();
+        let payload: { fileName?: string; storageKey?: string; error?: string };
+        try {
+          payload = JSON.parse(raw) as typeof payload;
+        } catch {
+          throw new Error(`PDF staging sunucusu JSON yerine HTML döndürdü (HTTP ${response.status}).`);
+        }
+        if (!response.ok || !payload.storageKey || !payload.fileName) {
+          throw new Error(payload.error ?? `PDF staging başarısız (HTTP ${response.status}).`);
+        }
+        return payload as { fileName: string; storageKey: string };
+      };
+      const [question, answerKey] = await Promise.all([stageDirect(questionFile), stageDirect(answerFile)]);
+      parseStagedPair.mutate({ questionFileName: question.fileName, questionStorageKey: question.storageKey, answerKeyFileName: answerKey.fileName, answerKeyStorageKey: answerKey.storageKey, topicTag: topicTag.trim() || null, gradeLevel: gradeLevel || null, categoryId: categoryId ?? null });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "PDF’ler staging alanına yüklenemedi.");
+    }
   };
-  return <div className="mt-3 rounded-xl border border-[#dce8e2] bg-[#fbfefa] p-3" data-testid="external-question-pair-import">
+  return <div id="pilot-question-import" className="mt-3 rounded-xl border border-[#dce8e2] bg-[#fbfefa] p-3" data-testid="external-question-pair-import">
     <div className="flex items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#e5f3ed] text-[#286d60]"><FileKey2 size={17} /></span><div><p className="text-xs font-bold text-[#54766f]">Yayın + cevap anahtarı pilot aktarımı</p><p className="text-[11px] leading-5 text-[#71838b]">Yalnızca yetkili içerikleri seçin. Düşük güvenli satırları görsel üzerinden düzeltin; hiçbir soru otomatik yayınlanmaz.</p></div></div>
-    <div className="mt-3 grid gap-2 sm:grid-cols-2"><label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#cfe1d8] bg-white px-3 py-2 text-xs font-semibold text-[#456b62]"><FileText size={14} />{questionFile?.name ?? "Soru yayını PDF’i"}<input type="file" accept="application/pdf" className="hidden" onChange={event => setQuestionFile(event.target.files?.[0] ?? null)} /></label><label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#cfe1d8] bg-white px-3 py-2 text-xs font-semibold text-[#456b62]"><FileKey2 size={14} />{answerFile?.name ?? "Cevap anahtarı PDF’i"}<input type="file" accept="application/pdf" className="hidden" onChange={event => setAnswerFile(event.target.files?.[0] ?? null)} /></label></div>
-    <Button type="button" size="sm" disabled={!questionFile || !answerFile || parsePair.isPending} onClick={() => void run()} className="mt-3 rounded-lg bg-[#286d60]"><UploadCloud size={14} />{parsePair.isPending ? "OCR ve eşleştirme yapılıyor..." : "Pilot aktarımı başlat"}</Button>
+    <div className="mt-3 grid gap-2 sm:grid-cols-2"><label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#cfe1d8] bg-white px-3 py-2 text-xs font-semibold text-[#456b62]"><FileText size={14} />{questionFile?.name ?? "Soru yayını PDF’i"}<input id="pilot-question-pdf" type="file" accept="application/pdf" className="min-w-0 flex-1 text-[10px]" onChange={event => setQuestionFile(event.target.files?.[0] ?? null)} /></label><label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#cfe1d8] bg-white px-3 py-2 text-xs font-semibold text-[#456b62]"><FileKey2 size={14} />{answerFile?.name ?? "Cevap anahtarı PDF’i"}<input id="pilot-answer-pdf" type="file" accept="application/pdf" className="min-w-0 flex-1 text-[10px]" onChange={event => setAnswerFile(event.target.files?.[0] ?? null)} /></label></div>
+    <Button type="button" size="sm" disabled={!questionFile || !answerFile || parseStagedPair.isPending} onClick={() => void run()} className="mt-3 rounded-lg bg-[#286d60]"><UploadCloud size={14} />{parseStagedPair.isPending ? "PDF’ler yükleniyor ve OCR yapılıyor..." : "Pilot aktarımı başlat"}</Button>
     {items.length > 0 && <div className="mt-4 space-y-3">
       <div className="grid gap-2 rounded-lg border border-[#dbe9df] bg-white p-3 lg:grid-cols-[1fr_auto_auto_auto] lg:items-end"><label className="text-[11px] font-bold text-[#54766f]">Toplu kategori<select value={bulkCategoryId} onChange={event => setBulkCategoryId(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-[#e2ebe5] bg-white px-2 text-xs"><option value="">Kategori seçilmedi</option>{categoryOptions.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label><label className="text-[11px] font-bold text-[#54766f]">Zorluk<select value={bulkDifficulty} onChange={event => setBulkDifficulty(event.target.value as PdfReviewQuestion["difficulty"])} className="mt-1 h-9 rounded-lg border border-[#e2ebe5] bg-white px-2 text-xs"><option value="easy">Kolay</option><option value="medium">Orta</option><option value="hard">Zor</option></select></label><label className="text-[11px] font-bold text-[#54766f]">Kazanım<Input value={bulkOutcome} onChange={event => setBulkOutcome(event.target.value)} placeholder="Örn. Ritmik sayar" className="mt-1 h-9 text-xs" /></label><Button type="button" size="sm" onClick={applyBulkMetadata} className="bg-[#286d60]"><Save size={14} />Seçilenlere uygula</Button></div>
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[#eef7f1] px-3 py-2 text-xs text-[#54766f]"><span><strong>{selectedItems.length}/{items.length}</strong> soru seçili</span><span>Split-screen önizleme için listeden soru seçin.</span></div>
