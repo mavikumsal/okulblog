@@ -1700,3 +1700,16 @@
 - [x] Sitemap’in yayınlama, silme ve noIndex kurallarıyla otomatik güncellendiğini doğrula
 - [x] Ana sayfa, üye, moderatör ve admin panellerini 375px, tablet ve masaüstünde responsive denetle; screenshot capture bu turda başarısız olduğu için manuel browser kontrolü önerildi
 - [x] Kritik audit bulgularını düzelt, test/build/smoke sonuçlarını raporla ve yeni checkpoint oluştur
+
+## Yeni İstek: Canlı Öncesi Son Defans
+
+- [ ] Express, Recharts, Streamdown ve ilgili transitif dependency sürümlerini kontrollü biçimde yükselt
+- [ ] Dependency yükseltmelerinden sonra 3 high ve 16 moderate audit uyarılarını yeniden ölç
+- [ ] Ana sayfa, üye, moderatör ve admin panellerinde 375px horizontal overflow ve taşma denetimi yap
+- [ ] Entegrasyon ayarları için boş değer, URL, JWT ve provider formatlarını sıkı Zod şemalarıyla doğrula
+- [ ] Yanlış entegrasyon girdilerinin güvenli hata verdiğini Vitest/API testleriyle doğrula
+- [ ] Tam Vitest, TypeScript, production build ve responsive regression doğrulaması yap
+- [x] Entegrasyon ayarları için boş değer, URL, Google OAuth Client ID ve Analytics ölçüm ID doğrulamalarını sıkılaştır
+- [x] Sıkı entegrasyon doğrulamaları için Vitest regresyon testi ekle
+- [x] Production test, build ve API smoke kontrollerini yeniden çalıştır
+- [x] 375px responsive ve yatay taşma denetimini yeniden doğrula

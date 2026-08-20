@@ -179,6 +179,27 @@ async function analyzeDocumentWithOcr(input: { text: string; previewPages: Array
   return { extractedText, ocrStatus, ocrConfidence, title, summary, tags, aiStatus, aiModel, aiError, aiSuggestedTitle: aiStatus === "completed" ? title : null, aiSuggestedSummary: aiStatus === "completed" ? summary : null, aiSuggestedTags: aiStatus === "completed" ? tags : [] };
 }
 
+const optionalIntegrationText = (max: number) => z.preprocess(
+  value => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().max(max).optional(),
+).optional();
+const optionalIntegrationUrl = (max: number) => z.preprocess(
+  value => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().url("Geçerli bir URL girin.").max(max).optional(),
+).optional();
+const optionalIntegrationHostname = (max: number) => z.preprocess(
+  value => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().max(max).regex(/^(https?:\/\/)?[a-z0-9.-]+(?::\d{1,5})?(?:\/.*)?$/i, "Geçerli bir alan adı girin.").optional(),
+).optional();
+const optionalGoogleClientId = z.preprocess(
+  value => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().max(500).regex(/^[0-9]+-[a-z0-9_-]+\.apps\.googleusercontent\.com$/i, "Geçerli bir Google OAuth Client ID girin.").optional(),
+).optional();
+const optionalMeasurementId = z.preprocess(
+  value => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().max(255).regex(/^(G-[A-Z0-9]+|UA-\d+-\d+)$/i, "Geçerli bir Analytics ölçüm ID'si girin.").optional(),
+).optional();
+
 const categoryInput = z.object({
   name: z.string().trim().min(2).max(180),
   categoryType: z.enum(["education", "institution"]),
@@ -854,32 +875,32 @@ export const appRouter = router({
     testProviderConnection: adminProcedure.input(z.object({
       provider: z.enum(["s3", "google-drive-personal", "google-drive-workspace", "bunny-storage", "bunny-stream", "bunny-dns", "bunny-pull-zone", "adsense", "search-console", "google-analytics", "youtube", "video-source"]),
       config: z.object({
-        apiKey: z.string().trim().max(500).optional(),
-        apiSecret: z.string().trim().max(500).optional(),
-        accessKeyId: z.string().trim().max(500).optional(),
-        secretAccessKey: z.string().trim().max(500).optional(),
-        bucketName: z.string().trim().max(255).optional(),
-        storageZone: z.string().trim().max(255).optional(),
-        streamLibraryId: z.string().trim().max(255).optional(),
-        dnsZoneId: z.string().trim().max(255).optional(),
-        pullZoneId: z.string().trim().max(255).optional(),
-        cdnHostname: z.string().trim().max(500).optional(),
-        originUrl: z.string().trim().url().max(900).optional(),
-        zoneSecurityKey: z.string().trim().max(500).optional(),
-        customDomain: z.string().trim().max(255).optional(),
-        region: z.string().trim().max(120).optional(),
-        endpoint: z.string().trim().url().max(900).optional(),
-        clientId: z.string().trim().max(500).optional(),
-        clientSecret: z.string().trim().max(500).optional(),
-        sharedDriveId: z.string().trim().max(255).optional(),
-        propertyId: z.string().trim().max(255).optional(),
-        measurementId: z.string().trim().max(255).optional(),
-        channelId: z.string().trim().max(255).optional(),
-        channelUrl: z.string().trim().url().max(900).optional(),
-        videoUrl: z.string().trim().url().max(900).optional(),
-        embedUrl: z.string().trim().url().max(900).optional(),
-        redirectUri: z.string().trim().max(900).optional(),
-        siteUrl: z.string().trim().max(700).optional(),
+        apiKey: optionalIntegrationText(500),
+        apiSecret: optionalIntegrationText(500),
+        accessKeyId: optionalIntegrationText(500),
+        secretAccessKey: optionalIntegrationText(500),
+        bucketName: optionalIntegrationText(255),
+        storageZone: optionalIntegrationText(255),
+        streamLibraryId: optionalIntegrationText(255),
+        dnsZoneId: optionalIntegrationText(255),
+        pullZoneId: optionalIntegrationText(255),
+        cdnHostname: optionalIntegrationHostname(500),
+        originUrl: optionalIntegrationUrl(900),
+        zoneSecurityKey: optionalIntegrationText(500),
+        customDomain: optionalIntegrationHostname(255),
+        region: optionalIntegrationText(120),
+        endpoint: optionalIntegrationUrl(900),
+        clientId: optionalGoogleClientId,
+        clientSecret: optionalIntegrationText(500),
+        sharedDriveId: optionalIntegrationText(255),
+        propertyId: optionalIntegrationText(255),
+        measurementId: optionalMeasurementId,
+        channelId: optionalIntegrationText(255),
+        channelUrl: optionalIntegrationUrl(900),
+        videoUrl: optionalIntegrationUrl(900),
+        embedUrl: optionalIntegrationUrl(900),
+        redirectUri: optionalIntegrationUrl(900),
+        siteUrl: optionalIntegrationUrl(700),
       }).optional(),
     })).mutation(async ({ input }) => {
       const settings = await listSiteSettings();

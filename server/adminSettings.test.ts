@@ -106,6 +106,15 @@ describe("Admin ayar ve güvenlik yönetimi", () => {
     await expect(caller.admin.testProviderConnection({ provider: "bunny-storage", config: { apiKey: "bunny-secret" } })).resolves.toMatchObject({ configured: false, status: "not_configured", missingKeys: ["storageZone"] });
   });
 
+  it("boş entegrasyon değerlerini eksik kabul eder ve hatalı formatları reddeder", async () => {
+    const caller = appRouter.createCaller(context("admin"));
+
+    await expect(caller.admin.testProviderConnection({ provider: "bunny-pull-zone", config: { apiKey: "", pullZoneId: "123456", cdnHostname: "", originUrl: "" } })).resolves.toMatchObject({ configured: false, status: "not_configured", missingKeys: ["apiKey", "cdnHostname", "originUrl"] });
+    await expect(caller.admin.testProviderConnection({ provider: "video-source", config: { videoUrl: "not-a-url" } })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.admin.testProviderConnection({ provider: "google-drive-personal", config: { clientId: "invalid-client-id", clientSecret: "secret" } })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.admin.testProviderConnection({ provider: "google-analytics", config: { measurementId: "INVALID", propertyId: "123" } })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
   it("üye rolü Admin ayarlarını değiştiremez veya güvenlik olaylarını listeleyemez", async () => {
     const caller = appRouter.createCaller(context("member"));
 
