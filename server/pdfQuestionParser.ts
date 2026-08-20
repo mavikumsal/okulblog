@@ -426,3 +426,25 @@ export async function parseImageQuestionPair(
   const answerKeyQuality = calculateAnswerKeyQuality({ pagesAnalyzed: 1, detectedPairs: answerKey.size, hasTextLayer: false, averageContrast: contrast, minWidth: answerMeta.width ?? 0, minHeight: answerMeta.height ?? 0, sequenceGaps, invalidAnswerMarkers: 0 });
   return { fileName: questionFileName, pageCount: 1, questions: matchedQuestions, warnings: matchedQuestions.length ? ["Görsel OCR kullanıldı; düşük güvenli alanları manuel kontrol edin."] : ["Görselde soru bulunamadı."], answerKeyFileName, answerKeyQuality, answerKeyCount: answerKey.size, matchedCount: matchedQuestions.filter(question => question.answerMatched).length, unmatchedCount: matchedQuestions.filter(question => !question.answerMatched).length };
 }
+
+export async function extractAiSourceText(buffer: Buffer, fileName: string, mimeType: string): Promise<{ text: string; pageCount: number; warnings: string[] }> {
+  if (mimeType === "application/pdf") {
+    const parsed = await parsePdfQuestions(buffer, fileName);
+    const text = parsed.questions.map((question) => [question.sourceNumber, question.prompt, ...question.options].filter(Boolean).join(" ")).join("\n").trim();
+    return { text: text.slice(0, 12000), pageCount: parsed.pageCount, warnings: parsed.warnings };
+  }
+  const image = (await sharp(buffer).resize(1800, 2400, { fit: "inside", withoutEnlargement: true }).webp({ quality: 84 }).toBuffer()).toString("base64");
+  const response = await invokeLLM({
+    messages: [
+      { role: "system", content: "Bir eğitim kaynağından OCR metni çıkarıyorsun. Yalnızca görselde açıkça görülen Türkçe metni yaz; okunmayan yerleri tahmin etme." },
+      { role: "user", content: [{ type: "text", text: "Bu görseldeki eğitim metnini satır düzenini mümkün olduğunca koruyarak çıkar." }, { type: "image_url", image_url: { url: `data:image/webp;base64,${image}`, detail: "high" } }] },
+    ],
+  });
+  const content = response.choices[0]?.message.content;
+  const text = typeof content === "string" ? content : Array.isArray(content) ? content.map((part) => {
+    if (typeof part === "string") return part;
+    if (part && typeof part === "object" && "text" in part && typeof part.text === "string") return part.text;
+    return "";
+  }).join(" ") : "";
+  return { text: text.trim().slice(0, 12000), pageCount: 1, warnings: text.trim() ? ["Görsel OCR kullanıldı; okunabilirlik için önizleme önerilir."] : ["Görselden metin çıkarılamadı."] };
+}

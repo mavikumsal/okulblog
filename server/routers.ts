@@ -98,7 +98,7 @@ import { generateQuestionDraft } from "./aiQuestionGenerator";
 import { getAiProviderConfig, maskSecret } from "./aiProviderConfig";
 import { listProviderModels } from "./aiProviderCatalog";
 import { invokeLLM, listLLMModels } from "./_core/llm";
-import { parsePdfQuestions, parsePdfQuestionPair, parseImageQuestionPair } from "./pdfQuestionParser";
+import { extractAiSourceText, parsePdfQuestions, parsePdfQuestionPair, parseImageQuestionPair } from "./pdfQuestionParser";
 import { storageGetSignedUrl, storagePut, storagePutStable } from "./storage";
 import { describeCoverReplacement, getStableDocumentCoverKey } from "./documentCoverLifecycle";
 import { notifyOwner } from "./_core/notification";
@@ -453,6 +453,21 @@ export const appRouter = router({
     }),
   }),
   ai: router({
+    prepareSourceContext: protectedProcedure.input(z.object({
+      fileName: z.string().trim().min(1).max(255),
+      storageKey: z.string().trim().min(1).max(500),
+      mimeType: z.enum(["application/pdf", "image/jpeg", "image/png", "image/webp"]),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Soru Havuzu");
+      const prefix = `okulblog/${ctx.user.id}/question-import-staging/`;
+      if (!input.storageKey.startsWith(prefix)) throw new TRPCError({ code: "FORBIDDEN", message: "Bu AI kaynak staging kaydına erişilemiyor." });
+      const signedUrl = await storageGetSignedUrl(input.storageKey);
+      const response = await fetch(signedUrl);
+      if (!response.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "AI kaynak dosyası okunamadı." });
+      const buffer = Buffer.from(await response.arrayBuffer());
+      if (buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "AI kaynak dosyası en fazla 20 MB olabilir." });
+      return extractAiSourceText(buffer, input.fileName, input.mimeType);
+    }),
     generateQuestion: protectedProcedure.input(z.object({
       topic: z.string().trim().min(3).max(300),
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),
@@ -461,14 +476,18 @@ export const appRouter = router({
       categoryId: z.number().int().positive(),
       provider: z.enum(["openai", "gemini"]).default("openai"),
       model: z.string().trim().max(120).optional(),
+      promptTemplate: z.string().trim().max(5000).optional(),
+      sourceContext: z.string().trim().max(12000).optional(),
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Soru Havuzu");
       const { provider, model, ...legacyInput } = input;
       const draft = await generateQuestionDraft({
         ...legacyInput,
         ...(provider !== "openai" ? { provider } : {}),
-        ...(model ? { model } : {}),
-      });
+          ...(model ? { model } : {}),
+          ...(input.promptTemplate ? { promptTemplate: input.promptTemplate } : {}),
+          ...(input.sourceContext ? { sourceContext: input.sourceContext } : {}),
+        });
       return draft;
     }),
     generateTest: protectedProcedure.input(z.object({

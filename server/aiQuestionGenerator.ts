@@ -25,6 +25,8 @@ export async function generateQuestionDraft(input: {
   gradeLevel?: string;
   provider?: AiProvider;
   model?: string;
+  promptTemplate?: string;
+  sourceContext?: string;
 }) {
   const provider = input.provider ?? "openai";
   const defaults = providerDefaults[provider];
@@ -40,11 +42,11 @@ export async function generateQuestionDraft(input: {
     messages: [
       {
         role: "system",
-        content: "Sen Türkçe eğitim ölçme-değerlendirme uzmanısın. Yalnızca istenen JSON şemasına uyan, yaş düzeyine uygun, tek doğru cevabı olan ve telifli uzun metin içermeyen bir soru üret. Açık uçlu soru için seçenek dizisini boş bırak. Doğru-yanlış için seçenekler Tam doğru olarak ['Doğru','Yanlış'] olmalı.",
+        content: input.promptTemplate?.trim() || "Sen Türkçe eğitim ölçme-değerlendirme uzmanısın. Yalnızca istenen JSON şemasına uyan, yaş düzeyine uygun, tek doğru cevabı olan ve telifli uzun metin içermeyen bir soru üret. Açık uçlu soru için seçenek dizisini boş bırak. Doğru-yanlış için seçenekler Tam doğru olarak ['Doğru','Yanlış'] olmalı.",
       },
       {
         role: "user",
-        content: `Konu: ${input.topic}\nSınıf seviyesi: ${input.gradeLevel ?? "genel"}\nSoru türü: ${input.questionType}\nZorluk: ${input.difficulty}\nSoruyu Türkçe üret.`,
+        content: `Konu: ${input.topic}\nSınıf seviyesi: ${input.gradeLevel ?? "genel"}\nSoru türü: ${input.questionType}\nZorluk: ${input.difficulty}\n${input.sourceContext ? `Kaynak PDF/görsel OCR bağlamı:\n${input.sourceContext.slice(0, 12000)}\n` : ""}Soruyu Türkçe üret.`,
       },
     ],
     outputSchema: {

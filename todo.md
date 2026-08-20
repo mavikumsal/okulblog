@@ -1555,3 +1555,13 @@
 - [x] API anahtarı yokken fallback model kataloğu ve açıklayıcı “anahtar bekleniyor” durumu göster
 - [x] API anahtarı girildiğinde bağlantı testi ve sağlayıcıdan dinamik model yenileme akışını etkinleştir
 - [x] Seçilen sağlayıcı/model bilgisini soru ve test üretim akışına bağla; anahtarsız durumda kontrollü uyarı göster
+
+## AI Oluşturucu Prompt, Dosya Soru Üretimi ve Durum Bildirimleri
+- [x] Admin AI Oluşturucu ekranına varsayılan prompt şablonlarını düzenleme, kaydetme ve sıfırlama alanı ekle
+- [x] Prompt şablonlarında konu, sınıf, zorluk, soru tipi ve çıktı adedi değişkenlerini destekle
+- [x] Yüklenen PDF/görselleri seçilen AI modeline bağlayarak otomatik test sorusu üretim arayüzünü oluştur
+- [x] Dosya yükleme, OCR önizleme, üretim ilerlemesi ve soru bazlı düzenleme akışını tasarla
+- [x] API bağlantı durumunu anlık gösteren başarılı, bekliyor, başarısız ve anahtar bekleniyor bildirimlerini ekle
+- [x] Kota/aşım ve sağlayıcı hız sınırı hatalarını kullanıcı dostu açıklama, tekrar dene ve model değiştir seçenekleriyle göster
+- [x] Yeni akışlar için Vitest, TypeScript, production build ve Admin responsive görsel doğrulaması yap
+- [x] Geliştirmeyi geri alınabilir checkpoint olarak kaydet

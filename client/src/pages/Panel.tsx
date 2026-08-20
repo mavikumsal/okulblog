@@ -425,6 +425,10 @@ function PanelContent() {
     onError: (error: { message?: string }) => { setBulkAction(null); toast.error(error.message || "Toplu soru silinemedi."); },
   }) : { mutate: () => undefined, isPending: false };
   const [aiTopic, setAiTopic] = useState("");
+  const [aiPromptTemplate, setAiPromptTemplate] = useState("Sen Türkçe eğitim ölçme-değerlendirme uzmanısın. {sinif} düzeyinde, {konu} konusunda {zorluk} seviyesinde {soru_tipi} bir soru üret. Tek doğru cevaplı, yaşa uygun ve yalnızca JSON şemasına uygun yanıt ver.");
+  const [aiSourceFiles, setAiSourceFiles] = useState<File[]>([]);
+  const [aiSourceContext, setAiSourceContext] = useState("");
+  const [aiSourceStatus, setAiSourceStatus] = useState<"idle" | "processing" | "ready" | "error">("idle");
   const [aiProvider, setAiProvider] = useState<"openai" | "gemini">("openai");
   const [aiModel, setAiModel] = useState("gpt-5-mini");
   const dynamicAiModels = (trpc.admin as any).listAiProviderModels?.useQuery
@@ -437,15 +441,19 @@ function PanelContent() {
     answer: string;
     explanation: string;
   } | null>(null);
+  const prepareAiSource = (trpc.ai as any).prepareSourceContext?.useMutation
+    ? (trpc.ai as any).prepareSourceContext.useMutation()
+    : { mutateAsync: async () => ({ text: "", pageCount: 0, warnings: ["OCR hazırlama endpointi hazır değil."] }) };
   const aiQuestion = trpc.ai.generateQuestion.useMutation({
     onSuccess: draft => {
       setAiDraft(draft);
       toast.success("Yapay zekâ taslağı hazırlandı; kaydetmeden önce inceleyebilirsiniz.");
     },
-    onError: () =>
-      toast.error(
-        "Yapay zekâ ile soru üretilemedi. Lütfen daha sonra tekrar deneyin."
-      ),
+    onError: (error: { message?: string }) => {
+      const message = error.message ?? "Yapay zekâ ile soru üretilemedi.";
+      const quota = /quota|rate limit|limit|429|kota/i.test(message);
+      toast.error(quota ? "Model kotası veya hız sınırı aşıldı. Daha sonra tekrar deneyin ya da başka bir model seçin." : message);
+    },
   });
   const [contentTitle, setContentTitle] = useState("");
   const [contentSummary, setContentSummary] = useState("");
@@ -1206,6 +1214,34 @@ function PanelContent() {
       title: "Bu alan yapılandırılıyor.",
       text: "Rolünüze uygun modül ve izin ayarları burada görünür.",
     };
+
+  const handleAiGenerate = async () => {
+    if (aiTopic.trim().length < 3 || !questionCategoryId || aiQuestion.isPending) return;
+    try {
+      let sourceContext = aiSourceContext;
+      if (aiSourceFiles.length > 0 && !sourceContext) {
+        setAiSourceStatus("processing");
+        const prepared: string[] = [];
+        for (const file of aiSourceFiles) {
+          const formData = new FormData();
+          formData.append("file", file);
+          const response = await fetch(`/api/trpc/files.stageQuestionPdfUpload?fileName=${encodeURIComponent(file.name)}`, { method: "POST", body: formData, credentials: "include" });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || !payload.storageKey) throw new Error(payload.error || "Kaynak dosya yüklenemedi.");
+          const result = await prepareAiSource.mutateAsync({ fileName: file.name, storageKey: payload.storageKey, mimeType: file.type as "application/pdf" | "image/jpeg" | "image/png" | "image/webp" });
+          prepared.push(`### ${file.name}\n${result.text}`);
+          if (result.warnings?.length) prepared.push(`Uyarılar: ${result.warnings.join("; ")}`);
+        }
+        sourceContext = prepared.join("\n\n");
+        setAiSourceContext(sourceContext);
+        setAiSourceStatus("ready");
+      }
+      aiQuestion.mutate({ topic: aiTopic, questionType, difficulty: questionDifficulty, categoryId: Number(questionCategoryId), provider: aiProvider, model: aiModel, promptTemplate: aiPromptTemplate, sourceContext: sourceContext || undefined });
+    } catch (error) {
+      setAiSourceStatus("error");
+      toast.error(error instanceof Error ? error.message : "Kaynak OCR hazırlanamıyor.");
+    }
+  };
 
   const previewDraft = (documentDrafts.data ?? []).find((draft: { id: number }) => draft.id === previewDraftId) as ({ id: number; title: string; summary: string | null; tags: unknown; coverImageUrl?: string | null; aiStatus: string; aiModel?: string | null; aiError?: string | null; aiSuggestedTitle?: string | null; aiSuggestedSummary?: string | null; aiSuggestedTags?: unknown; ocrStatus?: string; ocrConfidence?: number | null; previewPages: unknown; extractedText?: string | null } | undefined);
 
@@ -2243,6 +2279,20 @@ function PanelContent() {
                     className="h-11 rounded-xl"
                   />
                 </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2"><Label htmlFor="aiPromptTemplate">Varsayılan prompt şablonu</Label><Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setAiPromptTemplate("Sen Türkçe eğitim ölçme-değerlendirme uzmanısın. {sinif} düzeyinde, {konu} konusunda {zorluk} seviyesinde {soru_tipi} bir soru üret. Tek doğru cevaplı, yaşa uygun ve yalnızca JSON şemasına uygun yanıt ver.")}>Sıfırla</Button></div>
+                  <Textarea id="aiPromptTemplate" value={aiPromptTemplate} onChange={event => setAiPromptTemplate(event.target.value)} className="min-h-[104px] rounded-xl text-xs leading-5" />
+                  <p className="text-[11px] text-muted-foreground">Değişkenler: <code>{"{sinif}"}</code>, <code>{"{konu}"}</code>, <code>{"{zorluk}"}</code>, <code>{"{soru_tipi}"}</code></p>
+                </div>
+                <div className="space-y-2 rounded-2xl border border-dashed border-[#cfc4e8] bg-[#fbfaff] p-4">
+                  <div className="flex items-center justify-between gap-2"><Label htmlFor="aiSourceFiles">PDF veya görselden soru üret</Label><span className="text-[11px] font-semibold text-[#68558e]">OCR hazır</span></div>
+                  <Input id="aiSourceFiles" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple onChange={event => setAiSourceFiles(Array.from(event.target.files ?? []).slice(0, 10))} className="rounded-xl bg-white text-xs" />
+                  <p className="text-[11px] leading-4 text-muted-foreground">Dosyalar seçilen model için OCR bağlamına hazırlanır. En fazla 10 PDF/görsel seçebilirsiniz.</p>
+                   {aiSourceFiles.length > 0 && <p className="text-xs font-medium text-[#477767]">{aiSourceFiles.length} dosya seçildi · üretim sırasında OCR önizlemesi oluşturulacak</p>}
+                   {aiSourceStatus === "processing" && <p className="mt-2 text-xs font-semibold text-[#68558e]">Dosyalar okunuyor ve OCR bağlamı hazırlanıyor…</p>}
+                   {aiSourceStatus === "ready" && <p className="mt-2 text-xs font-semibold text-[#477767]">OCR bağlamı hazır; seçilen model bu kaynak metni kullanacak.</p>}
+                   {aiSourceStatus === "error" && <p className="mt-2 text-xs font-semibold text-[#a04f42]">Kaynak OCR hazırlanamadı. Dosya türünü veya boyutunu kontrol edip tekrar deneyin.</p>}
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>AI sağlayıcısı</Label>
@@ -2298,16 +2348,7 @@ function PanelContent() {
                 </div>
                 <Button
                   disabled={aiTopic.trim().length < 3 || !questionCategoryId || aiQuestion.isPending}
-                  onClick={() =>
-                    aiQuestion.mutate({
-                      topic: aiTopic,
-                      questionType,
-                      difficulty: questionDifficulty,
-                      categoryId: Number(questionCategoryId),
-                      provider: aiProvider,
-                      model: aiModel,
-                    })
-                  }
+                  onClick={() => void handleAiGenerate()}
                   className="w-full rounded-xl bg-[#18344f]"
                 >
                   {aiQuestion.isPending
