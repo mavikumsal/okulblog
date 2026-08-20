@@ -98,7 +98,7 @@ import { generateQuestionDraft } from "./aiQuestionGenerator";
 import { getAiProviderConfig, maskSecret } from "./aiProviderConfig";
 import { listProviderModels } from "./aiProviderCatalog";
 import { invokeLLM, listLLMModels } from "./_core/llm";
-import { parsePdfQuestions } from "./pdfQuestionParser";
+import { parsePdfQuestions, parsePdfQuestionPair } from "./pdfQuestionParser";
 import { storagePut, storagePutStable } from "./storage";
 import { describeCoverReplacement, getStableDocumentCoverKey } from "./documentCoverLifecycle";
 import { notifyOwner } from "./_core/notification";
@@ -549,6 +549,24 @@ export const appRouter = router({
       const stored = await storagePut(`okulblog/${ctx.user.id}/question-imports/${safeName}`, buffer, "application/pdf");
       await createStoredFile({ fileName: input.fileName, storageKey: stored.key, publicUrl: stored.url, mimeType: "application/pdf", sizeBytes: buffer.byteLength, uploadedBy: ctx.user.id });
       return { ...parsed, questions, topicTag: input.topicTag ?? null, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null, originalFileUrl: stored.url };
+    }),
+    parseQuestionPdfPair: protectedProcedure.input(z.object({
+      questionFileName: z.string().trim().min(1).max(255),
+      questionDataBase64: z.string().min(1),
+      answerKeyFileName: z.string().trim().min(1).max(255),
+      answerKeyDataBase64: z.string().min(1),
+      topicTag: z.string().trim().max(180).nullable().optional(),
+      gradeLevel: z.string().trim().max(80).nullable().optional(),
+      categoryId: z.number().int().positive().nullable().optional(),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Soru Havuzu");
+      const questionBuffer = Buffer.from(input.questionDataBase64, "base64");
+      const answerKeyBuffer = Buffer.from(input.answerKeyDataBase64, "base64");
+      if (questionBuffer.byteLength > 20 * 1024 * 1024 || answerKeyBuffer.byteLength > 20 * 1024 * 1024) {
+        throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Her PDF dosyası en fazla 20 MB olabilir." });
+      }
+      const parsed = await parsePdfQuestionPair(questionBuffer, input.questionFileName, answerKeyBuffer, input.answerKeyFileName);
+      return { ...parsed, topicTag: input.topicTag ?? null, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null };
     }),
     upload: protectedProcedure.input(z.object({
       fileName: z.string().trim().min(1).max(255),

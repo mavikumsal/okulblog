@@ -1473,3 +1473,15 @@
 - [x] Eski kapaklar için arşivleme/silme politikasını ve medya referans güvenliğini uygula
 - [x] Orphan kapak temizliği için idempotent yeniden üretim yaşam döngüsü mekanizması ekle
 - [x] Eski kapak temizliği için test, audit kaydı ve Admin durum görünümü ekle
+
+- [x] artiegitimkutuphane.com soru/cevap içerik yapısını ve erişim koşullarını incele
+- [x] Soru ile cevap anahtarı eşleştirme yöntemini ve telif/izin gereksinimlerini değerlendir
+- [x] Soru havuzuna taslak aktarım, önizleme ve manuel onay akışını tasarla
+- [x] Aktarım seçeneklerini ve uygulanabilir sonraki adımları raporla
+
+- [x] Yetkili örnek yayın ve cevap anahtarı için pilot aktarım veri modelini tasarla
+- [x] OCR metin/sayfa çıktısını soru, seçenek ve soru numarasına dönüştüren ayrıştırıcıyı ekle
+- [x] Cevap anahtarı harflerini soru numaralarıyla eşleştiren güven skorlu algoritmayı ekle
+- [x] Admin’de soru bazlı önizleme, düzenleme, seçme ve taslak kaydetme arayüzünü ekle
+- [x] Pilot aktarım için hata, düşük güven ve telif/izin uyarılarını görünür kıl
+- [x] OCR/eşleştirme ve Admin akışı için Vitest, TypeScript, build ve görsel doğrulama yap

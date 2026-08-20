@@ -149,3 +149,65 @@ export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promi
     warnings: questions.length === 0 ? ["PDF metin katmanı bulunamadı veya soru numarası deseni eşleşmedi. Taranmış PDF için OCR gerekir."] : answerKey.size === 0 ? ["Cevap anahtarı bulunamadı; tüm doğru cevaplar ön izleme ekranında manuel seçilmelidir."] : [],
   };
 }
+
+export type PdfQuestionPairParseResult = PdfQuestionParseResult & {
+  answerKeyFileName: string;
+  answerKeyCount: number;
+  matchedCount: number;
+  unmatchedCount: number;
+};
+
+async function extractPdfTextLines(buffer: Buffer): Promise<string[]> {
+  const document = await getDocument({ data: new Uint8Array(buffer) }).promise;
+  const allLines: string[] = [];
+  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const content = await page.getTextContent();
+    const grouped = new Map<number, Array<{ x: number; text: string }>>();
+    for (const item of content.items) {
+      if (!("str" in item) || !item.str.trim()) continue;
+      const x = Number(item.transform?.[4] ?? 0);
+      const y = Math.round(Number(item.transform?.[5] ?? 0) / 2) * 2;
+      const row = grouped.get(y) ?? [];
+      row.push({ x, text: item.str });
+      grouped.set(y, row);
+    }
+    allLines.push(...Array.from(grouped.entries()).sort((a, b) => b[0] - a[0]).map(([, row]) => row.sort((a, b) => a.x - b.x).map(item => item.text).join(" ")));
+  }
+  return allLines.map(cleanLine).filter(Boolean);
+}
+
+export function applyAnswerKeyToQuestions(questions: ParsedPdfQuestion[], answerKey: Map<string, string>): ParsedPdfQuestion[] {
+  return questions.map(question => {
+    const key = answerKey.get(question.sourceNumber) ?? null;
+    const optionIndex = key ? "ABCD".indexOf(key) : -1;
+    const answer = key && optionIndex >= 0 ? question.options[optionIndex] ?? key : question.answer;
+    const answerMatched = Boolean(key && optionIndex >= 0 && question.options[optionIndex]);
+    const confidenceScore = answerMatched ? Math.min(0.99, question.confidenceScore + 0.08) : key ? Math.min(question.confidenceScore, 0.58) : question.confidenceScore;
+    const confidence: ParsedPdfQuestion["confidence"] = confidenceScore >= 0.8 ? "high" : confidenceScore >= 0.55 ? "medium" : "low";
+    return { ...question, answer, answerMatched, confidenceScore, confidence, warning: answerMatched ? null : key ? "Cevap anahtarı bulundu ancak seçeneklerle eşleşmedi; manuel kontrol gerekli." : "Bu soru için cevap anahtarı bulunamadı; manuel cevap seçin." };
+  });
+}
+
+export async function parsePdfQuestionPair(
+  questionBuffer: Buffer,
+  questionFileName: string,
+  answerKeyBuffer: Buffer,
+  answerKeyFileName: string,
+): Promise<PdfQuestionPairParseResult> {
+  const [questionResult, answerLines] = await Promise.all([
+    parsePdfQuestions(questionBuffer, questionFileName),
+    extractPdfTextLines(answerKeyBuffer),
+  ]);
+  const answerKey = parseAnswerKey(answerLines);
+  const questions = applyAnswerKeyToQuestions(questionResult.questions, answerKey);
+  return {
+    ...questionResult,
+    questions,
+    answerKeyFileName,
+    answerKeyCount: answerKey.size,
+    matchedCount: questions.filter(question => question.answerMatched).length,
+    unmatchedCount: questions.filter(question => !question.answerMatched).length,
+    warnings: answerKey.size === 0 ? [...questionResult.warnings, "Ayrı cevap anahtarında numara-harf eşleşmesi bulunamadı."] : questionResult.warnings,
+  };
+}
