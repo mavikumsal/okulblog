@@ -4,9 +4,11 @@ services:
     runtime: node
     plan: starter
     rootDir: .
-    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm run build:backend
-    startCommand: NODE_ENV=production node dist/backend/index.js
-    healthCheckPath: /api/trpc/auth.me
+    # This service serves both the React frontend and the Express/tRPC API.
+    # build:backend alone omits the frontend and causes ENOENT for index.html.
+    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm run build
+    startCommand: NODE_ENV=production node dist/index.js
+    healthCheckPath: /robots.txt
     envVars:
       - key: NODE_ENV
         value: production

@@ -1721,3 +1721,9 @@
 - [x] Senaryo B için Ubuntu VPS Dockerfile ve docker-compose.yml oluştur
 - [x] Tüm canlı ortam değişkenlerini ve kurulum adımlarını Türkçe kılavuzda belgele
 - [x] Dağıtım paketini test/build ile doğrula ve checkpoint oluştur
+
+## Render Frontend Dağıtım Hatası
+
+- [x] Render’da `dist/backend/public/index.html` ENOENT kök nedenini düzelt
+- [x] Frontend’in aynı Render servisine veya ayrı Vercel/PHP dağıtımına göre API URL akışını doğrula
+- [x] Render/Vercel tarayıcı kurulum ve smoke test adımlarını belgele
