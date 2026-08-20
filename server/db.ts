@@ -820,7 +820,7 @@ export async function createDocumentImportHistory(input: { sourceUrl: string; fi
   return result[0]?.id ?? null;
 }
 
-export async function updateDocumentImportHistory(id: number, input: { status?: "queued" | "downloading" | "completed" | "failed" | "retried"; errorMessage?: string | null; fileName?: string | null; provider?: string | null; draftId?: number | null; mediaAssetId?: number | null; attempts?: number }) {
+export async function updateDocumentImportHistory(id: number, input: { status?: "queued" | "downloading" | "completed" | "failed" | "retried" | "cancelled"; errorMessage?: string | null; fileName?: string | null; provider?: string | null; draftId?: number | null; mediaAssetId?: number | null; attempts?: number }) {
   const db = await getDb();
   if (!db) return;
   await db.update(documentImportHistory).set(input).where(eq(documentImportHistory.id, id));
@@ -838,6 +838,13 @@ export async function getDocumentImportHistory(id: number) {
   const [row] = await db.select().from(documentImportHistory).where(eq(documentImportHistory.id, id)).limit(1);
   return row ?? null;
 }
+export async function updateDocumentImportHistoryMany(ids: number[], input: { status?: "queued" | "downloading" | "completed" | "failed" | "retried" | "cancelled"; errorMessage?: string | null; attempts?: number }) {
+  const db = await getDb();
+  if (!db || ids.length === 0) return 0;
+  const result = await db.update(documentImportHistory).set(input).where(inArray(documentImportHistory.id, ids));
+  return result[0]?.affectedRows ?? 0;
+}
+
 export async function listRetryableDocumentImportHistory(limit = 20, maxAttempts = 4, olderThan = new Date(Date.now() - 15 * 60 * 1000)) {
   const db = await getDb();
   if (!db) return [];

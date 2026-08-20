@@ -1427,4 +1427,14 @@
 - [x] Uzun süre “İşleniyor” kalan PDF kaydının gerçek aşamasını loglardan tespit etmek
 - [x] Takılan aktarım için timeout ve anlaşılır hata durumunu güvenceye almak
 - [x] Başarı bildirimi ve işlem durumu için test/görsel kontrol yapmak
-- [ ] Checkpoint oluşturmak
+- [x] Checkpoint oluşturmak
+
+## PDF İşlem Kurtarma ve Ayrıntılı Hata Akışı — 2026-08-20
+
+- [x] Takılı kalan PDF kayıtlarını seçebilmek için seçim durumu eklemek
+- [x] Seçilen takılı kayıtları topluca iptal etmek
+- [x] Seçilen takılı kayıtları topluca yeniden başlatmak
+- [x] Başarı bildirimine taslağı doğrudan düzenleme kısayolu eklemek
+- [x] Timeout, indirme, analiz ve depolama hataları için ayrıntılı açıklama göstermek
+- [x] Hata bildiriminde uygulanabilir sonraki adımı belirtmek
+- [x] Test, responsive kontrol ve checkpoint oluşturmak

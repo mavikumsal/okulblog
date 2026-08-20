@@ -51,6 +51,7 @@ import {
   Users,
   History,
   RotateCcw,
+  XCircle,
 } from "lucide-react";
 
 const roleName: Record<string, string> = {
@@ -477,7 +478,9 @@ function PanelContent() {
   const [historyStatusFilter, setHistoryStatusFilter] = useState<"all" | "completed" | "failed" | "retried" | "processing">("all");
   const [historyProviderFilter, setHistoryProviderFilter] = useState<"all" | "s3" | "bunny-storage">("all");
   const [historyDateFilter, setHistoryDateFilter] = useState<"all" | "today" | "week" | "month">("all");
+  const [selectedHistoryIds, setSelectedHistoryIds] = useState<number[]>([]);
   const filteredDocumentImportHistory = useMemo(() => filterDocumentImportHistory((documentImportHistory.data ?? []) as Array<{ id: number; sourceUrl: string; fileName?: string | null; provider?: string | null; status: string; errorMessage?: string | null; attempts?: number; createdAt?: string | Date }>, { status: historyStatusFilter, provider: historyProviderFilter, dateRange: historyDateFilter }), [documentImportHistory.data, historyDateFilter, historyProviderFilter, historyStatusFilter]);
+  const recoverableHistoryIds = useMemo(() => filteredDocumentImportHistory.filter((entry: { id: number; status: string }) => ["processing", "queued", "downloading", "failed"].includes(entry.status)).map((entry: { id: number }) => entry.id), [filteredDocumentImportHistory]);
   const draftFilterInput = useMemo(() => ({ status: draftStatusFilter || undefined, aiStatus: draftAiFilter || undefined, from: draftFromFilter ? new Date(`${draftFromFilter}T00:00:00`) : undefined, to: draftToFilter ? new Date(`${draftToFilter}T23:59:59.999`) : undefined }), [draftStatusFilter, draftAiFilter, draftFromFilter, draftToFilter]);
   const documentDrafts = documentDraftQuery?.useQuery
     ? documentDraftQuery.useQuery(draftFilterInput, { enabled: isAdmin && (section === "genel" || panelContentTypeByRoute[requestedSection] === "document" || section === "icerikler"), staleTime: 10_000 })
@@ -512,6 +515,27 @@ function PanelContent() {
     onSuccess: () => { documentDrafts.refetch(); toast.success("AI önerileri geri alındı."); },
     onError: (error: { message?: string }) => toast.error(error.message || "AI önerileri geri alınamadı."),
   }) : { mutate: (_input: unknown) => undefined, isPending: false };
+  const cancelStuckDocumentImportsApi = (trpc.admin as any).cancelStuckDocumentImports;
+  const cancelStuckDocumentImports = cancelStuckDocumentImportsApi?.useMutation ? cancelStuckDocumentImportsApi.useMutation({
+    onSuccess: (result: { success?: boolean; results?: Array<{ success: boolean; error?: string }> }) => {
+      documentImportHistory.refetch();
+      setSelectedHistoryIds([]);
+      const failed = result.results?.filter(item => !item.success).length ?? 0;
+      toast.success(result.success ? `Takılı PDF kayıtları iptal edildi${failed ? `; ${failed} kayıt atlandı.` : "."}` : "Seçili kayıtlar iptal edilemedi.");
+    },
+    onError: (error: { message?: string }) => toast.error(error.message || "Takılı PDF kayıtları iptal edilemedi."),
+  }) : { mutate: (_input: { ids: number[] }) => undefined, isPending: false };
+  const retryDocumentImportsApi = (trpc.admin as any).retryDocumentImports;
+  const retryDocumentImports = retryDocumentImportsApi?.useMutation ? retryDocumentImportsApi.useMutation({
+    onSuccess: (result: { success?: boolean; results?: Array<{ success: boolean; sourceUrl?: string; fileName?: string | null; error?: string }> }) => {
+      documentImportHistory.refetch();
+      setSelectedHistoryIds([]);
+      result.results?.filter(item => item.success && item.sourceUrl).forEach(item => importDocumentFromUrl.mutate({ sourceUrl: item.sourceUrl!, fileName: item.fileName ?? undefined, analyzeWithAi: analyzeImportedDocumentWithAi }));
+      const failed = result.results?.filter(item => !item.success).length ?? 0;
+      toast.info(result.success ? `Seçili PDF kayıtları yeniden başlatıldı${failed ? `; ${failed} kayıt atlandı.` : "."}` : "Seçili PDF kayıtları yeniden başlatılamadı.");
+    },
+    onError: (error: { message?: string }) => toast.error(error.message || "PDF kayıtları yeniden başlatılamadı."),
+  }) : { mutate: (_input: { ids: number[] }) => undefined, isPending: false };
   const retryDocumentImportApi = (trpc.admin as any).retryDocumentImport;
   const retryDocumentImport = retryDocumentImportApi?.useMutation ? retryDocumentImportApi.useMutation({
     onSuccess: (result: { sourceUrl: string; fileName?: string | null }) => {
@@ -531,11 +555,21 @@ function PanelContent() {
       if (result.summary && !contentSummary.trim()) setContentSummary(result.summary);
       if (result.coverImageUrl) setContentCoverUrl(result.coverImageUrl);
       toast.success("PDF indirildi ve taslak oluşturuldu", {
-        description: `${result.fileName} aktif ${result.provider === "bunny-storage" ? "Bunny" : "S3"} depolamaya aktarıldı. Kategori ve kapak kontrolünden sonra yayınlayabilirsiniz.`,
-        duration: 7000,
+        description: `${result.fileName} aktif ${result.provider === "bunny-storage" ? "Bunny" : "S3"} depolamaya aktarıldı. Taslak #${result.draftId} kategori ve kapak kontrolü bekliyor.`,
+        duration: 9000,
+        action: {
+          label: "Taslağı düzenle",
+          onClick: () => document.getElementById("document-draft-queue")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        },
       });
     },
-    onError: (error: { message?: string }) => { documentImportHistory.refetch(); toast.error(error.message || "URL’den doküman aktarılamadı."); },
+    onError: (error: { message?: string }) => {
+      documentImportHistory.refetch();
+      toast.error("PDF aktarımı tamamlanamadı", {
+        description: error.message || "Kaynak dosya indirilemedi. URL, dosya türü, boyut ve aktif depolama bağlantısını kontrol edip yeniden deneyin.",
+        duration: 12000,
+      });
+    },
   }) : { mutate: () => undefined, isPending: false };
   const documentUpload = trpc.admin.uploadMediaAsset.useMutation({
     onSuccess: result => {
@@ -2428,9 +2462,9 @@ function PanelContent() {
             <div className="mb-5 rounded-2xl border border-[#e5e9f5] bg-[#f8f9ff] p-4">
               <div className="flex items-start justify-between gap-3"><div><p className="flex items-center gap-2 text-sm font-bold text-[#29465a]"><History size={16} className="text-[#5540e8]" /> PDF işlem geçmişi</p><p className="mt-1 text-xs leading-5 text-[#71838b]">İndirme, aktif depolamaya aktarım ve başarısız denemeler burada kalıcı olarak izlenir.</p></div><Badge variant="outline" className="shrink-0">{filteredDocumentImportHistory.length} / {documentImportHistory.data?.length ?? 0} işlem</Badge></div>
               <div className="mt-3 grid gap-2 rounded-xl border border-[#e2e6f1] bg-white p-3 sm:grid-cols-3"><label className="space-y-1 text-[11px] font-semibold text-[#496374]"><span>Durum</span><select value={historyStatusFilter} onChange={event => setHistoryStatusFilter(event.target.value as typeof historyStatusFilter)} className="h-9 w-full rounded-lg border border-[#dfe6ee] bg-white px-2 text-xs"><option value="all">Tüm durumlar</option><option value="completed">Tamamlandı</option><option value="failed">Başarısız</option><option value="retried">Yeniden denendi</option><option value="processing">İşleniyor</option></select></label><label className="space-y-1 text-[11px] font-semibold text-[#496374]"><span>Tarih</span><select value={historyDateFilter} onChange={event => setHistoryDateFilter(event.target.value as typeof historyDateFilter)} className="h-9 w-full rounded-lg border border-[#dfe6ee] bg-white px-2 text-xs"><option value="all">Tüm tarihler</option><option value="today">Son 24 saat</option><option value="week">Son 7 gün</option><option value="month">Son 30 gün</option></select></label><label className="space-y-1 text-[11px] font-semibold text-[#496374]"><span>Depolama</span><select value={historyProviderFilter} onChange={event => setHistoryProviderFilter(event.target.value as typeof historyProviderFilter)} className="h-9 w-full rounded-lg border border-[#dfe6ee] bg-white px-2 text-xs"><option value="all">Tüm sağlayıcılar</option><option value="s3">S3</option><option value="bunny-storage">Bunny Storage</option></select></label></div>
-              <div className="mt-3 space-y-2">{filteredDocumentImportHistory.slice(0, 8).map((entry: { id: number; sourceUrl: string; fileName?: string | null; provider?: string | null; status: string; errorMessage?: string | null; attempts?: number; createdAt?: string | Date }) => <div key={entry.id} className="flex flex-col gap-2 rounded-xl border border-[#e2e6f1] bg-white p-3 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="truncate text-xs font-semibold text-[#29465a]">{entry.fileName || entry.sourceUrl}</span><Badge variant="outline" className={entry.status === "failed" ? "border-[#e7b5ae] text-[#9b4b42]" : entry.status === "completed" ? "border-[#afd8c8] text-[#34735c]" : "text-[#71838b]"}>{entry.status === "failed" ? "Başarısız" : entry.status === "completed" ? "Tamamlandı" : entry.status === "retried" ? "Yeniden denendi" : "İşleniyor"}</Badge></div><p className="mt-1 truncate text-[11px] text-[#71838b]">{entry.provider ? `${entry.provider === "bunny-storage" ? "Bunny" : "S3"} · ` : ""}{entry.attempts ?? 1}. deneme · {entry.createdAt ? new Date(entry.createdAt).toLocaleString("tr-TR") : ""}</p>{entry.errorMessage && <p className="mt-1 text-[11px] text-[#9b4b42]">{entry.errorMessage}</p>}</div>{entry.status === "failed" && <Button type="button" size="sm" variant="outline" disabled={retryDocumentImport.isPending} onClick={() => retryDocumentImport.mutate({ id: entry.id })} className="shrink-0 rounded-lg border-[#d6c8f4] text-[#5540e8]"><RotateCcw size={14} /> Yeniden dene</Button>}</div>)}{filteredDocumentImportHistory.length === 0 && <p className="rounded-xl border border-dashed border-[#cfdacf] p-4 text-center text-xs text-[#71838b]">Seçilen filtrelerle eşleşen PDF işlem kaydı yok.</p>}</div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#e2e6f1] bg-[#fbfcff] p-2.5"><label className="flex items-center gap-2 text-xs font-semibold text-[#29465a]"><input type="checkbox" checked={recoverableHistoryIds.length > 0 && recoverableHistoryIds.every(id => selectedHistoryIds.includes(id))} onChange={event => setSelectedHistoryIds(event.target.checked ? recoverableHistoryIds : [])} /> Takılı/başarısız kayıtları seç</label><div className="flex flex-wrap gap-2"><Button type="button" size="sm" variant="outline" disabled={!selectedHistoryIds.length || cancelStuckDocumentImports.isPending} onClick={() => cancelStuckDocumentImports.mutate({ ids: selectedHistoryIds })} className="rounded-lg border-[#e7b5ae] text-[#9b4b42]"><XCircle size={14} /> Toplu iptal</Button><Button type="button" size="sm" disabled={!selectedHistoryIds.length || retryDocumentImports.isPending} onClick={() => retryDocumentImports.mutate({ ids: selectedHistoryIds })} className="rounded-lg bg-[#5540e8] text-white hover:bg-[#4634c5]"><RotateCcw size={14} /> Yeniden başlat</Button></div></div><div className="mt-3 space-y-2">{filteredDocumentImportHistory.slice(0, 8).map((entry: { id: number; sourceUrl: string; fileName?: string | null; provider?: string | null; status: string; errorMessage?: string | null; attempts?: number; createdAt?: string | Date }) => <div key={entry.id} className="flex flex-col gap-2 rounded-xl border border-[#e2e6f1] bg-white p-3 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-2"><input type="checkbox" aria-label={`${entry.fileName || entry.sourceUrl} seç`} checked={selectedHistoryIds.includes(entry.id)} onChange={event => setSelectedHistoryIds(current => event.target.checked ? Array.from(new Set([...current, entry.id])) : current.filter(id => id !== entry.id))} disabled={!["processing", "queued", "downloading", "failed"].includes(entry.status)} className="mt-1" /><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="truncate text-xs font-semibold text-[#29465a]">{entry.fileName || entry.sourceUrl}</span><Badge variant="outline" className={entry.status === "failed" ? "border-[#e7b5ae] text-[#9b4b42]" : entry.status === "completed" ? "border-[#afd8c8] text-[#34735c]" : "text-[#71838b]"}>{entry.status === "failed" ? "Başarısız" : entry.status === "completed" ? "Tamamlandı" : entry.status === "retried" ? "Yeniden denendi" : "İşleniyor"}</Badge></div><p className="mt-1 truncate text-[11px] text-[#71838b]">{entry.provider ? `${entry.provider === "bunny-storage" ? "Bunny" : "S3"} · ` : ""}{entry.attempts ?? 1}. deneme · {entry.createdAt ? new Date(entry.createdAt).toLocaleString("tr-TR") : ""}</p>{entry.errorMessage && <p className="mt-1 text-[11px] text-[#9b4b42]">{entry.errorMessage}</p>}</div></div>{entry.status === "failed" && <Button type="button" size="sm" variant="outline" disabled={retryDocumentImport.isPending} onClick={() => retryDocumentImport.mutate({ id: entry.id })} className="shrink-0 rounded-lg border-[#d6c8f4] text-[#5540e8]"><RotateCcw size={14} /> Yeniden dene</Button>}</div>)}{filteredDocumentImportHistory.length === 0 && <p className="rounded-xl border border-dashed border-[#cfdacf] p-4 text-center text-xs text-[#71838b]">Seçilen filtrelerle eşleşen PDF işlem kaydı yok.</p>}</div>
             </div>
-            <div className="flex items-start justify-between gap-3">
+            <div id="document-draft-queue" className="flex items-start justify-between gap-3">
               <div><p className="text-sm font-bold text-[#29465a]">Doküman taslak onay kuyruğu</p><p className="mt-1 text-xs leading-5 text-[#71838b]">İçe aktarılan belgeler yayınlanmadan önce başlık, özet, etiket ve tüm PDF sayfaları burada incelenir.</p></div>
               <Badge variant="outline" className="shrink-0">{documentDrafts.data?.length ?? 0} kayıt</Badge>
             </div>

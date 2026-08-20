@@ -275,7 +275,7 @@ export const documentImportHistory = mysqlTable("document_import_history", {
   sourceUrl: varchar("sourceUrl", { length: 1200 }).notNull(),
   fileName: varchar("fileName", { length: 255 }),
   provider: varchar("provider", { length: 80 }),
-  status: mysqlEnum("status", ["queued", "downloading", "completed", "failed", "retried"]).default("queued").notNull(),
+  status: mysqlEnum("status", ["queued", "downloading", "completed", "failed", "retried", "cancelled"]).default("queued").notNull(),
   errorMessage: text("errorMessage"),
   draftId: int("draftId"),
   mediaAssetId: int("mediaAssetId"),

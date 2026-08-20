@@ -54,6 +54,7 @@ import {
   createDocumentImportDraft,
   createDocumentImportHistory,
   updateDocumentImportHistory,
+  updateDocumentImportHistoryMany,
   listDocumentImportHistory,
   getDocumentImportHistory,
   listDocumentImportDrafts,
@@ -894,10 +895,45 @@ export const appRouter = router({
     retryDocumentImport: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
       const history = await getDocumentImportHistory(input.id);
       if (!history) throw new TRPCError({ code: "NOT_FOUND", message: "İşlem kaydı bulunamadı." });
-      if (history.status !== "failed") throw new TRPCError({ code: "BAD_REQUEST", message: "Yalnızca başarısız PDF işlemleri yeniden denenebilir." });
+      if (history.status !== "failed" && history.status !== "cancelled") throw new TRPCError({ code: "BAD_REQUEST", message: "Yalnızca başarısız veya iptal edilmiş PDF işlemleri yeniden denenebilir." });
       await updateDocumentImportHistory(input.id, { status: "retried", attempts: (history.attempts ?? 1) + 1, errorMessage: null });
       await recordSecurityEvent({ eventType: "document_import_retried", severity: "low", description: "Başarısız PDF aktarımı yeniden denendi.", metadata: { historyId: input.id, actorId: ctx.user.id } });
       return { success: true, sourceUrl: history.sourceUrl, fileName: history.fileName };
+    }),
+    cancelStuckDocumentImports: adminProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(100) })).mutation(async ({ ctx, input }) => {
+      const cutoff = Date.now() - 10 * 60 * 1000;
+      const results: Array<{ id: number; success: boolean; error?: string }> = [];
+      for (const id of input.ids) {
+        try {
+          const history = await getDocumentImportHistory(id);
+          if (!history) throw new Error("İşlem kaydı bulunamadı.");
+          if (history.status !== "queued" && history.status !== "downloading") throw new Error("Yalnızca kuyrukta veya işleniyor durumundaki kayıtlar iptal edilebilir.");
+          if (history.updatedAt.getTime() > cutoff) throw new Error("Kayıt henüz 10 dakikalık takılma eşiğini aşmadı.");
+          await updateDocumentImportHistory(id, { status: "cancelled", errorMessage: "Admin tarafından toplu olarak iptal edildi." });
+          results.push({ id, success: true });
+        } catch (error) {
+          results.push({ id, success: false, error: error instanceof Error ? error.message : "İptal başarısız." });
+        }
+      }
+      await recordSecurityEvent({ eventType: "document_import_cancelled", severity: "medium", description: "Admin takılı PDF aktarım kayıtlarını topluca iptal etti.", metadata: { ids: input.ids, results, actorId: ctx.user.id } });
+      return { success: results.some(item => item.success), results };
+    }),
+    retryDocumentImports: adminProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(100) })).mutation(async ({ ctx, input }) => {
+      const results: Array<{ id: number; success: boolean; error?: string; sourceUrl?: string; fileName?: string | null }> = [];
+      for (const id of input.ids) {
+        try {
+          const history = await getDocumentImportHistory(id);
+          if (!history) throw new Error("İşlem kaydı bulunamadı.");
+          if (history.status !== "failed" && history.status !== "cancelled") throw new Error("Yalnızca başarısız veya iptal edilmiş kayıtlar yeniden başlatılabilir.");
+          if ((history.attempts ?? 1) >= 4) throw new Error("Maksimum 4 denemeye ulaşıldı.");
+          await updateDocumentImportHistory(id, { status: "retried", attempts: (history.attempts ?? 1) + 1, errorMessage: null });
+          results.push({ id, success: true, sourceUrl: history.sourceUrl, fileName: history.fileName });
+        } catch (error) {
+          results.push({ id, success: false, error: error instanceof Error ? error.message : "Yeniden başlatma başarısız." });
+        }
+      }
+      await recordSecurityEvent({ eventType: "document_import_retried", severity: "low", description: "Admin PDF aktarım kayıtlarını topluca yeniden başlattı.", metadata: { ids: input.ids, results, actorId: ctx.user.id } });
+      return { success: results.some(item => item.success), results };
     }),
     documentImportDrafts: adminProcedure.input(z.object({ status: z.enum(["draft", "pending", "approved", "rejected"]).optional(), aiStatus: z.enum(["not_started", "processing", "completed", "failed"]).optional(), from: z.coerce.date().optional(), to: z.coerce.date().optional() }).optional()).query(({ input }) => listDocumentImportDrafts(input)),
     updateDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(3).max(220), summary: z.string().trim().max(3000).optional().nullable(), tags: z.array(z.string().trim().min(1).max(50)).max(12).default([]), categoryId: z.number().int().positive().optional().nullable(), institutionCategoryId: z.number().int().positive().optional().nullable(), extractedText: z.string().max(14000).optional().nullable(), status: z.enum(["draft", "pending", "rejected"]).optional() })).mutation(async ({ input }) => { const { id, ...data } = input; await updateDocumentImportDraft(id, data); return { success: true }; }),

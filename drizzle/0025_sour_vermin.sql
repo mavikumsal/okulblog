@@ -1,0 +1,1 @@
+ALTER TABLE `document_import_history` MODIFY COLUMN `status` enum('queued','downloading','completed','failed','retried','cancelled') NOT NULL DEFAULT 'queued';

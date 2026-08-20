@@ -176,6 +176,13 @@
       "when": 1787174940338,
       "tag": "0024_sweet_the_professor",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1787214710463,
+      "tag": "0025_sour_vermin",
+      "breakpoints": true
     }
   ]
 }
