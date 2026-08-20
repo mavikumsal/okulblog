@@ -1502,8 +1502,8 @@
 - [ ] Siteden hazırlanan gerçek PDF’lerle OCR ve cevap anahtarı eşleştirme pilotunu çalıştır
 - [ ] Gerçek pilot sorusunda kırpma ve manuel OCR düzeltmesini doğrula
 
-- [ ] Pilot çift PDF aktarımındaki Azure 403 HTML yanıtını düzelt
-- [ ] Büyük Base64 PDF gövdesi yerine S3’e önce yükleme veya uygun upload akışını uygula
+- [x] Pilot çift PDF aktarımındaki Azure 403 HTML yanıtını düzelt
+- [x] Büyük Base64 PDF gövdesi yerine S3’e önce yükleme veya uygun upload akışını uygula
 - [ ] Gerçek pilot OCR/eşleştirme isteğini Admin’de yeniden çalıştır ve sonucu doğrula
-- [ ] Pilot PDF inputlarını tarayıcı testinde doğrudan seçilebilir hale getir ve staging OCR akışını gerçek dosyalarla doğrula
-- [ ] Azure gateway PUT /api/question-import/stage isteğini 403 ile engellediği için POST staging fallback ekle ve pilot akışını yeniden doğrula
+- [x] Pilot PDF inputlarını tarayıcı testinde doğrudan seçilebilir hale getir ve staging OCR akışını gerçek dosyalarla doğrula
+- [x] Azure gateway PUT /api/question-import/stage isteğini 403 ile engellediği için POST staging fallback ekle ve pilot akışını yeniden doğrula

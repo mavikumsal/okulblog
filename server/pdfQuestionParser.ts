@@ -1,6 +1,7 @@
 import { createCanvas } from "@napi-rs/canvas";
 import sharp from "sharp";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { invokeLLM } from "./_core/llm";
 
 export type ParsedPdfQuestion = {
   sourceNumber: string;
@@ -185,6 +186,62 @@ async function extractPdfTextLines(buffer: Buffer): Promise<string[]> {
   return allLines.map(cleanLine).filter(Boolean);
 }
 
+async function extractAnswerKeyWithVision(buffer: Buffer): Promise<Map<string, string>> {
+  try {
+    const document = await getDocument({ data: new Uint8Array(buffer) }).promise;
+    const answers = new Map<string, string>();
+    for (let pageNumber = 1; pageNumber <= Math.min(document.numPages, 4); pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      const viewport = page.getViewport({ scale: 1.4 });
+      const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+      await page.render({ canvas: canvas as never, canvasContext: canvas.getContext("2d") as never, viewport }).promise;
+      const image = (await sharp(canvas.toBuffer("image/png")).jpeg({ quality: 82 }).toBuffer()).toString("base64");
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "Bir eğitim dokümanındaki cevap anahtarını okuyorsun. Yalnızca görselde açıkça görülen soru numarası ve A-D harflerini JSON olarak döndür; tahmin yapma." },
+          { role: "user", content: [
+            { type: "text", text: "Bu sayfadaki cevap anahtarını çıkar. Görülen her madde için numara ve doğru harfi yaz." },
+            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${image}`, detail: "high" } },
+          ] },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "answer_key",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: { answers: { type: "array", items: { type: "object", properties: { number: { type: "string" }, answer: { type: "string", enum: ["A", "B", "C", "D"] } }, required: ["number", "answer"], additionalProperties: false } } },
+              required: ["answers"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const content = response.choices?.[0]?.message?.content;
+      const normalizedContent = typeof content === "string" ? content : Array.isArray(content) ? content.map((item: any) => typeof item === "string" ? item : item?.text ?? "").join(" ") : "";
+      let parsed: { answers?: Array<{ number: string; answer: string }> } | null = null;
+      try {
+        parsed = normalizedContent ? JSON.parse(normalizedContent) as { answers?: Array<{ number: string; answer: string }> } : null;
+      } catch {
+        for (const match of Array.from(normalizedContent.matchAll(/"number"\s*:\s*"(\d{1,3})"\s*,\s*"answer"\s*:\s*"([A-D])"/g))) {
+          answers.set(match[1], match[2]);
+        }
+      }
+      for (const item of parsed?.answers ?? []) {
+        if (/^\d{1,3}$/.test(item.number) && /^[A-D]$/.test(item.answer)) answers.set(item.number, item.answer);
+      }
+    }
+    // A non-answer-key worksheet can make a vision model emit one coincidental mapping.
+    // Require several consistent number-letter pairs before accepting visual OCR output.
+    if (answers.size < 3) answers.clear();
+    return answers;
+  } catch (error) {
+    console.warn("[PilotOCR] Görsel cevap anahtarı OCR başarısız:", error instanceof Error ? error.message : error);
+    return new Map<string, string>();
+  }
+}
+
 export function applyAnswerKeyToQuestions(questions: ParsedPdfQuestion[], answerKey: Map<string, string>): ParsedPdfQuestion[] {
   return questions.map(question => {
     const key = answerKey.get(question.sourceNumber) ?? null;
@@ -207,7 +264,8 @@ export async function parsePdfQuestionPair(
     parsePdfQuestions(questionBuffer, questionFileName),
     extractPdfTextLines(answerKeyBuffer),
   ]);
-  const answerKey = parseAnswerKey(answerLines);
+  let answerKey = parseAnswerKey(answerLines);
+  if (answerKey.size === 0) answerKey = await extractAnswerKeyWithVision(answerKeyBuffer);
   const questions = applyAnswerKeyToQuestions(questionResult.questions, answerKey);
   return {
     ...questionResult,
