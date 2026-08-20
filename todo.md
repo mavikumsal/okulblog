@@ -1399,3 +1399,13 @@
 - [x] Yayınlama öncesinde kapak görseli zorunluluğu kontrolü eklemek
 - [x] Eksikleri gösteren son onay adımı ve güvenli yayınlama akışı eklemek
 - [x] Test, responsive kontrol ve checkpoint oluşturmak
+
+## PDF Geçmiş Filtreleri ve Toplu Yayın Ön Kontrolü — 2026-08-20
+
+- [x] İşlem geçmişine durum filtresi eklemek
+- [x] İşlem geçmişine tarih aralığı filtresi eklemek
+- [x] İşlem geçmişine depolama sağlayıcısı filtresi eklemek
+- [x] Filtreleri gerçek tRPC verisine bağlamak
+- [x] Toplu yayınlama öncesinde her taslak için kategori ve kapak kontrolü yapmak
+- [x] Eksik taslakları yayın dışı bırakıp nedenlerini göstermek
+- [x] Test, responsive kontrol ve checkpoint oluşturmak
