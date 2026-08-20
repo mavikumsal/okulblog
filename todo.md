@@ -1541,3 +1541,11 @@
 - [x] openBookId=141 parametreli bağlantının erişim ve okuyucu durumunu önceki ZKitap bağlantısıyla karşılaştır
 - [x] Kitap sayfası, görsel ve resmi PDF/export seçeneklerini kontrol et
 - [x] İki bağlantıdan hangisinin izinli OkulBlog pilotuna uygun olduğunu raporla
+
+## Manuel PDF ve Görsel OCR İçe Aktarma
+- [x] Admin Soru Havuzu’na manuel PDF ve görsel dosyası yükleme alanı ekle
+- [x] Dosya türü, boyut, sayfa/görsel sınırı ve izinli kullanım uyarılarını göster
+- [x] Manuel yüklemeyi mevcut multipart staging ve OCR parser akışına bağla
+- [x] PDF ve görsel sonuçlarını cevap anahtarı kalite kontrolü ve split-screen incelemeye aktar
+- [x] Manuel yükleme, OCR ve taslak aktarımı için Vitest, TypeScript, build ve Admin görsel doğrulaması yap
+- [x] Geliştirmeyi geri alınabilir checkpoint olarak kaydet

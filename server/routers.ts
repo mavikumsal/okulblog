@@ -98,7 +98,7 @@ import { generateQuestionDraft } from "./aiQuestionGenerator";
 import { getAiProviderConfig, maskSecret } from "./aiProviderConfig";
 import { listProviderModels } from "./aiProviderCatalog";
 import { invokeLLM, listLLMModels } from "./_core/llm";
-import { parsePdfQuestions, parsePdfQuestionPair } from "./pdfQuestionParser";
+import { parsePdfQuestions, parsePdfQuestionPair, parseImageQuestionPair } from "./pdfQuestionParser";
 import { storageGetSignedUrl, storagePut, storagePutStable } from "./storage";
 import { describeCoverReplacement, getStableDocumentCoverKey } from "./documentCoverLifecycle";
 import { notifyOwner } from "./_core/notification";
@@ -564,8 +564,10 @@ export const appRouter = router({
     parseQuestionPdfPairFromStorage: protectedProcedure.input(z.object({
       questionFileName: z.string().trim().min(1).max(255),
       questionStorageKey: z.string().trim().min(1).max(500),
+      questionMimeType: z.enum(["application/pdf", "image/jpeg", "image/png", "image/webp"]).default("application/pdf"),
       answerKeyFileName: z.string().trim().min(1).max(255),
       answerKeyStorageKey: z.string().trim().min(1).max(500),
+      answerKeyMimeType: z.enum(["application/pdf", "image/jpeg", "image/png", "image/webp"]).default("application/pdf"),
       topicTag: z.string().trim().max(180).nullable().optional(),
       gradeLevel: z.string().trim().max(80).nullable().optional(),
       categoryId: z.number().int().positive().nullable().optional(),
@@ -573,22 +575,27 @@ export const appRouter = router({
       await assertSectionAccess(ctx.user, "Soru Havuzu");
       const prefix = `okulblog/${ctx.user.id}/question-import-staging/`;
       if (!input.questionStorageKey.startsWith(prefix) || !input.answerKeyStorageKey.startsWith(prefix)) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Bu PDF staging kaydına erişilemiyor." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Bu manuel içe aktarma staging kaydına erişilemiyor." });
+      }
+      if (input.questionMimeType !== input.answerKeyMimeType) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Soru ve cevap dosyası aynı türde olmalıdır: ikisi de PDF veya ikisi de görsel." });
       }
       const [questionSignedUrl, answerSignedUrl] = await Promise.all([
         storageGetSignedUrl(input.questionStorageKey),
         storageGetSignedUrl(input.answerKeyStorageKey),
       ]);
       const [questionResponse, answerResponse] = await Promise.all([fetch(questionSignedUrl), fetch(answerSignedUrl)]);
-      if (!questionResponse.ok || !answerResponse.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "Staging PDF’leri okunamadı." });
+      if (!questionResponse.ok || !answerResponse.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "Manuel içe aktarma dosyaları okunamadı." });
       const [questionBuffer, answerKeyBuffer] = await Promise.all([
         questionResponse.arrayBuffer().then(buffer => Buffer.from(buffer)),
         answerResponse.arrayBuffer().then(buffer => Buffer.from(buffer)),
       ]);
       if (questionBuffer.byteLength > 20 * 1024 * 1024 || answerKeyBuffer.byteLength > 20 * 1024 * 1024) {
-        throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Her PDF dosyası en fazla 20 MB olabilir." });
+        throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Her dosya en fazla 20 MB olabilir." });
       }
-      const parsed = await parsePdfQuestionPair(questionBuffer, input.questionFileName, answerKeyBuffer, input.answerKeyFileName);
+      const parsed = input.questionMimeType === "application/pdf"
+        ? await parsePdfQuestionPair(questionBuffer, input.questionFileName, answerKeyBuffer, input.answerKeyFileName)
+        : await parseImageQuestionPair(questionBuffer, input.questionFileName, answerKeyBuffer, input.answerKeyFileName);
       return { ...parsed, topicTag: input.topicTag ?? null, gradeLevel: input.gradeLevel ?? null, categoryId: input.categoryId ?? null };
     }),
     parseQuestionPdfPair: protectedProcedure.input(z.object({

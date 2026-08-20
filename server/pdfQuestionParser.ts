@@ -366,3 +366,63 @@ export async function parsePdfQuestionPair(
     warnings: answerKey.size === 0 ? [...questionResult.warnings, "Ayrı cevap anahtarında numara-harf eşleşmesi bulunamadı."] : questionResult.warnings,
   };
 }
+
+export async function parseImageQuestionPair(
+  questionBuffer: Buffer,
+  questionFileName: string,
+  answerKeyBuffer: Buffer,
+  answerKeyFileName: string,
+): Promise<PdfQuestionPairParseResult> {
+  const questionImage = (await sharp(questionBuffer).webp({ quality: 82 }).toBuffer()).toString("base64");
+  const answerImage = (await sharp(answerKeyBuffer).webp({ quality: 82 }).toBuffer()).toString("base64");
+  const [questionResponse, answerResponse] = await Promise.all([
+    invokeLLM({
+      messages: [
+        { role: "system", content: "Bir eğitim sorusu görselini okuyorsun. Yalnızca görselde açıkça görülen soruları, seçenekleri ve soru numaralarını JSON olarak çıkar; metin veya cevap tahmin etme." },
+        { role: "user", content: [{ type: "text", text: "Görseldeki çoktan seçmeli soruları çıkar. Her soru için numara, soru metni ve görülen A-D seçeneklerini yaz." }, { type: "image_url", image_url: { url: `data:image/webp;base64,${questionImage}`, detail: "high" } }] },
+      ],
+      response_format: { type: "json_schema", json_schema: { name: "questions", strict: true, schema: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { number: { type: "string" }, prompt: { type: "string" }, options: { type: "array", items: { type: "string" }, maxItems: 4 } }, required: ["number", "prompt", "options"], additionalProperties: false } } }, required: ["questions"], additionalProperties: false } } },
+    }),
+    invokeLLM({
+      messages: [
+        { role: "system", content: "Bir cevap anahtarı görselini okuyorsun. Yalnızca açıkça görülen soru numarası ve A-D harflerini JSON olarak döndür; tahmin yapma." },
+        { role: "user", content: [{ type: "text", text: "Görseldeki cevap anahtarını çıkar. Görülen her numara için doğru A-D harfini yaz." }, { type: "image_url", image_url: { url: `data:image/webp;base64,${answerImage}`, detail: "high" } }] },
+      ],
+      response_format: { type: "json_schema", json_schema: { name: "answer_key", strict: true, schema: { type: "object", properties: { answers: { type: "array", items: { type: "object", properties: { number: { type: "string" }, answer: { type: "string", enum: ["A", "B", "C", "D"] } }, required: ["number", "answer"], additionalProperties: false } } }, required: ["answers"], additionalProperties: false } } },
+    }),
+  ]);
+  const contentOf = (response: any) => { const content = response.choices?.[0]?.message?.content; return typeof content === "string" ? content : Array.isArray(content) ? content.map((item: any) => typeof item === "string" ? item : item?.text ?? "").join(" ") : ""; };
+  const readJson = <T,>(value: string): T => { try { return JSON.parse(value) as T; } catch { return {} as T; } };
+  const questionData = readJson<{ questions?: Array<{ number: string; prompt: string; options: string[] }> }>(contentOf(questionResponse));
+  const answerData = readJson<{ answers?: Array<{ number: string; answer: string }> }>(contentOf(answerResponse));
+  const answerKey = new Map<string, string>((answerData.answers ?? []).filter(item => /^\d{1,3}$/.test(item.number) && /^[A-D]$/.test(item.answer)).map(item => [item.number, item.answer]));
+  const normalizedPage = (await sharp(questionBuffer).resize(1100, 1500, { fit: "inside", withoutEnlargement: true }).webp({ quality: 72 }).toBuffer()).toString("base64");
+  const questions: ParsedPdfQuestion[] = (questionData.questions ?? []).filter(item => /^\d{1,3}$/.test(item.number) && item.prompt.trim().length >= 8).map(item => ({
+    sourceNumber: item.number,
+    prompt: normalize(item.prompt).slice(0, 5000),
+    options: item.options.filter(Boolean).slice(0, 4),
+    answer: null,
+    questionType: item.options.filter(Boolean).length >= 2 ? "multiple-choice" : "open-ended",
+    topicTag: null,
+    confidence: "medium",
+    confidenceScore: 0.68,
+    answerMatched: false,
+    hasEmbeddedImage: true,
+    embeddedImageDataBase64: normalizedPage,
+    embeddedImageUrl: null,
+    embeddedImageRole: "question",
+    sourcePageImageDataBase64: normalizedPage,
+    ocrText: `${item.prompt} ${item.options.join(" ")}`.trim(),
+    ocrSourceText: `${item.prompt} ${item.options.join(" ")}`.trim(),
+    page: 1,
+    warning: "Görsel OCR sonucu; manuel kontrol önerilir.",
+  }));
+  const matchedQuestions = applyAnswerKeyToQuestions(questions, answerKey);
+  const answerMeta = await sharp(answerKeyBuffer).metadata();
+  const answerStats = await sharp(answerKeyBuffer).stats();
+  const contrast = answerStats.channels.reduce((sum, channel) => sum + channel.stdev, 0) / Math.max(1, answerStats.channels.length);
+  const rawNumbers = Array.from(answerKey.keys()).map(Number).sort((a, b) => a - b);
+  const sequenceGaps = rawNumbers.length > 1 ? Math.max(0, rawNumbers[rawNumbers.length - 1] - rawNumbers[0] + 1 - rawNumbers.length) : 0;
+  const answerKeyQuality = calculateAnswerKeyQuality({ pagesAnalyzed: 1, detectedPairs: answerKey.size, hasTextLayer: false, averageContrast: contrast, minWidth: answerMeta.width ?? 0, minHeight: answerMeta.height ?? 0, sequenceGaps, invalidAnswerMarkers: 0 });
+  return { fileName: questionFileName, pageCount: 1, questions: matchedQuestions, warnings: matchedQuestions.length ? ["Görsel OCR kullanıldı; düşük güvenli alanları manuel kontrol edin."] : ["Görselde soru bulunamadı."], answerKeyFileName, answerKeyQuality, answerKeyCount: answerKey.size, matchedCount: matchedQuestions.filter(question => question.answerMatched).length, unmatchedCount: matchedQuestions.filter(question => !question.answerMatched).length };
+}
