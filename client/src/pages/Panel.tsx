@@ -7,6 +7,7 @@ import ContentQuickStart from "@/components/ContentQuickStart";
 import { AdminOverviewDashboard } from "@/components/AdminOverviewDashboard";
 import CategoryCascadeSelect from "@/components/CategoryCascadeSelect";
 import SearchConsoleActionPanel from "@/components/SearchConsoleActionPanel";
+import { SearchIndexingQueuePanel, SeoSnippetPreview, SeoVerificationSettings } from "@/components/SeoAdminTools";
 import { AdminUsersManagement } from "@/components/AdminUsersManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1625,6 +1626,11 @@ function PanelContent() {
           />
           <SearchConsoleStatusPanel status={searchConsoleStatus} />
           <SearchConsoleActionPanel propertyUrl={searchConsoleStatus.data?.propertyUrl ?? searchConsoleConfig.siteUrl} mutation={searchConsoleAction} />
+          <div className="mt-5 space-y-5">
+            <SeoVerificationSettings settings={adminSettings.data} saveSetting={saveSetting} />
+            <SeoSnippetPreview />
+            <SearchIndexingQueuePanel />
+          </div>
         </>
       )}
 

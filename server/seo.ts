@@ -9,6 +9,7 @@ type SeoMetadata = {
   ogType: "website" | "article";
   image?: string | null;
   noIndex?: boolean;
+  jsonLd?: Record<string, unknown>;
 };
 
 const DEFAULT_TITLE = "OkulBlog | Eğitim İçerikleri ve Testler";
@@ -68,6 +69,7 @@ export async function getSeoMetadata(pathname: string, origin: string): Promise<
         canonical,
         ogType: "article",
         image: row.coverImageUrl,
+        jsonLd: { "@context": "https://schema.org", "@type": contentType === "news" ? "NewsArticle" : "LearningResource", name: row.title, description: row.summary?.slice(0, 160) || `${row.title} içeriğini OkulBlog üzerinde keşfedin.`, url: canonical, ...(row.coverImageUrl ? { image: row.coverImageUrl } : {}) },
       };
     }
   }
@@ -76,14 +78,14 @@ export async function getSeoMetadata(pathname: string, origin: string): Promise<
   if (testMatch) {
     const id = Number(testMatch[1]);
     const row = (await db.select().from(tests).where(and(eq(tests.id, id), eq(tests.status, "published")))).at(0);
-    if (row) return { title: `${row.title} | OkulBlog`, description: row.description?.slice(0, 160) || `${row.title} testini OkulBlog üzerinde çözün.`, canonical, ogType: "article", image: row.coverImageUrl };
+    if (row) return { title: `${row.title} | OkulBlog`, description: row.description?.slice(0, 160) || `${row.title} testini OkulBlog üzerinde çözün.`, canonical, ogType: "article", image: row.coverImageUrl, jsonLd: { "@context": "https://schema.org", "@type": "Quiz", name: row.title, description: row.description?.slice(0, 160) || `${row.title} testini OkulBlog üzerinde çözün.`, url: canonical, ...(row.coverImageUrl ? { image: row.coverImageUrl } : {}) } };
   }
 
   const outcomeMatch = pathname.match(/^\/kazanim\/(\d+)$/);
   if (outcomeMatch) {
     const id = Number(outcomeMatch[1]);
     const row = (await db.select().from(categoryNodes).where(and(eq(categoryNodes.id, id), eq(categoryNodes.level, "outcome"), eq(categoryNodes.isActive, true)))).at(0);
-    if (row) return { title: `${row.name} | Kazanım | OkulBlog`, description: `${row.name} kazanımına ait test ve çalışma içeriklerini keşfedin.`, canonical, ogType: "article" };
+    if (row) return { title: `${row.name} | Kazanım | OkulBlog`, description: `${row.name} kazanımına ait test ve çalışma içeriklerini keşfedin.`, canonical, ogType: "article", jsonLd: { "@context": "https://schema.org", "@type": "LearningResource", name: row.name, description: `${row.name} kazanımına ait test ve çalışma içeriklerini keşfedin.`, url: canonical, educationalUse: "learning" } };
   }
 
   if (pathname.startsWith("/panel")) return { title: "Yönetim Paneli | OkulBlog", description: "OkulBlog yönetim paneli.", canonical, ogType: "website", noIndex: true };
@@ -109,6 +111,7 @@ export function injectSeoMetadata(template: string, metadata: SeoMetadata) {
     `<meta name="twitter:description" content="${description}" />`,
     image ? `<meta name="twitter:image" content="${image}" />` : "",
     metadata.noIndex ? `<meta name="robots" content="noindex,nofollow" />` : `<meta name="robots" content="index,follow" />`,
+    metadata.jsonLd ? `<script type="application/ld+json">${JSON.stringify(metadata.jsonLd).replace(/<\//g, "<\\/")}</script>` : "",
   ].filter(Boolean).join("\n    ");
   const cleaned = template
     .replace(/<title>[\s\S]*?<\/title>/gi, "")

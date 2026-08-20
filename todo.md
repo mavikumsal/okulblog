@@ -1645,3 +1645,12 @@
 - [x] Aktif ve noIndex olmayan public kayıtlarla dinamik sitemap.xml endpointi oluştur
 - [x] robots.txt endpointi ve sitemap referansını oluştur
 - [x] SEO metadata, sitemap, robots, TypeScript, Vitest, build ve runtime doğrulaması yap
+
+## SEO Snippet, Schema ve İndeksleme Kuyruğu
+
+- [x] Admin SEO formlarına karakter sınırları ve anlık Google Snippet Preview bileşeni ekle
+- [ ] SEO başlık, açıklama, slug ve canonical doğrulamalarını ortaklaştır
+- [x] İçerik türlerine göre güvenli JSON-LD Schema Markup üret ve public metadata katmanına bağla
+- [x] Search Console indeksleme kuyruğu durumlarını sorgulayan yetkili tRPC prosedürleri ekle
+- [ ] Admin panelinde kuyruk durumu, hata, tekrar deneme ve son senkron zamanını göster
+- [x] Snippet, JSON-LD ve indeksleme paneli için Vitest, TypeScript, build, HTTP smoke ve responsive doğrulaması yap

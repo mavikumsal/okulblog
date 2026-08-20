@@ -170,6 +170,24 @@ export const searchConsoleTokens = mysqlTable("search_console_tokens", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const searchIndexingQueue = mysqlTable("search_indexing_queue", {
+  id: int("id").autoincrement().primaryKey(),
+  url: varchar("url", { length: 900 }).notNull(),
+  entityType: varchar("entityType", { length: 60 }).notNull(),
+  entityId: int("entityId"),
+  status: mysqlEnum("status", ["pending", "processing", "submitted", "failed", "skipped"]).default("pending").notNull(),
+  attempts: int("attempts").default(0).notNull(),
+  lastError: text("lastError"),
+  lastResponse: json("lastResponse"),
+  nextAttemptAt: timestamp("nextAttemptAt"),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  statusIndex: index("search_indexing_queue_status_idx").on(table.status, table.nextAttemptAt),
+  entityIndex: index("search_indexing_queue_entity_idx").on(table.entityType, table.entityId),
+}));
+
 export const newsCategories = mysqlTable("news_categories", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 120 }).notNull().unique(),

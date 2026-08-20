@@ -1,6 +1,6 @@
 import { and, eq, asc, desc, inArray, isNull, gte, lte, lt, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categoryNodes, contentItems, contentProgress, contentViewDaily, contentViewEvents, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, documentImportHistory, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
+import { categoryNodes, contentItems, contentProgress, contentViewDaily, contentViewEvents, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, documentImportHistory, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, searchIndexingQueue, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { educationCurriculum } from "./educationCurriculum";
 
@@ -1142,6 +1142,34 @@ export async function getSearchConsoleToken(propertyUrl: string) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(searchConsoleTokens).where(eq(searchConsoleTokens.propertyUrl, propertyUrl)).limit(1);
+  return result[0];
+}
+
+export async function enqueueSearchIndexing(input: { url: string; entityType: string; entityId?: number | null; createdBy?: number | null }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const existing = await db.select({ id: searchIndexingQueue.id }).from(searchIndexingQueue).where(and(eq(searchIndexingQueue.url, input.url), inArray(searchIndexingQueue.status, ["pending", "processing"]))).limit(1);
+  if (existing[0]) return existing[0].id;
+  const result = await db.insert(searchIndexingQueue).values({ ...input, status: "pending", attempts: 0 });
+  return Number(result[0].insertId);
+}
+
+export async function listSearchIndexingQueue(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(searchIndexingQueue).orderBy(desc(searchIndexingQueue.createdAt)).limit(Math.min(limit, 200));
+}
+
+export async function updateSearchIndexingQueue(id: number, input: { status?: "pending" | "processing" | "submitted" | "failed" | "skipped"; attempts?: number; lastError?: string | null; lastResponse?: unknown; nextAttemptAt?: Date | null }) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  await db.update(searchIndexingQueue).set({ ...input, updatedAt: new Date() }).where(eq(searchIndexingQueue.id, id));
+}
+
+export async function getSearchIndexingQueueItem(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(searchIndexingQueue).where(eq(searchIndexingQueue.id, id)).limit(1);
   return result[0];
 }
 

@@ -13,6 +13,7 @@ import { aggregateContentViewDaily, listRetryableDocumentImportHistory } from ".
 import { retryFailedDocumentImport, documentImportRetryPolicy } from "../documentImportRetry";
 import { storagePut } from "../storage";
 import { buildSitemap, robotsTxt, sitemapXml } from "../seo";
+import { processSearchIndexingQueue } from "../searchIndexingWorker";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -59,6 +60,16 @@ async function startServer() {
       return res.json({ fileName, storageKey: stored.key, publicUrl: stored.url, sizeBytes: buffer.byteLength, mimeType });
     } catch (error) {
       return res.status(500).json({ error: error instanceof Error ? error.message : "PDF staging yüklemesi başarısız." });
+    }
+  });
+  app.post("/api/scheduled/searchIndexing", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron) return res.status(403).json({ error: "cron-only" });
+      const result = await processSearchIndexingQueue(10);
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      return res.status(500).json({ error: error instanceof Error ? error.message : "Search indexing failed", timestamp: new Date().toISOString() });
     }
   });
   app.post("/api/scheduled/aggregateContentViews", async (req, res) => {
