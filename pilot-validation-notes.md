@@ -86,3 +86,19 @@ OkulBlog’a güvenli entegrasyon yalnızca yayın sahibinin verdiği resmi PDF,
 `https://artiegitimkutuphane.com/` ana sayfası doğrudan kitap içeriği sunmuyor; HTML içinde `https://fliphtml5.com/bookcase/oqtwv/` adresini tam sayfa iframe olarak gömüyor. FlipHTML5 kitaplık sayfası `Artı Eğitim Yayınları` başlığıyla erişilebilir ve metin çıkarımında `211books` olarak tek sayfalık bir kitaplık listesi görünüyor. Listede 1–4. sınıf içerikleri, Paragraf Problem, Check Up, Süreç Değerlendirme, Süper Güç, yaz/kış tatil fasikülleri ve bazı cevap bölümü adları bulunan yayınlar yer alıyor.
 
 Bu incelemede ana sayfadan doğrudan PDF bağlantısı veya resmi export/API bağlantısı doğrulanmadı; içerik FlipHTML5 kitaplık/okuyucu yapısı üzerinden sunuluyor. İzinli yayın sahibi erişimi, resmi PDF/export veya API sağlanırsa belirli bir kitabın okuyucu önizlemesi, taslak kaydı ve OCR kalite kontrolü OkulBlog’a bağlanabilir. Mevcut genel kitaplık URL’sinden tüm yayınları otomatik indirip dönüştürmek için yetki ve format doğrulaması gerekir; erişim kısıtlaması aşılmayacaktır.
+
+## FlipHTML5 kitap pilotu — `online.fliphtml5.com/hpboy/pvvo/#p=4` — 2026-08-20
+Verilen bağlantı erişilebilir bir FlipHTML5 okuyucusu açıyor. Başlık `4. Sınıf Problem Var`; okuyucu sayfa göstergesinde `4-5/96` görünüyor. Sayfa görüntüsü tarayıcıda render ediliyor ve içindekiler sayfasında `Cevap Anahtarı ... 95` olarak listeleniyor. Bu, aynı kitap içinde soru/çalışma sayfaları ile cevap anahtarının bulunabileceğine işaret ediyor.
+
+Görünür okuyucu kontrolleri yakınlaştırma, arama, küçük resimler, ses, sosyal paylaşım, tam ekran, önceki/sonraki, ilk/son sayfa ve sayfa numarası alanı; doğrudan PDF indir/export düğmesi görünür değil. Sayfa içerikleri okuyucu üzerinden görsel olarak erişilebilir olduğundan, yayın sahibinin izinli kullanım kapsamı doğrulanırsa bu kitap için sayfa görseli tabanlı önizleme ve OCR pilotu teknik olarak mümkün görünüyor. Otomatik toplu indirme veya okuyucu erişim kısıtlamasını aşma yapılmayacak.
+
+### 95. sayfa kontrolü
+`https://online.fliphtml5.com/hpboy/pvvo/#p=95` açıldığında okuyucu sayfa göstergesi `94-95/96` oldu; ancak görüntülenen çift sayfada içindekiler ve etkinlik sayfası görünmeye devam etti. İçindekiler metninde `Cevap Anahtarı ... 95` yazsa da, bu URL/hash kontrolünde cevap anahtarı sayfasının içeriği açıkça görüntülenemedi. Bu nedenle cevap anahtarı erişimi ayrıca okuyucu içi sayfa geçişi veya resmi export yöntemiyle doğrulanmalı; mevcut gözlem doğrudan PDF çıkarımını kanıtlamıyor.
+
+## Fernus ZKitap erişim kontrolü — 2026-08-20
+Verilen Fernus URL’si açıldığında okuyucu yüklenmedi ve sayfa metni `Bu siteye erisim izniniz bulunmamaktadir. Site adresiniz :` uyarısını gösterdi. Etkileşimli kitap, sayfa görseli, PDF veya resmi export/API seçeneği görünmedi. Bu bağlantı ile OkulBlog’a içerik çekme işlemi mevcut erişim koşullarında mümkün değil; site sahibi tarafından yetkili alan adı/erişim veya resmi export/API sağlanması gerekir. Erişim kısıtlaması aşılmadı.
+
+## ZKitap openBookId=141 karşılaştırması — 2026-08-20
+`www.ilkokul1dijital.com/zkitapx.php?code=...&openBookId=141` sayfası HTML içinde aynı Fernus iframe’ini, bu kez `openBookId=141` parametresiyle gömüyor. Üst sayfa `ZKitapX` başlığıyla boş bir kabuk gösteriyor. iframe doğrudan açıldığında yine `Bu siteye erisim izniniz bulunmamaktadir. Site adresiniz :` uyarısı geliyor; kitap okuyucusu, sayfa görseli, PDF veya resmi export/API görünmedi.
+
+Sonuç: `openBookId=141` yalnızca belirli kitap kimliğini parametre olarak iletiyor; mevcut erişim sorununu çözmüyor. Önceki ve yeni bağlantı arasında izinli çekim açısından fark yok. Site sahibi tarafından bu kitap için yetkili Fernus erişimi, resmi export/PDF veya API verilirse işlem yapılabilir; erişim kontrolü aşılmayacak.

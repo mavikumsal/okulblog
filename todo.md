@@ -1526,3 +1526,18 @@
 - [x] artiegitimkutuphane.com ana sayfasının erişim ve içerik yapısını pasif olarak incele
 - [x] Kitapların PDF, sayfa görseli, iframe veya korumalı okuyucu biçimini belirle
 - [x] İzinli kullanım sınırları içinde OkulBlog’a aktarım için teknik uygunluğu raporla
+
+## Yeni FlipHTML5 Kitap Bağlantısı İncelemesi
+- [x] Verilen online.fliphtml5.com kitap bağlantısının erişim ve sayfa yapısını pasif olarak incele
+- [x] Açık PDF, sayfa görseli veya resmi export seçeneklerini kontrol et
+- [x] İzinli OkulBlog pilot aktarımı için uygunluk ve sınırlamaları raporla
+
+## Fernus ZKitap Bağlantısı İncelemesi
+- [x] Verilen Fernus ZKitap URL’sinin okuyucu ve erişim durumunu pasif olarak incele
+- [x] Sayfa görseli, PDF veya resmi export/API seçeneklerini kontrol et
+- [x] İzinli OkulBlog aktarımı için teknik uygunluğu ve sınırlamaları raporla
+
+## ZKitap openBookId=141 Karşılaştırması
+- [x] openBookId=141 parametreli bağlantının erişim ve okuyucu durumunu önceki ZKitap bağlantısıyla karşılaştır
+- [x] Kitap sayfası, görsel ve resmi PDF/export seçeneklerini kontrol et
+- [x] İki bağlantıdan hangisinin izinli OkulBlog pilotuna uygun olduğunu raporla
