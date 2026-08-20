@@ -1,24 +1,29 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
+import { lazy, Suspense } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import NotFound from "./pages/NotFound";
-import Panel from "./pages/Panel";
-import TestRunner from "./pages/TestRunner";
-import QA from "./pages/QA";
-import ContentHub from "./pages/ContentHub";
-import ContentDetail from "./pages/ContentDetail";
-import OutcomeDetail from "./pages/OutcomeDetail";
-import LatestPreview from "./pages/LatestPreview";
-import FAQ from "./pages/FAQ";
-import About from "./pages/About";
-import Privacy from "./pages/Privacy";
+const Home = lazy(() => import("./pages/Home"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Panel = lazy(() => import("./pages/Panel"));
+const TestRunner = lazy(() => import("./pages/TestRunner"));
+const QA = lazy(() => import("./pages/QA"));
+const ContentHub = lazy(() => import("./pages/ContentHub"));
+const ContentDetail = lazy(() => import("./pages/ContentDetail"));
+const OutcomeDetail = lazy(() => import("./pages/OutcomeDetail"));
+const LatestPreview = lazy(() => import("./pages/LatestPreview"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const About = lazy(() => import("./pages/About"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+function PageFallback() {
+  return <div className="grid min-h-[40vh] place-items-center bg-[#fbfaf4] px-6 text-sm text-[#668278]">Sayfa yükleniyor...</div>;
+}
 
 function Router() {
   return (
-    <Switch>
+    <Suspense fallback={<PageFallback />}>
+      <Switch>
       <Route path="/" component={Home} />
       <Route path="/onizleme/guncel" component={LatestPreview} />
       <Route path="/panel" component={Panel} />
@@ -33,7 +38,8 @@ function Router() {
       <Route path="/panel/:section" component={Panel} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </Suspense>
   );
 }
 

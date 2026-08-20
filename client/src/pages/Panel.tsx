@@ -403,9 +403,47 @@ function PanelContent() {
     "easy" | "medium" | "hard"
   >("medium");
   const [questionCategoryId, setQuestionCategoryId] = useState("");
+  const [questionSearch, setQuestionSearch] = useState("");
+  const [questionTypeFilter, setQuestionTypeFilter] = useState<"all" | "multiple-choice" | "true-false" | "open-ended">("all");
+  const [questionStatusFilter, setQuestionStatusFilter] = useState<"all" | "draft" | "approved" | "archived">("all");
+  const [questionDifficultyFilter, setQuestionDifficultyFilter] = useState<"all" | "easy" | "medium" | "hard">("all");
+  const [questionSourceFilter, setQuestionSourceFilter] = useState<"all" | "with-source" | "without-source">("all");
+  const [questionSort, setQuestionSort] = useState<"newest" | "oldest" | "difficulty" | "type">("newest");
+  const [questionPage, setQuestionPage] = useState(1);
+  const [questionPreview, setQuestionPreview] = useState<any | null>(null);
   const questions = trpc.questions.list.useQuery(undefined, {
     enabled: Boolean(user) && isAllowed("Soru Havuzu"),
   });
+  const filteredQuestions = useMemo(() => {
+    const query = questionSearch.trim().toLocaleLowerCase("tr-TR");
+    const difficultyOrder = { easy: 1, medium: 2, hard: 3 } as const;
+    const typeOrder = { "multiple-choice": 1, "true-false": 2, "open-ended": 3 } as const;
+    return [...(questions.data ?? [])]
+      .filter(item => {
+        const searchable = `${item.prompt} ${item.topicTag ?? ""} ${item.gradeLevel ?? ""} ${item.sourceFileName ?? ""}`.toLocaleLowerCase("tr-TR");
+        const hasSource = Boolean(item.sourceFileName && item.sourcePage && item.sourceRegion);
+        return (!query || searchable.includes(query)) &&
+          (questionTypeFilter === "all" || item.questionType === questionTypeFilter) &&
+          (questionStatusFilter === "all" || item.status === questionStatusFilter) &&
+          (questionDifficultyFilter === "all" || item.difficulty === questionDifficultyFilter) &&
+          (questionSourceFilter === "all" || (questionSourceFilter === "with-source" ? hasSource : !hasSource));
+      })
+      .sort((a, b) => {
+        if (questionSort === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        if (questionSort === "difficulty") return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty] || b.id - a.id;
+        if (questionSort === "type") return typeOrder[a.questionType] - typeOrder[b.questionType] || b.id - a.id;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }, [questions.data, questionSearch, questionTypeFilter, questionStatusFilter, questionDifficultyFilter, questionSourceFilter, questionSort]);
+  const questionPageSize = 8;
+  const questionPageCount = Math.max(1, Math.ceil(filteredQuestions.length / questionPageSize));
+  const pagedQuestions = filteredQuestions.slice((questionPage - 1) * questionPageSize, questionPage * questionPageSize);
+  useEffect(() => {
+    setQuestionPage(current => Math.min(current, questionPageCount));
+  }, [questionPageCount]);
+  useEffect(() => {
+    setQuestionPage(1);
+  }, [questionSearch, questionTypeFilter, questionStatusFilter, questionDifficultyFilter, questionSourceFilter, questionSort]);
   const createQuestion = trpc.questions.create.useMutation({
     onSuccess: () => {
       setQuestionPrompt("");
@@ -2237,17 +2275,28 @@ function PanelContent() {
                 </p>
               </div>
               <Badge className="border-0 bg-[#edf4ef] text-[#548073] hover:bg-[#edf4ef]">
-                {questions.data?.length ?? 0} soru
+                {filteredQuestions.length} / {questions.data?.length ?? 0} soru
               </Badge>
             </div>
-            {isAdmin && (questions.data ?? []).length > 0 && <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-[#f7f8f4] p-3"><button type="button" onClick={() => setSelectedQuestionIds(selectedQuestionIds.length === (questions.data ?? []).length ? [] : (questions.data ?? []).map(item => item.id))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{selectedQuestionIds.length === (questions.data ?? []).length ? "Seçimi kaldır" : "Tüm soruları seç"}</button><span className="text-xs text-[#82918f]">{selectedQuestionIds.length} seçili</span>{selectedQuestionIds.length > 0 && <Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "question", ids: selectedQuestionIds })} className="ml-auto h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button>}</div>}
+            <div className="mt-4 grid gap-2 rounded-xl bg-[#f7f8f4] p-3 sm:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))]">
+              <div className="relative sm:col-span-2">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#82918f]" />
+                <Input value={questionSearch} onChange={event => setQuestionSearch(event.target.value)} placeholder="Soru, konu veya kaynak ara..." aria-label="Soru havuzunda ara" className="h-10 rounded-lg bg-white pl-9" />
+              </div>
+              <select value={questionTypeFilter} onChange={event => setQuestionTypeFilter(event.target.value as typeof questionTypeFilter)} aria-label="Soru türüne göre filtrele" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="all">Tüm türler</option><option value="multiple-choice">Çoktan seçmeli</option><option value="true-false">Doğru-yanlış</option><option value="open-ended">Açık uçlu</option></select>
+              <select value={questionDifficultyFilter} onChange={event => setQuestionDifficultyFilter(event.target.value as typeof questionDifficultyFilter)} aria-label="Zorluğa göre filtrele" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="all">Tüm zorluklar</option><option value="easy">Kolay</option><option value="medium">Orta</option><option value="hard">Zor</option></select>
+              <select value={questionStatusFilter} onChange={event => setQuestionStatusFilter(event.target.value as typeof questionStatusFilter)} aria-label="Duruma göre filtrele" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="all">Tüm durumlar</option><option value="draft">Taslak</option><option value="approved">Onaylı</option><option value="archived">Arşiv</option></select>
+              <select value={questionSourceFilter} onChange={event => setQuestionSourceFilter(event.target.value as typeof questionSourceFilter)} aria-label="OCR kaynağına göre filtrele" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="all">Tüm kaynaklar</option><option value="with-source">OCR kaynaklı</option><option value="without-source">Kaynaksız</option></select>
+              <select value={questionSort} onChange={event => setQuestionSort(event.target.value as typeof questionSort)} aria-label="Soruları sırala" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="newest">En yeni</option><option value="oldest">En eski</option><option value="difficulty">Zorluk</option><option value="type">Soru türü</option></select>
+            </div>
+            {isAdmin && filteredQuestions.length > 0 && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[#edf0eb] bg-white p-3"><button type="button" onClick={() => setSelectedQuestionIds(selectedQuestionIds.length === pagedQuestions.length ? [] : pagedQuestions.map(item => item.id))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{selectedQuestionIds.length === pagedQuestions.length ? "Seçimi kaldır" : "Sayfadakileri seç"}</button><span className="text-xs text-[#82918f]">{selectedQuestionIds.length} seçili</span>{selectedQuestionIds.length > 0 && <Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "question", ids: selectedQuestionIds })} className="ml-auto h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button>}</div>}
             <div className="mt-5 space-y-3">
               {questions.isLoading ? (
                 <div className="rounded-xl bg-[#f7f8f4] p-5 text-sm text-[#728087]">
                   Sorular yükleniyor...
                 </div>
-              ) : (questions.data ?? []).length ? (
-                questions.data?.map(item => (
+              ) : filteredQuestions.length ? (
+                pagedQuestions.map(item => (
                   <div
                     key={item.id}
                     className="rounded-xl border border-[#eef0eb] px-4 py-3"
@@ -2263,6 +2312,11 @@ function PanelContent() {
                         <Badge variant="outline" className="shrink-0 text-[10px]">
                           {item.status === "approved" ? "Onaylı" : "Taslak"}
                         </Badge>
+                        {Boolean(item.sourceRegion) && (
+                          <Button type="button" size="sm" variant="outline" onClick={() => setQuestionPreview(item)} className="h-8 rounded-lg px-2 text-xs text-[#456073]" aria-label={`${item.id} numaralı sorunun OCR kaynağını önizle`}>
+                            <Eye className="mr-1 h-3.5 w-3.5" />Kaynak
+                          </Button>
+                        )}
                         {isAdmin && (
                           <Button
                             type="button"
@@ -2294,6 +2348,7 @@ function PanelContent() {
                         : item.difficulty === "hard"
                           ? "Zor"
                           : "Orta"}
+                      {item.sourcePage ? ` · OCR sayfa ${item.sourcePage}` : ""}
                     </p>
                   </div>
                 ))
@@ -2304,9 +2359,52 @@ function PanelContent() {
                 </div>
               )}
             </div>
+            {questionPageCount > 1 && (
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#edf0eb] pt-4">
+                <p className="text-xs text-[#819095]">Sayfa {questionPage} / {questionPageCount} · {filteredQuestions.length} sonuç</p>
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" variant="outline" disabled={questionPage === 1} onClick={() => setQuestionPage(page => Math.max(1, page - 1))} className="h-8 rounded-lg">Önceki</Button>
+                  <Button type="button" size="sm" variant="outline" disabled={questionPage === questionPageCount} onClick={() => setQuestionPage(page => Math.min(questionPageCount, page + 1))} className="h-8 rounded-lg">Sonraki</Button>
+                </div>
+              </div>
+            )}
           </div>
         </section>
       )}
+
+      <Dialog open={Boolean(questionPreview)} onOpenChange={open => !open && setQuestionPreview(null)}>
+        <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto rounded-[24px]">
+          <DialogHeader>
+            <DialogTitle className="text-[#29465a]">OCR kaynak doğrulaması</DialogTitle>
+            <DialogDescription>Kaynak sayfa, OCR koordinat bölgesi ve soru metnini birlikte kontrol edin.</DialogDescription>
+          </DialogHeader>
+          {questionPreview && (() => {
+            const region = (questionPreview.sourceRegion ?? {}) as { page?: number; x?: number; y?: number; width?: number; height?: number; pageWidth?: number; pageHeight?: number; coordinateSpace?: string };
+            const pageWidth = region.pageWidth || 595;
+            const pageHeight = region.pageHeight || 842;
+            const left = Math.max(0, Math.min(100, ((region.x || 0) / pageWidth) * 100));
+            const top = Math.max(0, Math.min(100, ((region.y || 0) / pageHeight) * 100));
+            const width = Math.max(1, Math.min(100 - left, ((region.width || 1) / pageWidth) * 100));
+            const height = Math.max(1, Math.min(100 - top, ((region.height || 1) / pageHeight) * 100));
+            return <div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
+              <div className="rounded-2xl border border-[#e4e9e5] bg-[#f6f8f5] p-4">
+                <div className="mb-3 flex items-center justify-between gap-3"><p className="text-sm font-bold text-[#29465a]">Sayfa {region.page ?? questionPreview.sourcePage ?? "—"}</p><Badge variant="outline">{questionPreview.sourceFileName || "OCR kaynağı"}</Badge></div>
+                <div className="relative mx-auto aspect-[595/842] max-h-[520px] w-full max-w-[390px] overflow-hidden rounded-lg border-2 border-[#d9e1dc] bg-white shadow-inner">
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(242,246,242,.95),rgba(255,255,255,.98))]" />
+                  <div className="absolute inset-x-[12%] top-[13%] h-2 rounded bg-[#dfe9e2]" /><div className="absolute inset-x-[12%] top-[20%] h-2 rounded bg-[#e8efea]" /><div className="absolute inset-x-[12%] top-[27%] h-2 rounded bg-[#e8efea]" />
+                  <div className="absolute border-2 border-[#5540e8] bg-[#5540e8]/10" style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}><span className="absolute -top-6 left-0 whitespace-nowrap rounded bg-[#5540e8] px-2 py-1 text-[10px] font-bold text-white">OCR eşleşen bölge</span></div>
+                </div>
+                <p className="mt-3 text-xs leading-5 text-[#71838b]">Koordinat alanı PDF point uzayında normalize edilmiştir: x {Math.round(region.x || 0)}, y {Math.round(region.y || 0)}, w {Math.round(region.width || 0)}, h {Math.round(region.height || 0)}.</p>
+              </div>
+              <div className="space-y-4">
+                <div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#668278]">Soru metni</p><p className="mt-2 rounded-xl bg-[#f7f8f4] p-4 text-sm leading-6 text-[#3b586a]">{questionPreview.prompt}</p></div>
+                <div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#668278]">OCR metadata</p><dl className="mt-2 space-y-2 rounded-xl border border-[#edf0eb] p-4 text-xs text-[#617780]"><div className="flex justify-between gap-3"><dt>Sayfa</dt><dd className="font-semibold">{region.page ?? questionPreview.sourcePage ?? "—"}</dd></div><div className="flex justify-between gap-3"><dt>Koordinat sistemi</dt><dd className="font-semibold">{region.coordinateSpace || "pdf-points"}</dd></div><div className="flex justify-between gap-3"><dt>Kaynak dosya</dt><dd className="max-w-[210px] truncate font-semibold">{questionPreview.sourceFileName || "—"}</dd></div></dl></div>
+                <div className="rounded-xl border border-[#eadfbd] bg-[#fffaf0] p-4 text-xs leading-5 text-[#856b35]">Bu kayıt için özgün PDF görseli depolama URL’si mevcut değilse, koordinat kutusu normalize edilmiş sayfa şablonunda gösterilir. Kaynak dosya yeniden yüklendiğinde aynı sayfa ve bölge otomatik olarak doğrulanabilir.</div>
+              </div>
+            </div>;
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {section === "ai" && (
         <section className="space-y-5">

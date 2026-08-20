@@ -1600,3 +1600,14 @@
 - [x] Server, browser ve network loglarını runtime hata açısından tara
 - [x] Ana sayfa, Admin paneli ve mobil viewport’ları görsel olarak doğrula
 - [x] Kapsamlı doğrulama bulgularını önem derecesi ve önerilen aksiyonlarla teslim et
+
+## Soru Havuzu Filtreleme ve OCR Görsel Doğrulama
+
+- [x] Soru Havuzu için metin, tür, zorluk, durum, kategori ve kaynak sayfa filtreleri
+- [x] Soru Havuzu için oluşturulma tarihi, zorluk ve soru türüne göre sıralama seçenekleri
+- [x] Filtrelenmiş sonuçlarda sayfalama ve sonuç sayısı özeti
+- [x] OCR koordinatlı soru ve kaynak sayfa görsel doğrulama önizleme penceresi
+- [x] Önizlemede koordinat kutusu, sayfa bilgisi, OCR metni ve soru metni karşılaştırması
+- [x] platform.overview için gerçek API smoke testi
+- [x] Büyük client bundle için güvenli code-splitting iyileştirmesi
+- [x] Yeni akışlar için Vitest, TypeScript, build, responsive ve runtime doğrulaması
