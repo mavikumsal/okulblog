@@ -15,8 +15,10 @@ import { QuestionProductionDashboard } from "@/components/QuestionProductionDash
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { getDraftTitleSaveState } from "@/lib/draftTitleSave";
+import { getDocumentAiStatusLabel, getDocumentPreviewTags } from "@/lib/documentImportPreview";
 import {
   getPanelContentType,
   panelContentTypeByRoute,
@@ -34,6 +36,8 @@ import {
   ArrowLeft,
   BookOpenCheck,
   BrainCircuit,
+  Eye,
+  RefreshCw,
   CheckCircle2,
   ChevronRight,
   CheckSquare,
@@ -491,6 +495,7 @@ function PanelContent() {
     ? documentDraftQuery.useQuery(draftFilterInput, { enabled: isAdmin && (section === "genel" || panelContentTypeByRoute[requestedSection] === "document" || section === "icerikler"), staleTime: 10_000 })
     : { data: [], refetch: () => undefined };
   const [selectedDraftIds, setSelectedDraftIds] = useState<number[]>([]);
+  const [previewDraftId, setPreviewDraftId] = useState<number | null>(null);
   const bulkApproveDraftApi = (trpc.admin as any).bulkApproveDocumentImportDrafts;
   const bulkApproveDrafts = bulkApproveDraftApi?.useMutation ? bulkApproveDraftApi.useMutation({ onSuccess: (result: { success?: boolean }) => { documentDrafts.refetch(); setSelectedDraftIds([]); toast.success(result.success ? "Seçili taslaklar yayınlandı." : "Bazı taslaklar yayınlanamadı; sonuçları kontrol edin."); }, onError: (error: { message?: string }) => toast.error(error.message || "Toplu yayınlama başarısız.") }) : { mutate: (_input: { ids: number[] }) => undefined, isPending: false };
   const bulkRejectDraftApi = (trpc.admin as any).bulkRejectDocumentImportDrafts;
@@ -514,6 +519,11 @@ function PanelContent() {
   const reanalyzeDocumentDraft = reanalyzeDocumentDraftApi?.useMutation ? reanalyzeDocumentDraftApi.useMutation({
     onSuccess: () => { documentDrafts.refetch(); toast.success("Doküman yeniden analiz edildi."); },
     onError: (error: { message?: string }) => toast.error(error.message || "Yeniden analiz başarısız."),
+  }) : { mutate: (_input: unknown) => undefined, isPending: false };
+  const regenerateDocumentDraftCoverApi = (trpc.admin as any).regenerateDocumentImportDraftCover;
+  const regenerateDocumentDraftCover = regenerateDocumentDraftCoverApi?.useMutation ? regenerateDocumentDraftCoverApi.useMutation({
+    onSuccess: () => { documentDrafts.refetch(); toast.success("PDF kapağı yeniden üretildi."); },
+    onError: (error: { message?: string }) => toast.error(error.message || "PDF kapağı yeniden üretilemedi."),
   }) : { mutate: (_input: unknown) => undefined, isPending: false };
   const revertDocumentDraftAiApi = (trpc.admin as any).revertDocumentImportDraftAi;
   const revertDocumentDraftAi = revertDocumentDraftAiApi?.useMutation ? revertDocumentDraftAiApi.useMutation({
@@ -1196,6 +1206,8 @@ function PanelContent() {
       title: "Bu alan yapılandırılıyor.",
       text: "Rolünüze uygun modül ve izin ayarları burada görünür.",
     };
+
+  const previewDraft = (documentDrafts.data ?? []).find((draft: { id: number }) => draft.id === previewDraftId) as ({ id: number; title: string; summary: string | null; tags: unknown; coverImageUrl?: string | null; aiStatus: string; aiModel?: string | null; aiError?: string | null; aiSuggestedTitle?: string | null; aiSuggestedSummary?: string | null; aiSuggestedTags?: unknown; ocrStatus?: string; ocrConfidence?: number | null; previewPages: unknown; extractedText?: string | null } | undefined);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 pb-12">
@@ -2498,7 +2510,7 @@ function PanelContent() {
                 const hasCover = Boolean(draft.coverImageUrl);
                 const readyToPublish = hasCategory && hasCover;
                 return <div id={`document-draft-${draft.id}`} key={draft.id} className="scroll-mt-24 overflow-hidden rounded-2xl border border-[#dfe8df] bg-[#fbfdf9]">
-                  <div className="flex items-center gap-2 border-b border-[#e7eee7] px-4 py-2"><input type="checkbox" checked={selectedDraftIds.includes(draft.id)} onChange={event => setSelectedDraftIds(current => event.target.checked ? (current.includes(draft.id) ? current : [...current, draft.id]) : current.filter(id => id !== draft.id))} aria-label={`${draft.title} taslağını seç`} className="size-4 accent-[#5540e8]" /><span className="text-xs font-semibold text-[#71838b]">Toplu işlem için seç</span></div>
+                  <div className="flex items-center gap-2 border-b border-[#e7eee7] px-4 py-2"><input type="checkbox" checked={selectedDraftIds.includes(draft.id)} onChange={event => setSelectedDraftIds(current => event.target.checked ? (current.includes(draft.id) ? current : [...current, draft.id]) : current.filter(id => id !== draft.id))} aria-label={`${draft.title} taslağını seç`} className="size-4 accent-[#5540e8]" /><span className="text-xs font-semibold text-[#71838b]">Toplu işlem için seç</span><Button type="button" size="sm" variant="outline" className="ml-auto rounded-lg border-[#cbded3] text-[#34735c] hover:bg-[#eff9f2]" onClick={() => setPreviewDraftId(draft.id)}><Eye size={14} /> Hızlı önizleme</Button></div>
                   <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                     <div className="min-w-0">
                       {currentPage ? <div className="max-h-[520px] overflow-auto rounded-xl border border-[#dfe8df] bg-[#eef2ed]"><img src={currentPage.url} alt={`${draft.title} ${currentPage.page}. sayfa`} style={{ transform: `scale(${readerZoomByDraft[draft.id] ?? 1})`, transformOrigin: "top center" }} className="mx-auto w-full object-contain transition-transform" /></div> : <div className="grid min-h-48 place-items-center rounded-xl border border-dashed border-[#cfdacf] text-xs text-[#71838b]">PDF sayfa önizlemesi bulunmuyor.</div>}
@@ -2520,6 +2532,28 @@ function PanelContent() {
               {documentDrafts.data?.length === 0 && <div className="rounded-xl border border-dashed border-[#cfdacf] p-5 text-center text-xs text-[#71838b]">Bekleyen doküman taslağı yok.</div>}
             </div>
           </div>}
+          <Dialog open={Boolean(previewDraft)} onOpenChange={open => { if (!open) setPreviewDraftId(null); }}>
+            <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-[26px] border-[#dfe8df] bg-[#fbfdf9] p-0">
+              {previewDraft && <>
+                <DialogHeader className="border-b border-[#e7eee7] bg-[#f4faf5] px-6 py-5 pr-12 text-left">
+                  <DialogTitle className="text-xl font-bold text-[#18344f]">AI ve kapak önizlemesi</DialogTitle>
+                  <DialogDescription className="text-sm text-[#71838b]">{previewDraft.title} · Taslak #{previewDraft.id}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 p-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold uppercase tracking-[.12em] text-[#668278]">Otomatik kapak</p>
+                    {previewDraft.coverImageUrl ? <img src={previewDraft.coverImageUrl} alt={`${previewDraft.title} otomatik kapak`} className="aspect-[3/4] w-full rounded-2xl border border-[#dfe8df] bg-white object-cover shadow-sm" /> : <div className="grid aspect-[3/4] place-items-center rounded-2xl border border-dashed border-[#cfdacf] bg-white p-4 text-center text-xs text-[#71838b]">Kapak görseli bulunmuyor.</div>}
+                    <Button type="button" variant="outline" className="w-full rounded-xl border-[#cbded3] text-[#34735c]" disabled={regenerateDocumentDraftCover.isPending} onClick={() => regenerateDocumentDraftCover.mutate({ id: previewDraft.id })}><RefreshCw size={15} className={regenerateDocumentDraftCover.isPending ? "animate-spin" : ""} /> {regenerateDocumentDraftCover.isPending ? "Kapak üretiliyor…" : "Kapağı yeniden üret"}</Button>
+                  </div>
+                  <div className="space-y-5">
+                    <div className="rounded-2xl border border-[#dfe8df] bg-white p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#668278]">AI analiz sonucu</p><h3 className="mt-2 text-lg font-bold text-[#29465a]">{previewDraft.title}</h3></div><span className={`rounded-full px-3 py-1 text-[11px] font-bold ${previewDraft.aiStatus === "completed" ? "bg-[#e9f8ef] text-[#34735c]" : previewDraft.aiStatus === "failed" ? "bg-[#fff0ef] text-[#a34f48]" : "bg-[#fff8e7] text-[#98702f]"}`}>{getDocumentAiStatusLabel(previewDraft.aiStatus)}</span></div><p className="mt-3 text-sm leading-6 text-[#5d727d]">{previewDraft.summary || "AI tarafından henüz özet oluşturulmadı."}</p><div className="mt-4 flex flex-wrap gap-2">{getDocumentPreviewTags(previewDraft.tags).map(tag => <span key={tag} className="rounded-full bg-[#eef4ff] px-2.5 py-1 text-[11px] font-semibold text-[#4b62a0]">#{tag}</span>)} </div>{previewDraft.aiModel && <p className="mt-4 text-[11px] text-[#8a9a9e]">Model: {previewDraft.aiModel}</p>}{previewDraft.aiError && <p className="mt-3 rounded-xl bg-[#fff0ef] p-3 text-xs text-[#a34f48]">{previewDraft.aiError}</p>}</div>
+                    <div className="flex flex-wrap gap-2"><Button type="button" className="rounded-xl bg-[#5540e8] hover:bg-[#4633c9]" disabled={reanalyzeDocumentDraft.isPending} onClick={() => reanalyzeDocumentDraft.mutate({ id: previewDraft.id })}><BrainCircuit size={15} className={reanalyzeDocumentDraft.isPending ? "animate-pulse" : ""} /> {reanalyzeDocumentDraft.isPending ? "AI yeniden analiz ediyor…" : "AI analizini yeniden üret"}</Button><span className="self-center text-xs text-[#71838b]">Mevcut taslak alanları yeni sonuçlarla güncellenir.</span></div>
+                    <div className="rounded-2xl bg-[#f7f8f4] p-4 text-xs leading-5 text-[#71838b]"><p className="font-bold text-[#496374]">OCR durumu</p><p className="mt-1">{previewDraft.ocrStatus === "completed" ? `Tamamlandı · %${previewDraft.ocrConfidence ?? 0} güven` : previewDraft.ocrStatus === "not_needed" ? "Metin katmanı bulunduğu için OCR gerekmedi." : previewDraft.ocrStatus || "Bekliyor"}</p></div>
+                  </div>
+                </div>
+              </>}
+            </DialogContent>
+          </Dialog>
           <div className="rounded-[24px] border border-[#e6e6de] bg-white p-6">
             <p className="text-sm font-bold text-[#29465a]">İçerik ilkeleri</p>
             <div className="mt-5 space-y-3">
@@ -5662,7 +5696,7 @@ function BulkCoverAssignmentPanel({ assets }: { assets: CoverAsset[] }) {
 
 export default function Panel() {
   return (
-          <DashboardLayout
+    <DashboardLayout
 >
       <PanelContent />
     </DashboardLayout>

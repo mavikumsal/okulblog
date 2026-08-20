@@ -1463,3 +1463,8 @@
 - [x] draftId=60001 için taslak, medya, AI analiz ve kapak kayıtlarını doğrula
 - [x] Taslak kuyruğu sorgusu/import kayıt eşleşmesini düzelt ve regresyon testi ekle
 - [x] PDF AI analiz sonucunu ve otomatik kapak görselini Admin önizlemesinde doğrula
+
+- [x] Taslak kuyruğunda kayıt açmadan AI başlık, özet, etiket ve kapak önizleme modalı ekle
+- [x] Modal içinden AI analizini yeniden üretme akışını ekle
+- [x] Modal içinden otomatik PDF kapak görselini yeniden üretme akışını ekle
+- [x] Yeniden üretim durumları, hata bildirimi, test ve responsive doğrulama ekle
