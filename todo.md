@@ -1521,3 +1521,8 @@
 - [x] ilkokul1dijital z-kitap URL’sinin erişim, sayfa yükleme ve içerik biçimini pasif olarak incele
 - [x] Kaynağın doğrudan PDF, sayfa görseli veya istemci tarafı z-kitap okuyucusu olduğunu belirle
 - [x] İzinli kullanım sınırları içinde OkulBlog içe aktarma için teknik uygunluk ve sınırlamaları raporla
+
+## Artı Eğitim Kütüphane Kaynağı İncelemesi
+- [x] artiegitimkutuphane.com ana sayfasının erişim ve içerik yapısını pasif olarak incele
+- [x] Kitapların PDF, sayfa görseli, iframe veya korumalı okuyucu biçimini belirle
+- [x] İzinli kullanım sınırları içinde OkulBlog’a aktarım için teknik uygunluğu raporla
