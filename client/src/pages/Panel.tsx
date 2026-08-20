@@ -7,7 +7,7 @@ import ContentQuickStart from "@/components/ContentQuickStart";
 import { AdminOverviewDashboard } from "@/components/AdminOverviewDashboard";
 import CategoryCascadeSelect from "@/components/CategoryCascadeSelect";
 import SearchConsoleActionPanel from "@/components/SearchConsoleActionPanel";
-import { SearchIndexingQueuePanel, SeoSnippetPreview, SeoVerificationSettings } from "@/components/SeoAdminTools";
+import { SearchIndexingQueuePanel, SeoSnippetPreview, SeoVerificationSettings, SeoAiAssistant } from "@/components/SeoAdminTools";
 import { AdminUsersManagement } from "@/components/AdminUsersManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -226,6 +226,9 @@ function PanelContent() {
   });
   const overview = trpc.platform.overview.useQuery();
   const overviewAdminUsers = trpc.admin.users.useQuery(undefined, { enabled: isAdmin && section === "genel" });
+  const seoDashboardQueue = (trpc.admin as any)?.searchIndexingQueue?.useQuery
+    ? (trpc.admin as any).searchIndexingQueue.useQuery({ limit: 100 }, { enabled: isAdmin && section === "genel" })
+    : { data: [], isLoading: false, isError: false };
   const auditLogs = (trpc as any).audit?.list?.useQuery
     ? (trpc as any).audit.list.useQuery({ limit: 250 }, { enabled: isAdmin && section === "audit" })
     : { data: [], isLoading: false, isError: false };
@@ -1629,6 +1632,7 @@ function PanelContent() {
           <div className="mt-5 space-y-5">
             <SeoVerificationSettings settings={adminSettings.data} saveSetting={saveSetting} />
             <SeoSnippetPreview />
+            <SeoAiAssistant />
             <SearchIndexingQueuePanel />
           </div>
         </>
@@ -1641,6 +1645,7 @@ function PanelContent() {
             content={(overview.data?.content ?? []) as Array<{ id: number; title: string; contentType: string; status: string; createdAt?: string | Date }>}
             userCount={(overviewAdminUsers.data ?? []).length}
             pendingCount={(documentDrafts.data ?? []).filter((draft: { status?: string }) => draft.status === "pending").length + (overview.data?.content ?? []).filter(item => item.status === "pending").length}
+            seoQueue={(seoDashboardQueue.data ?? []) as Array<{ status: string; lastError?: string | null; updatedAt?: string | Date; createdAt?: string | Date }>}
             rangeDays={dashboardRangeDays}
             onNavigate={route => setLocation(route)}
           />

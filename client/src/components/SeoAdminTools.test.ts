@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { filterIndexingQueueRows, getSnippetStatus } from "./SeoAdminTools";
+import { getSeoQueueSummary } from "./AdminOverviewDashboard";
 
 describe("SEO admin tools", () => {
   it("snippet sınırını doğru raporlar", () => {
@@ -11,5 +12,9 @@ describe("SEO admin tools", () => {
     const rows = [{ status: "pending" }, { status: "failed" }, { status: "submitted" }];
     expect(filterIndexingQueueRows(rows, "failed")).toEqual([{ status: "failed" }]);
     expect(filterIndexingQueueRows(rows, "all")).toHaveLength(3);
+  });
+
+  it("dashboard SEO özetini doğru hesaplar", () => {
+    expect(getSeoQueueSummary([{ status: "pending" }, { status: "submitted" }, { status: "submitted" }, { status: "failed" }, { status: "skipped" }])).toEqual({ pending: 1, submitted: 2, failed: 1, skipped: 1 });
   });
 });

@@ -101,6 +101,7 @@ import {
   updateSearchIndexingQueue,
 } from "./db";
 import { generateQuestionDraft } from "./aiQuestionGenerator";
+import { generateSeoSuggestion } from "./seoAssistant";
 import { getAiProviderConfig, maskSecret } from "./aiProviderConfig";
 import { listProviderModels } from "./aiProviderCatalog";
 import { invokeLLM, listLLMModels } from "./_core/llm";
@@ -522,6 +523,12 @@ export const appRouter = router({
       if (buffer.byteLength > 20 * 1024 * 1024) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "AI kaynak dosyası en fazla 20 MB olabilir." });
       return extractAiSourceText(buffer, input.fileName, input.mimeType);
     }),
+    generateSeoSuggestion: adminProcedure.input(z.object({
+      title: z.string().trim().min(1).max(220),
+      content: z.string().trim().min(20).max(12000),
+      provider: z.enum(["openai", "gemini"]).default("openai"),
+      model: z.string().trim().max(120).optional(),
+    })).mutation(async ({ input }) => generateSeoSuggestion(input)),
     generateQuestion: protectedProcedure.input(z.object({
       topic: z.string().trim().min(3).max(300),
       questionType: z.enum(["multiple-choice", "true-false", "open-ended"]),

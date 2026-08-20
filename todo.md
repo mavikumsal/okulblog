@@ -1654,3 +1654,11 @@
 - [x] Search Console indeksleme kuyruğu durumlarını sorgulayan yetkili tRPC prosedürleri ekle
 - [x] Admin panelinde kuyruk durumu, hata, tekrar deneme ve son senkron zamanını göster
 - [x] Snippet, JSON-LD ve indeksleme paneli için Vitest, TypeScript, build, HTTP smoke ve responsive doğrulaması yap
+
+## Yeni İstek: SEO Yönetim ve Editör Deneyimi
+
+- [x] Admin Dashboard’a son SEO indeksleme durumu, bekleyen işlem sayısı ve senkronizasyon hatalarını gösteren widget ekle
+- [x] İçerik/test/blog editörlerine AI ile meta açıklama ve odak anahtar kelime üretme tRPC akışı ekle
+- [x] AI SEO önerilerini admin onayından sonra forma doldurulacak şekilde bağla
+- [x] Snippet Preview bileşenine Tabs ile X/Twitter ve Facebook sosyal medya önizlemeleri ekle
+- [x] SEO widget, AI SEO asistanı ve sosyal önizleme için Vitest, TypeScript, production build ve responsive doğrulaması yap
