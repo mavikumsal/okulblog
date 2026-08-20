@@ -756,6 +756,17 @@ export async function createTest(input: { title: string; description?: string; c
   if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
   await db.insert(tests).values({ ...input, categoryId: input.categoryId ?? null, institutionCategoryId: input.institutionCategoryId ?? null, coverImageUrl: input.coverImageUrl ?? null, durationMinutes: input.durationMinutes ?? 20, status: "draft" });
 }
+export async function appendQuestionsToTest(testId: number, questionIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Veritabanı bağlantısı kurulamadı.");
+  const existing = await db.select({ questionIds: tests.questionIds }).from(tests).where(eq(tests.id, testId)).limit(1);
+  if (!existing[0]) throw new Error("Test bulunamadı.");
+  const current = Array.isArray(existing[0].questionIds) ? existing[0].questionIds.filter((id): id is number => typeof id === "number") : [];
+  const merged = Array.from(new Set([...current, ...questionIds]));
+  await db.update(tests).set({ questionIds: merged }).where(eq(tests.id, testId));
+  return { testId, questionIds: merged, added: merged.length - current.length };
+}
+
 export async function listTests() {
   const db = await getDb();
   if (!db) return [];

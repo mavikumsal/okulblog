@@ -100,6 +100,37 @@ const providerLabel: Record<string, string> = {
 };
 export type SecuritySeverityFilter = "all" | "critical" | "high" | "medium" | "low";
 
+type QuestionUrlState = {
+  search: string;
+  type: "all" | "multiple-choice" | "true-false" | "open-ended";
+  status: "all" | "draft" | "approved" | "archived";
+  difficulty: "all" | "easy" | "medium" | "hard";
+  source: "all" | "with-source" | "without-source";
+  category: string;
+  sort: "newest" | "oldest" | "difficulty" | "type";
+  page: number;
+};
+
+export function readQuestionUrlState(search: string): QuestionUrlState {
+  const params = new URLSearchParams(search);
+  const type = params.get("qType");
+  const status = params.get("qStatus");
+  const difficulty = params.get("qDifficulty");
+  const source = params.get("qSource");
+  const sort = params.get("qSort");
+  const page = Number(params.get("qPage"));
+  return {
+    search: params.get("q")?.slice(0, 180) ?? "",
+    type: type === "multiple-choice" || type === "true-false" || type === "open-ended" ? type : "all",
+    status: status === "draft" || status === "approved" || status === "archived" ? status : "all",
+    difficulty: difficulty === "easy" || difficulty === "medium" || difficulty === "hard" ? difficulty : "all",
+    source: source === "with-source" || source === "without-source" ? source : "all",
+    category: params.get("qCategory") ?? "",
+    sort: sort === "oldest" || sort === "difficulty" || sort === "type" ? sort : "newest",
+    page: Number.isFinite(page) && page > 0 ? Math.floor(page) : 1,
+  };
+}
+
 export function getSecurityEventPage<T extends { severity: string }>(
   events: T[],
   filter: SecuritySeverityFilter,
@@ -166,6 +197,8 @@ function PanelContent() {
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
   const isAdmin = user?.role === "admin";
+  const canManageQuestionBulk = isAdmin || (user?.role as string | undefined) === "editor";
+  const canManageQuestions = isAdmin || user?.role === "teacher" || user?.role === "moderator";
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   const requestedCategoryId = Number(searchParams?.get("categoryId") ?? 0) || undefined;
   const requestedSection = getPanelSectionFromRoute(
@@ -403,13 +436,15 @@ function PanelContent() {
     "easy" | "medium" | "hard"
   >("medium");
   const [questionCategoryId, setQuestionCategoryId] = useState("");
-  const [questionSearch, setQuestionSearch] = useState("");
-  const [questionTypeFilter, setQuestionTypeFilter] = useState<"all" | "multiple-choice" | "true-false" | "open-ended">("all");
-  const [questionStatusFilter, setQuestionStatusFilter] = useState<"all" | "draft" | "approved" | "archived">("all");
-  const [questionDifficultyFilter, setQuestionDifficultyFilter] = useState<"all" | "easy" | "medium" | "hard">("all");
-  const [questionSourceFilter, setQuestionSourceFilter] = useState<"all" | "with-source" | "without-source">("all");
-  const [questionSort, setQuestionSort] = useState<"newest" | "oldest" | "difficulty" | "type">("newest");
-  const [questionPage, setQuestionPage] = useState(1);
+  const initialQuestionUrlState = readQuestionUrlState(typeof window !== "undefined" ? window.location.search : "");
+  const [questionSearch, setQuestionSearch] = useState(initialQuestionUrlState.search);
+  const [questionTypeFilter, setQuestionTypeFilter] = useState<typeof initialQuestionUrlState.type>(initialQuestionUrlState.type);
+  const [questionStatusFilter, setQuestionStatusFilter] = useState<typeof initialQuestionUrlState.status>(initialQuestionUrlState.status);
+  const [questionDifficultyFilter, setQuestionDifficultyFilter] = useState<typeof initialQuestionUrlState.difficulty>(initialQuestionUrlState.difficulty);
+  const [questionSourceFilter, setQuestionSourceFilter] = useState<typeof initialQuestionUrlState.source>(initialQuestionUrlState.source);
+  const [questionCategoryFilter, setQuestionCategoryFilter] = useState(initialQuestionUrlState.category);
+  const [questionSort, setQuestionSort] = useState<typeof initialQuestionUrlState.sort>(initialQuestionUrlState.sort);
+  const [questionPage, setQuestionPage] = useState(initialQuestionUrlState.page);
   const [questionPreview, setQuestionPreview] = useState<any | null>(null);
   const questions = trpc.questions.list.useQuery(undefined, {
     enabled: Boolean(user) && isAllowed("Soru Havuzu"),
@@ -426,6 +461,7 @@ function PanelContent() {
           (questionTypeFilter === "all" || item.questionType === questionTypeFilter) &&
           (questionStatusFilter === "all" || item.status === questionStatusFilter) &&
           (questionDifficultyFilter === "all" || item.difficulty === questionDifficultyFilter) &&
+          (!questionCategoryFilter || String(item.categoryId ?? "") === questionCategoryFilter) &&
           (questionSourceFilter === "all" || (questionSourceFilter === "with-source" ? hasSource : !hasSource));
       })
       .sort((a, b) => {
@@ -434,7 +470,7 @@ function PanelContent() {
         if (questionSort === "type") return typeOrder[a.questionType] - typeOrder[b.questionType] || b.id - a.id;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
-  }, [questions.data, questionSearch, questionTypeFilter, questionStatusFilter, questionDifficultyFilter, questionSourceFilter, questionSort]);
+  }, [questions.data, questionSearch, questionTypeFilter, questionStatusFilter, questionDifficultyFilter, questionCategoryFilter, questionSourceFilter, questionSort]);
   const questionPageSize = 8;
   const questionPageCount = Math.max(1, Math.ceil(filteredQuestions.length / questionPageSize));
   const pagedQuestions = filteredQuestions.slice((questionPage - 1) * questionPageSize, questionPage * questionPageSize);
@@ -443,7 +479,30 @@ function PanelContent() {
   }, [questionPageCount]);
   useEffect(() => {
     setQuestionPage(1);
-  }, [questionSearch, questionTypeFilter, questionStatusFilter, questionDifficultyFilter, questionSourceFilter, questionSort]);
+  }, [questionSearch, questionTypeFilter, questionStatusFilter, questionDifficultyFilter, questionCategoryFilter, questionSourceFilter, questionSort]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const setOrDelete = (key: string, value: string, defaultValue: string) => value && value !== defaultValue ? params.set(key, value) : params.delete(key);
+    setOrDelete("q", questionSearch.trim(), "");
+    setOrDelete("qType", questionTypeFilter, "all");
+    setOrDelete("qStatus", questionStatusFilter, "all");
+    setOrDelete("qDifficulty", questionDifficultyFilter, "all");
+    setOrDelete("qCategory", questionCategoryFilter, "");
+    setOrDelete("qSource", questionSourceFilter, "all");
+    setOrDelete("qSort", questionSort, "newest");
+    if (questionPage > 1) params.set("qPage", String(questionPage)); else params.delete("qPage");
+    const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
+    if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== next) window.history.replaceState(window.history.state, "", next);
+  }, [questionSearch, questionTypeFilter, questionStatusFilter, questionDifficultyFilter, questionCategoryFilter, questionSourceFilter, questionSort, questionPage]);
+  useEffect(() => {
+    const onPopState = () => {
+      const next = readQuestionUrlState(window.location.search);
+      setQuestionSearch(next.search); setQuestionTypeFilter(next.type); setQuestionStatusFilter(next.status); setQuestionDifficultyFilter(next.difficulty); setQuestionCategoryFilter(next.category); setQuestionSourceFilter(next.source); setQuestionSort(next.sort); setQuestionPage(next.page);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
   const createQuestion = trpc.questions.create.useMutation({
     onSuccess: () => {
       setQuestionPrompt("");
@@ -703,7 +762,7 @@ function PanelContent() {
     : { data: [], isLoading: false, isError: false };
   const testList = trpc.tests.list.useQuery(undefined, {
     enabled:
-      Boolean(user) && (requestedSection === "testler" || section === "bulut-depolama") && isAllowed("Testler"),
+      Boolean(user) && (requestedSection === "testler" || section === "bulut-depolama" || section === "soru-havuzu") && isAllowed("Testler"),
   });
   const mediaTargetDocuments = trpc.contents.list.useQuery({ contentType: "document" }, { enabled: isAdmin && section === "bulut-depolama" });
   const mediaTargetVideos = trpc.contents.list.useQuery({ contentType: "video" }, { enabled: isAdmin && section === "bulut-depolama" });
@@ -725,6 +784,25 @@ function PanelContent() {
   const [testCategoryId, setTestCategoryId] = useState("");
   const [testInstitutionCategoryId, setTestInstitutionCategoryId] = useState("");
   const [testQuestionIds, setTestQuestionIds] = useState<number[]>([]);
+  const [bulkTestWizardOpen, setBulkTestWizardOpen] = useState(false);
+  const [bulkTestMode, setBulkTestMode] = useState<"new" | "existing">("new");
+  const [bulkTestTitle, setBulkTestTitle] = useState("");
+  const [bulkTestDescription, setBulkTestDescription] = useState("");
+  const [bulkTestCategoryId, setBulkTestCategoryId] = useState("");
+  const [bulkTestInstitutionCategoryId, setBulkTestInstitutionCategoryId] = useState("");
+  const [bulkTestDurationMinutes, setBulkTestDurationMinutes] = useState("20");
+  const [bulkExistingTestId, setBulkExistingTestId] = useState("");
+  const appendQuestionsToTest = (trpc.tests as any).appendQuestions?.useMutation
+    ? (trpc.tests as any).appendQuestions.useMutation({
+        onSuccess: (result: { added?: number }) => {
+          setBulkTestWizardOpen(false);
+          setSelectedQuestionIds([]);
+          utils.tests.list.invalidate();
+          toast.success(`${result.added ?? selectedQuestionIds.length} soru mevcut teste eklendi.`);
+        },
+        onError: (error: { message?: string }) => toast.error(error.message || "Sorular teste eklenemedi."),
+      })
+    : { mutate: (_input: { testId: number; questionIds: number[] }) => undefined, isPending: false };
   const createTest = trpc.tests.create.useMutation({
     onSuccess: () => {
       setTestTitle("");
@@ -735,10 +813,44 @@ function PanelContent() {
       setTestInstitutionCategoryId("");
       setTestQuestionIds([]);
       utils.tests.list.invalidate();
+      setBulkTestWizardOpen(false);
+      setBulkTestTitle("");
+      setBulkTestDescription("");
+      setBulkTestCategoryId("");
+      setBulkTestInstitutionCategoryId("");
+      setBulkTestDurationMinutes("20");
       toast.success("Test taslak olarak kaydedildi.");
     },
     onError: () => toast.error("Test kaydedilemedi."),
   });
+  const submitBulkTestWizard = () => {
+    if (!selectedQuestionIds.length) {
+      toast.error("Önce en az bir soru seçin.");
+      return;
+    }
+    if (bulkTestMode === "existing") {
+      const testId = Number(bulkExistingTestId);
+      if (!testId) {
+        toast.error("Soruların ekleneceği testi seçin.");
+        return;
+      }
+      appendQuestionsToTest.mutate({ testId, questionIds: selectedQuestionIds });
+      return;
+    }
+    if (bulkTestTitle.trim().length < 3 || !bulkTestCategoryId) {
+      toast.error("Yeni test için başlık ve eğitim kategorisi zorunludur.");
+      return;
+    }
+    createTest.mutate({
+      title: bulkTestTitle.trim(),
+      description: bulkTestDescription.trim() || undefined,
+      coverImageUrl: null,
+      durationMinutes: Math.max(1, Math.min(240, Number(bulkTestDurationMinutes) || 20)),
+      categoryId: Number(bulkTestCategoryId),
+      institutionCategoryId: bulkTestInstitutionCategoryId ? Number(bulkTestInstitutionCategoryId) : null,
+      questionIds: selectedQuestionIds,
+    });
+  };
   const deleteTest = trpc.tests.remove.useMutation({
     onSuccess: () => {
       utils.tests.list.invalidate();
@@ -2289,7 +2401,7 @@ function PanelContent() {
               <select value={questionSourceFilter} onChange={event => setQuestionSourceFilter(event.target.value as typeof questionSourceFilter)} aria-label="OCR kaynağına göre filtrele" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="all">Tüm kaynaklar</option><option value="with-source">OCR kaynaklı</option><option value="without-source">Kaynaksız</option></select>
               <select value={questionSort} onChange={event => setQuestionSort(event.target.value as typeof questionSort)} aria-label="Soruları sırala" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="newest">En yeni</option><option value="oldest">En eski</option><option value="difficulty">Zorluk</option><option value="type">Soru türü</option></select>
             </div>
-            {isAdmin && filteredQuestions.length > 0 && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[#edf0eb] bg-white p-3"><button type="button" onClick={() => setSelectedQuestionIds(selectedQuestionIds.length === pagedQuestions.length ? [] : pagedQuestions.map(item => item.id))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{selectedQuestionIds.length === pagedQuestions.length ? "Seçimi kaldır" : "Sayfadakileri seç"}</button><span className="text-xs text-[#82918f]">{selectedQuestionIds.length} seçili</span>{selectedQuestionIds.length > 0 && <Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "question", ids: selectedQuestionIds })} className="ml-auto h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button>}</div>}
+            {canManageQuestionBulk && filteredQuestions.length > 0 && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[#edf0eb] bg-white p-3"><button type="button" onClick={() => setSelectedQuestionIds(selectedQuestionIds.length === pagedQuestions.length ? [] : Array.from(new Set([...selectedQuestionIds, ...pagedQuestions.map(item => item.id)])))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{pagedQuestions.length > 0 && pagedQuestions.every(item => selectedQuestionIds.includes(item.id)) ? "Seçimi kaldır" : "Sayfadakileri seç"}</button><span className="text-xs text-[#82918f]">{selectedQuestionIds.length} seçili</span>{selectedQuestionIds.length > 0 && <><Button type="button" size="sm" onClick={() => setBulkTestWizardOpen(true)} className="ml-auto h-8 rounded-lg bg-[#5540e8] text-xs text-white hover:bg-[#4430d1]">Seçilenlerden test oluştur</Button><Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "question", ids: selectedQuestionIds })} className="h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button></>}</div>}
             <div className="mt-5 space-y-3">
               {questions.isLoading ? (
                 <div className="rounded-xl bg-[#f7f8f4] p-5 text-sm text-[#728087]">
@@ -2303,7 +2415,7 @@ function PanelContent() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex min-w-0 items-start gap-3">
-                        {isAdmin && <input type="checkbox" checked={selectedQuestionIds.includes(item.id)} onChange={event => setSelectedQuestionIds(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id))} className="mt-1 h-4 w-4 accent-[#5540e8]" aria-label={`Soru ${item.id} seç`} />}
+                        {canManageQuestionBulk && <input type="checkbox" checked={selectedQuestionIds.includes(item.id)} onChange={event => setSelectedQuestionIds(current => event.target.checked ? Array.from(new Set([...current, item.id])) : current.filter(id => id !== item.id))} className="mt-1 h-4 w-4 accent-[#5540e8]" aria-label={`Soru ${item.id} seç`} />}
                         <p className="text-sm font-semibold text-[#3b586a]">
                         {item.prompt}
                         </p>
@@ -2372,6 +2484,42 @@ function PanelContent() {
         </section>
       )}
 
+      <Dialog open={bulkTestWizardOpen} onOpenChange={setBulkTestWizardOpen}>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-[24px]">
+          <DialogHeader>
+            <DialogTitle className="text-[#29465a]">Seçili sorulardan test oluştur</DialogTitle>
+            <DialogDescription>{selectedQuestionIds.length} soru seçildi. Soruları yeni bir teste ekleyebilir veya mevcut bir teste bağlayabilirsiniz.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-2 rounded-xl bg-[#f7f8f4] p-1">
+              <Button type="button" variant={bulkTestMode === "new" ? "default" : "outline"} onClick={() => setBulkTestMode("new")} className={bulkTestMode === "new" ? "rounded-lg bg-[#5540e8] text-white" : "rounded-lg border-0 text-[#456073]"}>Yeni test</Button>
+              <Button type="button" variant={bulkTestMode === "existing" ? "default" : "outline"} onClick={() => setBulkTestMode("existing")} className={bulkTestMode === "existing" ? "rounded-lg bg-[#5540e8] text-white" : "rounded-lg border-0 text-[#456073]"}>Mevcut teste ekle</Button>
+            </div>
+            {bulkTestMode === "existing" ? (
+              <div className="space-y-2">
+                <Label htmlFor="bulkExistingTest">Hedef test</Label>
+                <select id="bulkExistingTest" value={bulkExistingTestId} onChange={event => setBulkExistingTestId(event.target.value)} className="h-10 w-full rounded-lg border border-[#e2e9e5] bg-white px-3 text-sm text-[#456073]">
+                  <option value="">Test seçin</option>
+                  {(testList.data ?? []).map(test => <option key={test.id} value={test.id}>{test.title}</option>)}
+                </select>
+                {!testList.data?.length && <p className="text-xs text-[#819095]">Henüz erişilebilir bir test bulunmuyor. Yeni test seçeneğini kullanabilirsiniz.</p>}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2"><Label htmlFor="bulkTestTitle">Test başlığı</Label><Input id="bulkTestTitle" value={bulkTestTitle} onChange={event => setBulkTestTitle(event.target.value)} placeholder="Örn. 2. Sınıf Türkçe Tekrar Testi" className="rounded-lg" /></div>
+                <div className="space-y-2"><Label htmlFor="bulkTestDescription">Açıklama <span className="font-normal text-[#819095]">(isteğe bağlı)</span></Label><Textarea id="bulkTestDescription" value={bulkTestDescription} onChange={event => setBulkTestDescription(event.target.value)} placeholder="Test hakkında kısa bilgi" className="min-h-20 rounded-lg" /></div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2"><Label htmlFor="bulkTestCategory">Eğitim kategorisi</Label><select id="bulkTestCategory" value={bulkTestCategoryId} onChange={event => setBulkTestCategoryId(event.target.value)} className="h-10 w-full rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="">Kategori seçin</option>{educationCategoryOptions.map(category => <option key={category.id} value={category.id}>{categoryPath(category, categoryOptions)}</option>)}</select></div>
+                  <div className="space-y-2"><Label htmlFor="bulkTestInstitution">Kurum kategorisi <span className="font-normal text-[#819095]">(isteğe bağlı)</span></Label><select id="bulkTestInstitution" value={bulkTestInstitutionCategoryId} onChange={event => setBulkTestInstitutionCategoryId(event.target.value)} className="h-10 w-full rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="">Kurum kategorisi yok</option>{institutionCategoryOptions.map(category => <option key={category.id} value={category.id}>{categoryPath(category, categoryOptions)}</option>)}</select></div>
+                </div>
+                <div className="space-y-2"><Label htmlFor="bulkTestDuration">Süre (dakika)</Label><Input id="bulkTestDuration" type="number" min="1" max="240" value={bulkTestDurationMinutes} onChange={event => setBulkTestDurationMinutes(event.target.value)} className="rounded-lg" /></div>
+              </div>
+            )}
+            <div className="rounded-xl border border-[#e8ece7] bg-[#fbfcfa] p-3 text-xs text-[#6e7f84]">Seçilen soru kimlikleri: {selectedQuestionIds.join(", ")}</div>
+            <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setBulkTestWizardOpen(false)} className="rounded-lg">Vazgeç</Button><Button type="button" disabled={createTest.isPending || appendQuestionsToTest.isPending} onClick={submitBulkTestWizard} className="rounded-lg bg-[#5540e8] text-white hover:bg-[#4430d1]">{createTest.isPending || appendQuestionsToTest.isPending ? "Kaydediliyor..." : bulkTestMode === "new" ? "Testi oluştur" : "Teste ekle"}</Button></div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={Boolean(questionPreview)} onOpenChange={open => !open && setQuestionPreview(null)}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto rounded-[24px]">
           <DialogHeader>

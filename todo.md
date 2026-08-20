@@ -1611,3 +1611,11 @@
 - [x] platform.overview için gerçek API smoke testi
 - [x] Büyük client bundle için güvenli code-splitting iyileştirmesi
 - [x] Yeni akışlar için Vitest, TypeScript, build, responsive ve runtime doğrulaması
+
+## Soru Havuzu URL Filtreleri ve Toplu Test Sihirbazı
+
+- [x] Soru Havuzu filtre, sıralama ve sayfalama durumlarını URL searchParams ile senkronize et
+- [x] Paylaşılabilir URL’den filtreleri ve sayfayı güvenli biçimde geri yükle
+- [x] Seçili sorular için toplu test oluşturma sihirbazı arayüzü ekle
+- [x] Seçili soruları yeni teste veya mevcut teste atama tRPC akışını tamamla
+- [x] Yeni toplu test akışı için yetki, veri bütünlüğü, Vitest, TypeScript, build ve responsive doğrulaması

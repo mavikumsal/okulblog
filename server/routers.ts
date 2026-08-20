@@ -25,6 +25,7 @@ import {
   createQuestions,
   createStoredFile,
   createTest,
+  appendQuestionsToTest,
   listTests,
   getHomepageContentOverview,
   getHomepageOverviewStats,
@@ -486,11 +487,19 @@ export const appRouter = router({
       durationMinutes: z.number().int().min(1).max(240).default(20),
       categoryId: z.number().int().positive(),
       institutionCategoryId: z.number().int().positive().nullable().optional(),
-      questionIds: z.array(z.number().int().positive()).min(1),
+      questionIds: z.array(z.number().int().positive()).min(1).max(500),
     })).mutation(async ({ ctx, input }) => {
       await assertSectionAccess(ctx.user, "Testler");
       await createTest({ ...input, createdBy: ctx.user.id });
       return { success: true };
+    }),
+    appendQuestions: protectedProcedure.input(z.object({
+      testId: z.number().int().positive(),
+      questionIds: z.array(z.number().int().positive()).min(1).max(500),
+    })).mutation(async ({ ctx, input }) => {
+      await assertSectionAccess(ctx.user, "Testler");
+      const result = await appendQuestionsToTest(input.testId, input.questionIds);
+      return { success: true, ...result };
     }),
   }),
   ai: router({
