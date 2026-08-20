@@ -530,7 +530,10 @@ function PanelContent() {
       else if (!contentTitle.trim()) setContentTitle(result.fileName.replace(/\\.[^.]+$/, ""));
       if (result.summary && !contentSummary.trim()) setContentSummary(result.summary);
       if (result.coverImageUrl) setContentCoverUrl(result.coverImageUrl);
-      toast.success(`Doküman aktif ${result.provider === "bunny-storage" ? "Bunny" : "S3"} depolamaya aktarıldı.`);
+      toast.success("PDF indirildi ve taslak oluşturuldu", {
+        description: `${result.fileName} aktif ${result.provider === "bunny-storage" ? "Bunny" : "S3"} depolamaya aktarıldı. Kategori ve kapak kontrolünden sonra yayınlayabilirsiniz.`,
+        duration: 7000,
+      });
     },
     onError: (error: { message?: string }) => { documentImportHistory.refetch(); toast.error(error.message || "URL’den doküman aktarılamadı."); },
   }) : { mutate: () => undefined, isPending: false };

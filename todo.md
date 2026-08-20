@@ -1419,3 +1419,12 @@
 - [x] Manuel retry ile otomatik retry sonuçlarını aynı geçmişte birleştirmek
 - [x] Taslak oluştuğunda kategori/kapak/yayınlama akışını doğrulamak
 - [x] Test, hosting gereksinimleri ve checkpoint teslimini tamamlamak
+
+## PDF Başarı Bildirimi ve Takılan Aktarım — 2026-08-20
+
+- [x] PDF başarıyla aktarılıp taslak oluşturulduğunda sağ üst başarı bildirimi göstermek
+- [x] Başarı bildiriminde başlık, taslak durumu ve doküman bağlantısını göstermek
+- [x] Uzun süre “İşleniyor” kalan PDF kaydının gerçek aşamasını loglardan tespit etmek
+- [x] Takılan aktarım için timeout ve anlaşılır hata durumunu güvenceye almak
+- [x] Başarı bildirimi ve işlem durumu için test/görsel kontrol yapmak
+- [ ] Checkpoint oluşturmak

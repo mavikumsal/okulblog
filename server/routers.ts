@@ -115,6 +115,13 @@ function safeFileStem(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/\.pdf$/i, "").slice(0, 160);
 }
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(message)), timeoutMs)),
+  ]);
+}
+
 async function analyzeDocumentWithOcr(input: { text: string; previewPages: Array<{ page: number; url: string }>; fallbackTitle: string }) {
   let extractedText = input.text.trim();
   let ocrStatus: "not_needed" | "not_started" | "completed" | "failed" = "not_needed";
@@ -850,17 +857,29 @@ export const appRouter = router({
       let previewPages: Array<{ page: number; url: string }> = [];
       let extractedText = "";
       if (mimeType === "application/pdf") {
-        const rendered = await renderPdfPages(buffer);
+        const rendered = await withTimeout(
+          renderPdfPages(buffer),
+          45_000,
+          "PDF sayfa ön izlemesi zaman aşımına uğradı; taslak kapaksız oluşturulacak.",
+        ).catch(() => ({ pages: [] as Buffer[] }));
         for (let index = 0; index < rendered.pages.length; index += 1) {
           const uploaded = await uploadPreview(rendered.pages[index], `${safeFileStem(originalName)}-page-${String(index + 1).padStart(3, "0")}.webp`);
           previewPages.push({ page: index + 1, url: "url" in uploaded ? uploaded.url : uploaded.publicUrl });
         }
         coverImageUrl = previewPages[0]?.url ?? null;
-        extractedText = await extractPdfText(buffer);
+        extractedText = await withTimeout(
+          extractPdfText(buffer),
+          30_000,
+          "PDF metin çıkarma zaman aşımına uğradı; taslak manuel inceleme için oluşturulacak.",
+        ).catch(() => "");
       }
       const mediaAssetId = await createMediaAsset({ provider, providerAssetId, fileName: originalName, publicUrl, mimeType, sizeBytes: buffer.byteLength, contentType: "document", metadata: { sourceUrl: input.sourceUrl, activeProvider, coverImageUrl, previewPages }, uploadedBy: ctx.user.id });
       const fallbackTitle = originalName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
-      const analysis = input.analyzeWithAi ? await analyzeDocumentWithOcr({ text: extractedText, previewPages, fallbackTitle }) : { extractedText, ocrStatus: "not_needed" as const, ocrConfidence: null, title: fallbackTitle, summary: "", tags: [], aiStatus: "not_started" as const, aiModel: null, aiError: null, aiSuggestedTitle: null, aiSuggestedSummary: null, aiSuggestedTags: [] };
+      const analysis = input.analyzeWithAi ? await withTimeout(
+        analyzeDocumentWithOcr({ text: extractedText, previewPages, fallbackTitle }),
+        60_000,
+        "Belge analizi 60 saniye içinde tamamlanamadı; taslak AI analizi beklemeden oluşturuldu.",
+      ).catch(() => ({ extractedText, ocrStatus: "not_started" as const, ocrConfidence: null, title: fallbackTitle, summary: "", tags: [], aiStatus: "failed" as const, aiModel: null, aiError: "AI analizi zaman aşımına uğradı; taslak manuel inceleme için oluşturuldu.", aiSuggestedTitle: null, aiSuggestedSummary: null, aiSuggestedTags: [] })) : { extractedText, ocrStatus: "not_needed" as const, ocrConfidence: null, title: fallbackTitle, summary: "", tags: [], aiStatus: "not_started" as const, aiModel: null, aiError: null, aiSuggestedTitle: null, aiSuggestedSummary: null, aiSuggestedTags: [] };
       const draftId = await createDocumentImportDraft({ mediaAssetId, sourceUrl: input.sourceUrl, title: analysis.title, summary: analysis.summary, tags: analysis.tags, coverImageUrl, previewPages, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, extractedText: analysis.extractedText, aiSuggestedTitle: analysis.aiSuggestedTitle, aiSuggestedSummary: analysis.aiSuggestedSummary, aiSuggestedTags: analysis.aiSuggestedTags, createdBy: ctx.user.id });
       if (analysis.aiStatus !== "not_started" || analysis.ocrStatus !== "not_needed") await updateDocumentImportDraft(draftId, { aiStatus: analysis.aiStatus, aiModel: analysis.aiModel, aiError: analysis.aiError, aiSuggestedTitle: analysis.aiSuggestedTitle, aiSuggestedSummary: analysis.aiSuggestedSummary, aiSuggestedTags: analysis.aiSuggestedTags, ocrStatus: analysis.ocrStatus, ocrConfidence: analysis.ocrConfidence, extractedText: analysis.extractedText });
       await recordSecurityEvent({ eventType: "document_import_draft_created", severity: "low", description: "Admin dokümanı taslak onay kuyruğuna aldı.", metadata: { draftId, mediaAssetId, provider, mimeType, sizeBytes: buffer.byteLength, actorId: ctx.user.id } });
