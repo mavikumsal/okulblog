@@ -1,4 +1,4 @@
-import { and, eq, asc, desc, inArray, isNull, gte, lte, count, sql } from "drizzle-orm";
+import { and, eq, asc, desc, inArray, isNull, gte, lte, lt, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { categoryNodes, contentItems, contentProgress, contentViewDaily, contentViewEvents, outcomeProgress, favorites, homeSlides, InsertUser, mediaAssetLinks, qaAnswers, qaQuestions, mediaAssets, documentImportDrafts, documentImportHistory, mediaTransferJobs, newsCategories, questions, rolePermissions, searchConsoleTokens, securityEvents, auditLogs, siteSettings, storedFiles, testAttempts, tests, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -837,6 +837,11 @@ export async function getDocumentImportHistory(id: number) {
   if (!db) return null;
   const [row] = await db.select().from(documentImportHistory).where(eq(documentImportHistory.id, id)).limit(1);
   return row ?? null;
+}
+export async function listRetryableDocumentImportHistory(limit = 20, maxAttempts = 4, olderThan = new Date(Date.now() - 15 * 60 * 1000)) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(documentImportHistory).where(and(eq(documentImportHistory.status, "failed"), lt(documentImportHistory.attempts, maxAttempts), lt(documentImportHistory.updatedAt, olderThan))).orderBy(asc(documentImportHistory.updatedAt)).limit(Math.min(Math.max(limit, 1), 50));
 }
 
 export async function createDocumentImportDraft(input: {

@@ -1409,3 +1409,13 @@
 - [x] Toplu yayınlama öncesinde her taslak için kategori ve kapak kontrolü yapmak
 - [x] Eksik taslakları yayın dışı bırakıp nedenlerini göstermek
 - [x] Test, responsive kontrol ve checkpoint oluşturmak
+
+## Otomatik PDF Yeniden Deneme — 2026-08-20
+
+- [x] Başarısız PDF indirmeleri için otomatik yeniden deneme durumlarını modellemek
+- [x] İdempotent arka plan yeniden deneme handler’ı eklemek
+- [x] Yeniden deneme sayısı ve geri çekilme aralığını sınırlamak
+- [x] Admin işlem geçmişinde otomatik retry durumunu göstermek
+- [x] Manuel retry ile otomatik retry sonuçlarını aynı geçmişte birleştirmek
+- [x] Taslak oluştuğunda kategori/kapak/yayınlama akışını doğrulamak
+- [ ] Test, hosting gereksinimleri ve checkpoint teslimini tamamlamak

@@ -8,7 +8,8 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { sdk } from "./sdk";
-import { aggregateContentViewDaily } from "../db";
+import { aggregateContentViewDaily, listRetryableDocumentImportHistory } from "../db";
+import { retryFailedDocumentImport, documentImportRetryPolicy } from "../documentImportRetry";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -46,6 +47,18 @@ async function startServer() {
       return res.json({ ok: true, ...result });
     } catch (error) {
       return res.status(500).json({ error: error instanceof Error ? error.message : "Aggregation failed", timestamp: new Date().toISOString() });
+    }
+  });
+  app.post("/api/scheduled/retryDocumentImports", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron) return res.status(403).json({ error: "cron-only" });
+      const candidates = await listRetryableDocumentImportHistory(20, documentImportRetryPolicy.maxAttempts);
+      const results = [];
+      for (const history of candidates) results.push(await retryFailedDocumentImport(history));
+      return res.json({ ok: true, checked: candidates.length, results, policy: documentImportRetryPolicy });
+    } catch (error) {
+      return res.status(500).json({ error: error instanceof Error ? error.message : "Document retry failed", timestamp: new Date().toISOString() });
     }
   });
   // tRPC API
