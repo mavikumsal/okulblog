@@ -1591,3 +1591,12 @@
 - [x] Çok sayfalı PDF OCR çıktısında koordinat ve sayfa bilgisini soru taslağına taşıma
 - [x] OCR koordinatlarıyla soru–sayfa eşleştirmesini otomatikleştirme ve kaynak önizlemesini seçili sayfaya bağlama
 - [x] Toplu onay ve OCR eşleştirme için Vitest, TypeScript, build ve responsive doğrulama
+
+## Kapsamlı Proje Doğrulaması
+
+- [x] Tüm Vitest testlerini ve test dosyası kapsamını yeniden çalıştırıp raporla
+- [x] Tüm TypeScript ve production build kontrollerini çalıştırıp uyarıları ayır
+- [x] Drizzle migration/schema tutarlılığını ve kritik dosya bütünlüğünü incele
+- [x] Server, browser ve network loglarını runtime hata açısından tara
+- [x] Ana sayfa, Admin paneli ve mobil viewport’ları görsel olarak doğrula
+- [x] Kapsamlı doğrulama bulgularını önem derecesi ve önerilen aksiyonlarla teslim et
