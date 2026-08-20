@@ -1491,3 +1491,8 @@
 - [x] Soru önizlemesinde orijinal PDF ve OCR metnini split-screen göster
 - [x] Seçili sorulara toplu kategori, zorluk derecesi ve kazanım atama akışı ekle
 - [x] Yeni akışlar için güvenli kaydetme, test, responsive doğrulama ve hata durumlarını ekle
+
+- [ ] Gerçek soru PDF’i ve cevap anahtarı PDF’iyle pilot aktarımı çalıştırıp OCR/eşleştirme sonuçlarını kaydet
+- [x] Görsel kırpma alanına sürükle-bırak koordinat düzenleme ekle
+- [x] Kırpma koordinatlarının OCR düzeltme ve soru taslağına doğru aktarımını test et
+- [ ] Gerçek pilot sonuçları, düşük güvenli sorular ve manuel düzeltme akışını doğrula
