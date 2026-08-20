@@ -1454,3 +1454,12 @@
 - [x] Başlık kaydı başarılı olduğunda onay bildirimi göstermek
 - [x] Kayıt hatasında açıklayıcı hata mesajı göstermek
 - [x] Test, responsive kontrol ve checkpoint oluşturmak
+
+- [x] Önizleme sunucusunu yeniden başlatıp Admin dokümanlar ekranının erişilebilirliğini doğrula
+- [x] Kullanıcının verdiği PDF URL’siyle Admin içe aktarma akışını yeniden çalıştır
+- [x] Aktif depolama, taslak metadata’sı ve PDF işlem geçmişi kaydını doğrula
+
+- [x] draftId=60001 kaydının taslak onay kuyruğunda görünmeme kök nedenini belirle
+- [x] draftId=60001 için taslak, medya, AI analiz ve kapak kayıtlarını doğrula
+- [x] Taslak kuyruğu sorgusu/import kayıt eşleşmesini düzelt ve regresyon testi ekle
+- [x] PDF AI analiz sonucunu ve otomatik kapak görselini Admin önizlemesinde doğrula

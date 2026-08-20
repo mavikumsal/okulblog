@@ -25,6 +25,7 @@ import {
 import { refreshAdminUsers } from "@shared/adminUserRole";
 import { getPanelSectionFromRoute } from "@shared/panelRoute";
 import { filterDocumentImportHistory } from "@/lib/documentImportHistory";
+import { buildDocumentDraftFilterInput, DEFAULT_DOCUMENT_DRAFT_STATUS_FILTER, type DocumentDraftAiFilter, type DocumentDraftStatusFilter } from "@/lib/documentImportDraftFilters";
 import { toast } from "sonner";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
@@ -456,8 +457,8 @@ function PanelContent() {
   const [readerPageByDraft, setReaderPageByDraft] = useState<Record<number, number>>({});
   const [readerZoomByDraft, setReaderZoomByDraft] = useState<Record<number, number>>({});
   const [draftTitleEdits, setDraftTitleEdits] = useState<Record<number, string>>({});
-  const [draftStatusFilter, setDraftStatusFilter] = useState<"draft" | "pending" | "approved" | "rejected" | "">("pending");
-  const [draftAiFilter, setDraftAiFilter] = useState<"not_started" | "processing" | "completed" | "failed" | "">("");
+  const [draftStatusFilter, setDraftStatusFilter] = useState<DocumentDraftStatusFilter>(DEFAULT_DOCUMENT_DRAFT_STATUS_FILTER);
+  const [draftAiFilter, setDraftAiFilter] = useState<DocumentDraftAiFilter>("");
   const [draftFromFilter, setDraftFromFilter] = useState("");
   const [draftToFilter, setDraftToFilter] = useState("");
   const [remoteDocumentResult, setRemoteDocumentResult] = useState<{
@@ -485,7 +486,7 @@ function PanelContent() {
   const [selectedHistoryIds, setSelectedHistoryIds] = useState<number[]>([]);
   const filteredDocumentImportHistory = useMemo(() => filterDocumentImportHistory((documentImportHistory.data ?? []) as Array<{ id: number; sourceUrl: string; fileName?: string | null; provider?: string | null; status: string; errorMessage?: string | null; attempts?: number; createdAt?: string | Date }>, { status: historyStatusFilter, provider: historyProviderFilter, dateRange: historyDateFilter }), [documentImportHistory.data, historyDateFilter, historyProviderFilter, historyStatusFilter]);
   const recoverableHistoryIds = useMemo(() => filteredDocumentImportHistory.filter((entry: { id: number; status: string }) => ["processing", "queued", "downloading", "failed"].includes(entry.status)).map((entry: { id: number }) => entry.id), [filteredDocumentImportHistory]);
-  const draftFilterInput = useMemo(() => ({ status: draftStatusFilter || undefined, aiStatus: draftAiFilter || undefined, from: draftFromFilter ? new Date(`${draftFromFilter}T00:00:00`) : undefined, to: draftToFilter ? new Date(`${draftToFilter}T23:59:59.999`) : undefined }), [draftStatusFilter, draftAiFilter, draftFromFilter, draftToFilter]);
+  const draftFilterInput = useMemo(() => buildDocumentDraftFilterInput({ status: draftStatusFilter, aiStatus: draftAiFilter, from: draftFromFilter, to: draftToFilter }), [draftStatusFilter, draftAiFilter, draftFromFilter, draftToFilter]);
   const documentDrafts = documentDraftQuery?.useQuery
     ? documentDraftQuery.useQuery(draftFilterInput, { enabled: isAdmin && (section === "genel" || panelContentTypeByRoute[requestedSection] === "document" || section === "icerikler"), staleTime: 10_000 })
     : { data: [], refetch: () => undefined };
