@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import QuestionEditor from "@/components/QuestionEditor";
 import ContactSettings from "@/components/ContactSettings";
@@ -14,7 +15,8 @@ import { QuestionProductionDashboard } from "@/components/QuestionProductionDash
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
+import { getDraftTitleSaveState } from "@/lib/draftTitleSave";
 import {
   getPanelContentType,
   panelContentTypeByRoute,
@@ -34,6 +36,7 @@ import {
   CheckCircle2,
   ChevronRight,
   CheckSquare,
+  Save,
   Search,
   CircleDotDashed,
   FileText,
@@ -452,6 +455,7 @@ function PanelContent() {
   const [analyzeImportedDocumentWithAi, setAnalyzeImportedDocumentWithAi] = useState(true);
   const [readerPageByDraft, setReaderPageByDraft] = useState<Record<number, number>>({});
   const [readerZoomByDraft, setReaderZoomByDraft] = useState<Record<number, number>>({});
+  const [draftTitleEdits, setDraftTitleEdits] = useState<Record<number, string>>({});
   const [draftStatusFilter, setDraftStatusFilter] = useState<"draft" | "pending" | "approved" | "rejected" | "">("pending");
   const [draftAiFilter, setDraftAiFilter] = useState<"not_started" | "processing" | "completed" | "failed" | "">("");
   const [draftFromFilter, setDraftFromFilter] = useState("");
@@ -2501,7 +2505,7 @@ function PanelContent() {
                       {pages.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-8">{pages.map((page, index) => <button type="button" key={page.page} aria-label={`${page.page}. sayfayı aç`} onClick={() => setReaderPageByDraft(current => ({ ...current, [draft.id]: index }))} className={`overflow-hidden rounded-lg border-2 bg-white ${index === pageIndex ? "border-[#5540e8]" : "border-transparent"}`}><img src={page.url} alt="" className="aspect-[3/4] w-full object-cover" /></button>)}</div>}
                     </div>
                     <div className="space-y-3">
-                      <div><Label htmlFor={`draft-title-${draft.id}`}>Başlık</Label><Input id={`draft-title-${draft.id}`} defaultValue={draft.title} onBlur={event => { if (event.target.value.trim() && event.target.value !== draft.title) updateDocumentDraft.mutate({ id: draft.id, title: event.target.value.trim(), summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId }); }} className="mt-1 h-10 rounded-xl bg-white text-sm" /></div>
+                      <div><Label htmlFor={`draft-title-${draft.id}`}>Başlık</Label><div className="mt-1 flex items-center gap-2">{(() => { const titleState = getDraftTitleSaveState(draftTitleEdits[draft.id] ?? draft.title, draft.title); return <><Input id={`draft-title-${draft.id}`} value={draftTitleEdits[draft.id] ?? draft.title} onChange={event => setDraftTitleEdits(current => ({ ...current, [draft.id]: event.target.value }))} className="h-10 min-w-0 rounded-xl bg-white text-sm" /><Button type="button" size="icon" variant="outline" aria-label="Taslak başlığını kaydet" title={updateDocumentDraft.isPending ? "Başlık kaydediliyor" : "Başlığı kaydet"} disabled={updateDocumentDraft.isPending || !titleState.canSave} onClick={() => { if (!titleState.canSave) return; updateDocumentDraft.mutate({ id: draft.id, title: titleState.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId }); }} className="size-10 shrink-0 rounded-xl border-[#cbded3] text-[#34735c] hover:bg-[#eff9f2]"><Save size={15} /></Button></>; })()}</div></div>
                       <div><Label htmlFor={`draft-summary-${draft.id}`}>Kısa özet</Label><Textarea id={`draft-summary-${draft.id}`} defaultValue={draft.summary ?? ""} onBlur={event => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: event.target.value, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId })} className="mt-1 min-h-24 rounded-xl bg-white text-xs" /></div>
                       <div><Label htmlFor={`draft-tags-${draft.id}`}>Etiketler</Label><Input id={`draft-tags-${draft.id}`} defaultValue={Array.isArray(draft.tags) ? (draft.tags as string[]).join(", ") : ""} onBlur={event => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: event.target.value.split(",").map(tag => tag.trim()).filter(Boolean).slice(0, 12), categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId })} className="mt-1 h-10 rounded-xl bg-white text-xs" placeholder="2. sınıf, Türkçe, sınav" /></div><div><Label htmlFor={`draft-ocr-${draft.id}`}>OCR metni / manuel düzeltme</Label><Textarea id={`draft-ocr-${draft.id}`} defaultValue={draft.extractedText ?? ""} onBlur={event => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId, extractedText: event.target.value.slice(0, 14000) })} className="mt-1 min-h-28 rounded-xl bg-white text-xs leading-5" placeholder="Taranmış PDF’den çıkarılan metni burada düzeltebilirsiniz." /><p className="mt-1 text-[10px] text-[#71838b]">OCR metni kaydedilir; AI yeniden analizinde kullanılabilir.</p></div>
                       <CategoryCascadeSelect nodes={categoryOptions} educationValue={draft.categoryId ? String(draft.categoryId) : ""} institutionValue={draft.institutionCategoryId ? String(draft.institutionCategoryId) : ""} onEducationChange={value => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: value ? Number(value) : null, institutionCategoryId: draft.institutionCategoryId })} onInstitutionChange={value => updateDocumentDraft.mutate({ id: draft.id, title: draft.title, summary: draft.summary, tags: Array.isArray(draft.tags) ? draft.tags as string[] : [], categoryId: draft.categoryId, institutionCategoryId: value ? Number(value) : null })} />

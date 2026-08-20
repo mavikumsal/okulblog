@@ -1445,3 +1445,12 @@
 - [x] Taslak kısayoluna tıklandığında ilgili taslağı otomatik seçip düzenleme alanını açmak
 - [x] Taslak bulunamazsa güvenli fallback ve açıklayıcı uyarı göstermek
 - [x] Uçtan uca test, responsive kontrol ve checkpoint oluşturmak
+
+## Taslak Başlığı Hızlı Kaydetme — 2026-08-20
+
+- [x] Taslak başlığı yanında küçük bir kaydet butonu göstermek
+- [x] Başlık değişmediğinde kaydet butonunu pasif tutmak
+- [x] Kayıt sırasında yükleniyor durumunu ve çift tıklama korumasını eklemek
+- [x] Başlık kaydı başarılı olduğunda onay bildirimi göstermek
+- [x] Kayıt hatasında açıklayıcı hata mesajı göstermek
+- [x] Test, responsive kontrol ve checkpoint oluşturmak
