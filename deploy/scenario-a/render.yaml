@@ -6,7 +6,7 @@ services:
     rootDir: .
     # This service serves both the React frontend and the Express/tRPC API.
     # build:backend alone omits the frontend and causes ENOENT for index.html.
-    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm run build
+    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm run build:render
     startCommand: NODE_ENV=production node dist/index.js
     healthCheckPath: /robots.txt
     envVars:

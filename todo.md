@@ -1727,3 +1727,9 @@
 - [x] Render’da `dist/backend/public/index.html` ENOENT kök nedenini düzelt
 - [x] Frontend’in aynı Render servisine veya ayrı Vercel/PHP dağıtımına göre API URL akışını doğrula
 - [x] Render/Vercel tarayıcı kurulum ve smoke test adımlarını belgele
+
+## Render `dist/index.js` Giriş Dosyası Düzeltmesi
+
+- [x] Gerçek production build çıktısında `dist/index.js` ve `dist/public/index.html` dosyalarını doğrula
+- [x] `build:render` komutuyla Render build çıktısını zorunlu olarak doğrula
+- [x] Render build/start komutlarını gerçek production çıktısıyla eşleştir
