@@ -48,3 +48,10 @@ Cevap anahtarı PDF’i: https://www.ilkokulluyum.com/files/uploads/a95430113e6a
 Kaynak sayfa 45 soruluk 2. sınıf hazırbulunuşluk sınavı ve ayrı cevap anahtarı indirme bağlantısı sunuyor. Parser sonucu: soru PDF’i 6 sayfa / 45 soru çıkardı; cevap PDF’i 1 sayfa ve taranmış görüntü olduğundan metin katmanından 0 cevap anahtarı bulundu. Görsel OCR fallback’ı eklendi ancak ilk çağrıda cevap eşleşmesi 0 kaldı; fallback hata loglaması ve içerik dizi dönüşü desteği sonraki teşhis için eklendi. İlk örnek sorularda seçenekler eksik/karışık olduğu için düşük güvenli manuel kontrol gerektiren kayıtlar oluştu.
 
 Portal kontrolü: https://cevap-anahtari.artiegitimyayinlari.com/books/1.Sinif/Check_up/1.jpg — bu görsel cevap anahtarı değil, cevapları sayfa üzerinde yazılı bir çalışma sayfasıdır; pilot soru/cevap çifti olarak uygun bulunmadı.
+
+## 2026-08-20 gerçek pilot doğrulaması
+
+Admin Soru Havuzu ekranında `questions-ilkokulluyum.pdf` ve `answers-ilkokulluyum.pdf` dosyaları multipart staging üzerinden başarıyla yüklendi ve pilot aktarım çalıştırıldı. Arayüz sonucu: **45/45 soru seçili**, **28/45 cevap eşleştirildi**; sonuçlar taslak olarak hazırlandı. OCR çıktısı ve orijinal PDF yan yana gösteriliyor. Düşük güvenli örneklerde %34 ve `Manuel kontrol`, daha güvenilir örneklerde %70 ve cevap bilgisi gösteriliyor. Toplu kategori/zorluk/kazanım alanları ve `Görseli kırp` manuel düzeltme aksiyonu görünür durumda. Eşleşmeyen 17 kayıt için manuel kontrol ve cevap anahtarı formatı/okunabilirliği incelemesi açık.
+
+Kaynak dosyalar: `/tmp/okulblog-pilot/questions-ilkokulluyum.pdf`, `/tmp/okulblog-pilot/answers-ilkokulluyum.pdf`.
+Kaynak site: `https://www.ilkokulluyum.com/` üzerinden edinilen pilot dosyalar; içerik yalnızca yetkili kullanım ve admin incelemesi için taslakta tutuldu, otomatik yayın yapılmadı.

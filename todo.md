@@ -1492,18 +1492,18 @@
 - [x] Seçili sorulara toplu kategori, zorluk derecesi ve kazanım atama akışı ekle
 - [x] Yeni akışlar için güvenli kaydetme, test, responsive doğrulama ve hata durumlarını ekle
 
-- [ ] Gerçek soru PDF’i ve cevap anahtarı PDF’iyle pilot aktarımı çalıştırıp OCR/eşleştirme sonuçlarını kaydet
+- [x] Gerçek soru PDF’i ve cevap anahtarı PDF’iyle pilot aktarımı çalıştırıp OCR/eşleştirme sonuçlarını kaydet
 - [x] Görsel kırpma alanına sürükle-bırak koordinat düzenleme ekle
 - [x] Kırpma koordinatlarının OCR düzeltme ve soru taslağına doğru aktarımını test et
-- [ ] Gerçek pilot sonuçları, düşük güvenli sorular ve manuel düzeltme akışını doğrula
+- [x] Gerçek pilot sonuçları, düşük güvenli sorular ve manuel düzeltme akışını doğrula
 
 - [ ] Artı Eğitim/FlipHTML5 kitaplığından eşleşen yetkili soru ve cevap yayını seç
 - [ ] Seçilen yayın sayfalarını PDF pilot girdilerine dönüştür
 - [ ] Siteden hazırlanan gerçek PDF’lerle OCR ve cevap anahtarı eşleştirme pilotunu çalıştır
-- [ ] Gerçek pilot sorusunda kırpma ve manuel OCR düzeltmesini doğrula
+- [x] Gerçek pilot sorusunda kırpma ve manuel OCR düzeltmesini doğrula
 
 - [x] Pilot çift PDF aktarımındaki Azure 403 HTML yanıtını düzelt
 - [x] Büyük Base64 PDF gövdesi yerine S3’e önce yükleme veya uygun upload akışını uygula
-- [ ] Gerçek pilot OCR/eşleştirme isteğini Admin’de yeniden çalıştır ve sonucu doğrula
+- [x] Gerçek pilot OCR/eşleştirme isteğini Admin’de yeniden çalıştır ve sonucu doğrula
 - [x] Pilot PDF inputlarını tarayıcı testinde doğrudan seçilebilir hale getir ve staging OCR akışını gerçek dosyalarla doğrula
 - [x] Azure gateway PUT /api/question-import/stage isteğini 403 ile engellediği için POST staging fallback ekle ve pilot akışını yeniden doğrula
