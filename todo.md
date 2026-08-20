@@ -1418,4 +1418,4 @@
 - [x] Admin işlem geçmişinde otomatik retry durumunu göstermek
 - [x] Manuel retry ile otomatik retry sonuçlarını aynı geçmişte birleştirmek
 - [x] Taslak oluştuğunda kategori/kapak/yayınlama akışını doğrulamak
-- [ ] Test, hosting gereksinimleri ve checkpoint teslimini tamamlamak
+- [x] Test, hosting gereksinimleri ve checkpoint teslimini tamamlamak
