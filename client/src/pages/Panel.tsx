@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
+import { SafeHtml } from "@/components/SafeHtml";
 import QuestionEditor from "@/components/QuestionEditor";
 import ContactSettings from "@/components/ContactSettings";
 import ContentQuickStart from "@/components/ContentQuickStart";
@@ -4282,9 +4283,9 @@ function PanelContent() {
                       <h3 className="mt-1 font-bold text-[#29465a]">
                         {item.title}
                       </h3>
-                      <div
+                      <SafeHtml
                         className="prose prose-sm mt-2 max-w-none text-[#587079]"
-                        dangerouslySetInnerHTML={{ __html: item.body }}
+                        html={item.body}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -4331,9 +4332,9 @@ function PanelContent() {
                       <p className="text-xs font-bold uppercase tracking-[.12em] text-[#668278]">
                         Cevap · {item.status}
                       </p>
-                      <div
+                      <SafeHtml
                         className="prose prose-sm mt-2 max-w-none text-[#587079]"
-                        dangerouslySetInnerHTML={{ __html: item.body }}
+                        html={item.body}
                       />
                     </div>
                     <div className="flex gap-2">

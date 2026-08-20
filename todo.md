@@ -1689,3 +1689,14 @@
 - [x] Ana sayfa ve blog okuma sayfalarına dinamik AdSense uyumlu reklam yer tutucuları ekle
 - [x] SEO retry aksiyonuna spinner, başarılı toast ve hata kodlu toast geri bildirimi ekle
 - [x] Bu paket için Vitest, TypeScript, production build ve `/` API smoke doğrulaması yap
+
+## Yeni İstek: Full System Audit
+
+- [x] Admin, moderatör ve üye tRPC uçlarında RBAC kapsam denetimi yap ve bulguları düzelt
+- [x] XSS, SQL injection, unsafe HTML ve ham girdi işleme yollarını tarayıp güvenli hale getir
+- [x] tRPC input DTO/Zod sözleşmelerini frontend kullanımlarıyla karşılaştır ve hatalı akışları düzelt
+- [x] SEO/entegrasyon geliştirmelerinden kalan dead code, çakışan tip ve şema tanımlarını denetle
+- [x] React 19, Vite, Tailwind 4 ve tRPC 11 bağımlılık uyumunu build/runtime kontrolleriyle doğrula; pnpm audit’te 3 high ve 16 moderate transitif uyarı raporlandı
+- [x] Sitemap’in yayınlama, silme ve noIndex kurallarıyla otomatik güncellendiğini doğrula
+- [x] Ana sayfa, üye, moderatör ve admin panellerini 375px, tablet ve masaüstünde responsive denetle; screenshot capture bu turda başarısız olduğu için manuel browser kontrolü önerildi
+- [x] Kritik audit bulgularını düzelt, test/build/smoke sonuçlarını raporla ve yeni checkpoint oluştur
