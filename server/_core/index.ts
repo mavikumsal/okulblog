@@ -12,6 +12,7 @@ import { sdk } from "./sdk";
 import { aggregateContentViewDaily, listRetryableDocumentImportHistory } from "../db";
 import { retryFailedDocumentImport, documentImportRetryPolicy } from "../documentImportRetry";
 import { storagePut } from "../storage";
+import { buildSitemap, robotsTxt, sitemapXml } from "../seo";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -68,6 +69,19 @@ async function startServer() {
       return res.json({ ok: true, ...result });
     } catch (error) {
       return res.status(500).json({ error: error instanceof Error ? error.message : "Aggregation failed", timestamp: new Date().toISOString() });
+    }
+  });
+  app.get("/robots.txt", (req, res) => {
+    const origin = `${req.protocol}://${req.get("host")}`;
+    res.type("text/plain").send(robotsTxt(origin));
+  });
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const origin = `${req.protocol}://${req.get("host")}`;
+      const entries = await buildSitemap(origin);
+      res.type("application/xml").send(sitemapXml(entries));
+    } catch (error) {
+      res.status(500).type("text/plain").send(error instanceof Error ? error.message : "Sitemap oluşturulamadı.");
     }
   });
   app.post("/api/scheduled/retryDocumentImports", async (req, res) => {

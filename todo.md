@@ -1627,3 +1627,21 @@
 - [x] Sihirbaz içinde soru sırasını ve içerik özetini gösteren anlık test önizlemesi
 - [x] Önizleme ve oluşturulan test sonucunu mevcut PDF/Word export bileşenine bağlama
 - [x] Yeni akışlar için Vitest, TypeScript, build ve responsive doğrulaması
+
+## SEO ve Google Entegrasyon Durum Analizi
+
+- [x] SPA metadata, SSR/SSG, sitemap ve robots durumunu teknik olarak doğrula
+- [x] Admin SEO alanında title, description, slug ve keywords sözleşmesini doğrula
+- [x] AdSense head doğrulama kodu ve slot bazlı reklam yerleşimi durumunu doğrula
+- [x] Search Console doğrulama, token, sitemap ve otomatik indexleme akışını doğrula
+- [x] Yerel istatistikler ile Search Console/Analytics gerçek verilerinin ayrımını raporla
+- [x] SEO ve Google entegrasyon eksiklerini önceliklendirilmiş yol haritasına dönüştür
+
+## İlk SEO Altyapısı
+
+- [x] Public route ve veri kaynaklarını dinamik metadata için eşleştir
+- [x] Express metadata katmanı ile title, description, canonical, Open Graph ve Twitter Card üret
+- [x] React tarafında client navigation sonrası document head senkronizasyonu sağla
+- [x] Aktif ve noIndex olmayan public kayıtlarla dinamik sitemap.xml endpointi oluştur
+- [x] robots.txt endpointi ve sitemap referansını oluştur
+- [x] SEO metadata, sitemap, robots, TypeScript, Vitest, build ve runtime doğrulaması yap
