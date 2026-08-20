@@ -3,6 +3,22 @@ import sharp from "sharp";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { invokeLLM } from "./_core/llm";
 
+export type AnswerKeyQualityLevel = "good" | "review" | "poor";
+
+export type AnswerKeyQuality = {
+  level: AnswerKeyQualityLevel;
+  score: number;
+  pagesAnalyzed: number;
+  detectedPairs: number;
+  hasTextLayer: boolean;
+  averageContrast: number;
+  minWidth: number;
+  minHeight: number;
+  warnings: string[];
+  sequenceGaps: number;
+  invalidAnswerMarkers: number;
+};
+
 export type ParsedPdfQuestion = {
   sourceNumber: string;
   prompt: string;
@@ -19,6 +35,8 @@ export type ParsedPdfQuestion = {
   embeddedImageRole: "question" | "answer" | null;
   sourcePageImageDataBase64: string | null;
   ocrText: string;
+  /** Preserved first OCR extraction used to show later manual edits. */
+  ocrSourceText: string;
   page: number;
   warning: string | null;
 };
@@ -93,6 +111,7 @@ function extractBlocks(lines: string[], page: number, answerKey: Map<string, str
       embeddedImageRole,
       sourcePageImageDataBase64,
       ocrText: content.join(" "),
+      ocrSourceText: content.join(" "),
       page: current.page,
       warning: compactOptions.length < 2 ? "A–D seçenekleri otomatik bulunamadı; soru türünü ve cevabı kontrol edin." : key ? null : "Cevap anahtarı bulunamadı; doğru cevabı seçin.",
     });
@@ -161,6 +180,7 @@ export async function parsePdfQuestions(buffer: Buffer, fileName: string): Promi
 
 export type PdfQuestionPairParseResult = PdfQuestionParseResult & {
   answerKeyFileName: string;
+  answerKeyQuality: AnswerKeyQuality;
   answerKeyCount: number;
   matchedCount: number;
   unmatchedCount: number;
@@ -184,6 +204,69 @@ async function extractPdfTextLines(buffer: Buffer): Promise<string[]> {
     allLines.push(...Array.from(grouped.entries()).sort((a, b) => b[0] - a[0]).map(([, row]) => row.sort((a, b) => a.x - b.x).map(item => item.text).join(" ")));
   }
   return allLines.map(cleanLine).filter(Boolean);
+}
+
+export function calculateAnswerKeyQuality(input: {
+  pagesAnalyzed: number;
+  detectedPairs: number;
+  hasTextLayer: boolean;
+  averageContrast: number;
+  minWidth: number;
+  minHeight: number;
+  sequenceGaps?: number;
+  invalidAnswerMarkers?: number;
+}): AnswerKeyQuality {
+  const warnings: string[] = [];
+  const sequenceGaps = input.sequenceGaps ?? 0;
+  const invalidAnswerMarkers = input.invalidAnswerMarkers ?? 0;
+  if (input.minWidth < 900 || input.minHeight < 1200) warnings.push("Cevap anahtarı görüntü çözünürlüğü düşük; numara ve harfler bulanık olabilir.");
+  if (input.averageContrast < 28) warnings.push("Görüntü kontrastı düşük; işaretli cevaplar arka plandan yeterince ayrışmayabilir.");
+  if (!input.hasTextLayer) warnings.push("PDF metin katmanı içermiyor; görsel OCR sonucu manuel kontrol edilmelidir.");
+  if (input.detectedPairs < 3) warnings.push("En az üç güvenilir numara-harf çifti bulunamadı; cevap anahtarı formatını kontrol edin.");
+  if (sequenceGaps > 0) warnings.push(`${sequenceGaps} soru numarası sırası eksik veya kopuk görünüyor; cevap anahtarının tüm sayfalarını kontrol edin.`);
+  if (invalidAnswerMarkers > 0) warnings.push(`${invalidAnswerMarkers} A–D dışı cevap işareti bulundu; formatı ve OCR karakterlerini doğrulayın.`);
+  const score = Math.max(0, Math.min(100, Math.round(
+    (input.minWidth >= 900 ? 25 : 10) +
+    (input.minHeight >= 1200 ? 20 : 10) +
+    Math.min(25, input.averageContrast / 2) +
+    (input.hasTextLayer ? 15 : 5) +
+    Math.min(15, input.detectedPairs >= 10 ? 15 : input.detectedPairs * 1.5),
+  )));
+  return {
+    level: score >= 75 && warnings.length === 0 ? "good" : score >= 50 ? "review" : "poor",
+    score,
+    pagesAnalyzed: input.pagesAnalyzed,
+    detectedPairs: input.detectedPairs,
+    hasTextLayer: input.hasTextLayer,
+    averageContrast: Math.round(input.averageContrast),
+    minWidth: input.minWidth,
+    minHeight: input.minHeight,
+    warnings,
+    sequenceGaps,
+    invalidAnswerMarkers,
+  };
+}
+
+async function inspectAnswerKeyQuality(buffer: Buffer, detectedPairs: number, format: { sequenceGaps: number; invalidAnswerMarkers: number }): Promise<AnswerKeyQuality> {
+  const document = await getDocument({ data: new Uint8Array(buffer) }).promise;
+  const pageCount = Math.min(document.numPages, 4);
+  const contrasts: number[] = [];
+  let minWidth = Number.POSITIVE_INFINITY;
+  let minHeight = Number.POSITIVE_INFINITY;
+  let hasTextLayer = false;
+  for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const text = await page.getTextContent();
+    if (text.items.some((item) => "str" in item && Boolean(item.str?.trim()))) hasTextLayer = true;
+    const viewport = page.getViewport({ scale: 1.4 });
+    minWidth = Math.min(minWidth, Math.ceil(viewport.width));
+    minHeight = Math.min(minHeight, Math.ceil(viewport.height));
+    const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+    await page.render({ canvas: canvas as never, canvasContext: canvas.getContext("2d") as never, viewport }).promise;
+    const stats = await sharp(canvas.toBuffer("image/png")).stats();
+    contrasts.push(stats.channels.reduce((sum, channel) => sum + channel.stdev, 0) / Math.max(1, stats.channels.length));
+  }
+  return calculateAnswerKeyQuality({ pagesAnalyzed: pageCount, detectedPairs, hasTextLayer, averageContrast: contrasts.reduce((sum, value) => sum + value, 0) / Math.max(1, contrasts.length), minWidth: Number.isFinite(minWidth) ? minWidth : 0, minHeight: Number.isFinite(minHeight) ? minHeight : 0 });
 }
 
 async function extractAnswerKeyWithVision(buffer: Buffer): Promise<Map<string, string>> {
@@ -267,10 +350,16 @@ export async function parsePdfQuestionPair(
   let answerKey = parseAnswerKey(answerLines);
   if (answerKey.size === 0) answerKey = await extractAnswerKeyWithVision(answerKeyBuffer);
   const questions = applyAnswerKeyToQuestions(questionResult.questions, answerKey);
+  const rawAnswerEntries = answerLines.flatMap(line => Array.from(line.matchAll(/\b(\d{1,3})\s*[-.:)]?\s*([A-ZÇĞİÖŞÜ])/gi)).map(match => ({ number: Number(match[1]), answer: match[2].toUpperCase() })));
+  const rawNumbers = Array.from(new Set(rawAnswerEntries.map(entry => entry.number))).sort((a, b) => a - b);
+  const sequenceGaps = rawNumbers.length > 1 ? Math.max(0, (rawNumbers[rawNumbers.length - 1] - rawNumbers[0] + 1) - rawNumbers.length) : 0;
+  const invalidAnswerMarkers = rawAnswerEntries.filter(entry => !/^[A-D]$/.test(entry.answer)).length;
+  const answerKeyQuality = await inspectAnswerKeyQuality(answerKeyBuffer, answerKey.size, { sequenceGaps, invalidAnswerMarkers });
   return {
     ...questionResult,
     questions,
     answerKeyFileName,
+    answerKeyQuality,
     answerKeyCount: answerKey.size,
     matchedCount: questions.filter(question => question.answerMatched).length,
     unmatchedCount: questions.filter(question => !question.answerMatched).length,

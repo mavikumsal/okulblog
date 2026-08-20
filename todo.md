@@ -1507,3 +1507,12 @@
 - [x] Gerçek pilot OCR/eşleştirme isteğini Admin’de yeniden çalıştır ve sonucu doğrula
 - [x] Pilot PDF inputlarını tarayıcı testinde doğrudan seçilebilir hale getir ve staging OCR akışını gerçek dosyalarla doğrula
 - [x] Azure gateway PUT /api/question-import/stage isteğini 403 ile engellediği için POST staging fallback ekle ve pilot akışını yeniden doğrula
+
+## OCR Cevap Anahtarı Kalite Uyarıları ve Fark Vurgulama
+- [x] OCR cevap anahtarı görsellerinde çözünürlük, okunabilirlik, kontrast ve metin yoğunluğu kalite sinyallerini hesapla
+- [x] Cevap anahtarı formatında soru numarası-harf çifti sayısı, sıra sürekliliği ve geçersiz cevap işaretlerini kontrol et
+- [x] Kalite sonuçlarını yüksek/orta/düşük seviyeli açıklayıcı Admin uyarılarına dönüştür
+- [x] Split-screen OCR düzenleyicide görsel metin ile OCR metni arasındaki farkları satır ve token düzeyinde vurgula
+- [x] Fark vurgulama için eşleşen, eksik, eklenmiş ve değişmiş metin durumlarını göster; manuel düzenleme sonrası yeniden hesapla
+- [x] OCR kalite uyarıları ve fark vurgulama için Vitest, TypeScript, production build ve responsive görsel doğrulaması yap
+- [x] Bu geliştirme için geri alınabilir checkpoint oluştur

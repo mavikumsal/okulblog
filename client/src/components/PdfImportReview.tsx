@@ -2,6 +2,18 @@ import React, { useMemo, useState } from "react";
 import { Check, Image as ImageIcon, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+export type AnswerKeyQuality = {
+  level: "good" | "review" | "poor";
+  score: number;
+  pagesAnalyzed: number;
+  detectedPairs: number;
+  hasTextLayer: boolean;
+  averageContrast: number;
+  minWidth: number;
+  minHeight: number;
+  warnings: string[];
+};
+
 export type PdfReviewQuestion = {
   sourceNumber: string;
   prompt: string;
@@ -16,7 +28,10 @@ export type PdfReviewQuestion = {
   embeddedImageRole?: "question" | "answer" | null;
   sourcePageImageDataBase64?: string | null;
   ocrText?: string;
+  ocrSourceText?: string;
   cropImageDataUrl?: string | null;
+  answerKeyQuality?: AnswerKeyQuality;
+  qualityWarnings?: string[];
   categoryId?: number | null;
   difficulty?: "easy" | "medium" | "hard";
   learningOutcome?: string | null;
