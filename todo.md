@@ -1662,3 +1662,13 @@
 - [x] AI SEO önerilerini admin onayından sonra forma doldurulacak şekilde bağla
 - [x] Snippet Preview bileşenine Tabs ile X/Twitter ve Facebook sosyal medya önizlemeleri ekle
 - [x] SEO widget, AI SEO asistanı ve sosyal önizleme için Vitest, TypeScript, production build ve responsive doğrulaması yap
+
+## Yeni İstek: SEO Editör Derinleştirme
+
+- [x] AI SEO önerilerindeki anahtar kelime ve etiketleri Badge/Tag kutucuklarıyla göster
+- [x] Etiketleri tek tek reddetme ve topluca/tek tıkla forma uygulama akışı ekle
+- [x] Başlık ve kategoriden dinamik ogImage oluşturma butonu ekle
+- [x] Bilgisayardan veya medya merkezinden güvenli özel ogImage seçme/yükleme alanı ekle
+- [x] SEO indeksleme widget’ına tıklanabilir ayrıntılı geçmiş Dialog modalı ekle
+- [x] Başarılı, bekleyen ve hatalı URL’leri; 429, OAuth ve 5xx gibi teknik hata detaylarını göster
+- [x] Yeni SEO editör özellikleri için Vitest, TypeScript, production build ve responsive doğrulaması yap
