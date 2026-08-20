@@ -1567,14 +1567,14 @@
 - [x] Geliştirmeyi geri alınabilir checkpoint olarak kaydet
 
 ## AI Üretim Sonuçları Yönetimi ve Dışa Aktarma
-- [ ] Üretilen soruları tek tek düzenleme ve silme ekranı ekle
-- [ ] Kaynak PDF/görsel sayfasını soru metniyle yan yana göster ve seçili soruya göre eşleştir
-- [ ] Gerçek API anahtarı doğrulandığında model yetenek filtrelerini dinamik olarak göster
-- [ ] Gerçek sağlayıcı kota/limit bilgisini güvenli şekilde göster; veri yoksa açıklayıcı durum sun
-- [ ] Üretilen soru listesini PDF olarak dışa aktarma seçeneği ekle
-- [ ] Üretilen soru listesini Word olarak dışa aktarma seçeneği ekle
-- [ ] Düzenleme, silme, karşılaştırma, yetenek/kota ve dışa aktarma akışları için Vitest, TypeScript, build ve responsive görsel doğrulaması yap
-- [ ] Geliştirmeyi geri alınabilir checkpoint olarak kaydet
+- [x] Üretilen soruları tek tek düzenleme ve silme ekranı ekle
+- [x] Kaynak PDF/görsel sayfasını soru metniyle yan yana göster ve seçili soruya göre eşleştir
+- [x] Gerçek API anahtarı doğrulandığında model yetenek filtrelerini dinamik olarak göster
+- [x] Gerçek sağlayıcı kota/limit bilgisini güvenli şekilde göster; veri yoksa açıklayıcı durum sun
+- [x] Üretilen soru listesini PDF olarak dışa aktarma seçeneği ekle
+- [x] Üretilen soru listesini Word olarak dışa aktarma seçeneği ekle
+- [x] Düzenleme, silme, karşılaştırma, yetenek/kota ve dışa aktarma akışları için Vitest, TypeScript, build ve responsive görsel doğrulaması yap
+- [x] Geliştirmeyi geri alınabilir checkpoint olarak kaydet
 
 ## AI Oluşturucu Sonuç Yönetimi
 
