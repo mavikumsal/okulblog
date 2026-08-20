@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "./db";
 import { categoryNodes, contentItems, qaQuestions, tests } from "../drizzle/schema";
+export { validateSeoFields } from "../shared/seo";
 
 type SeoMetadata = {
   title: string;

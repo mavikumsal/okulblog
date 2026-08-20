@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RefreshCw, Search, RotateCcw, Save } from "lucide-react";
 import { toast } from "sonner";
+import { validateSeoFields } from "@shared/seo";
 
 export function getSnippetStatus(value: string, limit: number) { return { length: value.length, over: value.length > limit }; }
 
@@ -19,6 +20,7 @@ export function SeoSnippetPreview({ initialTitle = "OkulBlog | Eğitim İçerikl
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [slug, setSlug] = useState(initialSlug);
+  const validation = validateSeoFields({ title, description, slug });
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-start justify-between gap-3">
@@ -29,7 +31,7 @@ export function SeoSnippetPreview({ initialTitle = "OkulBlog | Eğitim İçerikl
         <div className="space-y-3">
           <label className="block text-xs font-semibold text-slate-600">SEO başlığı <span className="float-right"><Counter value={title} limit={60} /></span><Input value={title} onChange={e => setTitle(e.target.value)} maxLength={70} className="mt-1" /></label>
           <label className="block text-xs font-semibold text-slate-600">Meta açıklaması <span className="float-right"><Counter value={description} limit={160} /></span><Textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={180} className="mt-1 min-h-24" /></label>
-          <label className="block text-xs font-semibold text-slate-600">Slug <Input value={slug} onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))} className="mt-1" /></label>
+          <label className="block text-xs font-semibold text-slate-600">Slug <Input value={slug} onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))} className="mt-1" />{!validation.valid && <span className="mt-1 block text-[11px] text-red-600">{Object.values(validation.errors)[0]}</span>}</label>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
           <p className="truncate text-sm text-[#1a0dab]">{title || "Sayfa başlığı"}</p>
@@ -60,5 +62,5 @@ export function SearchIndexingQueuePanel() {
   const retry = retryApi.useMutation({ onSuccess: () => { toast.success("Kayıt yeniden kuyruğa alındı."); utils.admin.searchIndexingQueue.invalidate(); } });
   const [filter, setFilter] = useState("all");
   const rows = useMemo(() => filterIndexingQueueRows<any>(queue.data ?? [], filter), [queue.data, filter]);
-  return <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-bold text-slate-800">Google indeksleme kuyruğu</h3><p className="mt-1 text-xs text-slate-500">Yayınlanan içeriklerin sitemap/index durumunu ve hatalarını izleyin.</p></div><Button variant="outline" onClick={() => queue.refetch()}><RefreshCw className="mr-1 h-4 w-4" />Yenile</Button></div><div className="mb-4 flex flex-wrap gap-2">{["all", "pending", "submitted", "failed", "skipped"].map(value => <Button key={value} size="sm" variant={filter === value ? "default" : "outline"} onClick={() => setFilter(value)}>{value === "all" ? "Tümü" : value}</Button>)}</div><div className="space-y-2">{rows.length === 0 ? <p className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">Kuyrukta gösterilecek kayıt yok.</p> : rows.map(item => <div key={item.id} className="flex flex-col gap-2 rounded-xl border border-slate-100 p-3 md:flex-row md:items-center md:justify-between"><div className="min-w-0"><p className="truncate text-sm font-medium text-slate-700">{item.url}</p><p className="text-xs text-slate-400">{item.entityType} · {item.attempts} deneme · {item.lastError ?? "Hata yok"}</p></div><div className="flex items-center gap-2"><Badge variant={item.status === "submitted" ? "default" : item.status === "failed" ? "destructive" : "secondary"}>{item.status}</Badge>{(item.status === "failed" || item.status === "skipped") && <Button size="sm" variant="outline" onClick={() => retry.mutate({ id: item.id })}><RotateCcw className="mr-1 h-3.5 w-3.5" />Yeniden dene</Button>}</div></div>)}</div></section>;
+  return <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-bold text-slate-800">Google indeksleme kuyruğu</h3><p className="mt-1 text-xs text-slate-500">Yayınlanan içeriklerin sitemap/index durumunu ve hatalarını izleyin. {queue.data?.length ? `Son senkron: ${new Date(Math.max(...queue.data.map((item: any) => new Date(item.updatedAt ?? item.createdAt ?? 0).getTime()))).toLocaleString("tr-TR")}` : "Henüz senkron kaydı yok."}</p></div><Button variant="outline" onClick={() => queue.refetch()}><RefreshCw className="mr-1 h-4 w-4" />Yenile</Button></div><div className="mb-4 flex flex-wrap gap-2">{["all", "pending", "submitted", "failed", "skipped"].map(value => <Button key={value} size="sm" variant={filter === value ? "default" : "outline"} onClick={() => setFilter(value)}>{value === "all" ? "Tümü" : value}</Button>)}</div><div className="space-y-2">{rows.length === 0 ? <p className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">Kuyrukta gösterilecek kayıt yok.</p> : rows.map(item => <div key={item.id} className="flex flex-col gap-2 rounded-xl border border-slate-100 p-3 md:flex-row md:items-center md:justify-between"><div className="min-w-0"><p className="truncate text-sm font-medium text-slate-700">{item.url}</p><p className="text-xs text-slate-400">{item.entityType} · {item.attempts} deneme · {item.lastError ?? "Hata yok"}</p></div><div className="flex items-center gap-2"><Badge variant={item.status === "submitted" ? "default" : item.status === "failed" ? "destructive" : "secondary"}>{item.status}</Badge>{(item.status === "failed" || item.status === "skipped") && <Button size="sm" variant="outline" onClick={() => retry.mutate({ id: item.id })}><RotateCcw className="mr-1 h-3.5 w-3.5" />Yeniden dene</Button>}</div></div>)}</div></section>;
 }

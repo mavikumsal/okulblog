@@ -1649,8 +1649,8 @@
 ## SEO Snippet, Schema ve İndeksleme Kuyruğu
 
 - [x] Admin SEO formlarına karakter sınırları ve anlık Google Snippet Preview bileşeni ekle
-- [ ] SEO başlık, açıklama, slug ve canonical doğrulamalarını ortaklaştır
+- [x] SEO başlık, açıklama, slug ve canonical doğrulamalarını ortaklaştır
 - [x] İçerik türlerine göre güvenli JSON-LD Schema Markup üret ve public metadata katmanına bağla
 - [x] Search Console indeksleme kuyruğu durumlarını sorgulayan yetkili tRPC prosedürleri ekle
-- [ ] Admin panelinde kuyruk durumu, hata, tekrar deneme ve son senkron zamanını göster
+- [x] Admin panelinde kuyruk durumu, hata, tekrar deneme ve son senkron zamanını göster
 - [x] Snippet, JSON-LD ve indeksleme paneli için Vitest, TypeScript, build, HTTP smoke ve responsive doğrulaması yap
