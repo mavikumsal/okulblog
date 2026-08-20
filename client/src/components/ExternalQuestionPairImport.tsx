@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Check, Crop, FileKey2, FileText, Image as ImageIcon, Move, Save, ShieldAlert, UploadCloud } from "lucide-react";
 import { COOKIE_NAME } from "@shared/const";
+import { apiUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -119,7 +120,7 @@ export default function ExternalQuestionPairImport({ topicTag, gradeLevel, categ
         } catch {
           // Cookie auth remains available when sessionStorage is unavailable.
         }
-        const response = await fetch(`/api/trpc/files.stageQuestionPdfUpload?fileName=${encodeURIComponent(file.name)}`, {
+        const response = await fetch(apiUrl(`/api/trpc/files.stageQuestionPdfUpload?fileName=${encodeURIComponent(file.name)}`), {
           method: "POST",
           body: form,
           credentials: "include",

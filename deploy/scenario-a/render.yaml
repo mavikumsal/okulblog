@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: okulblog-api
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm run build:backend
+    startCommand: NODE_ENV=production node dist/backend/index.js
+    healthCheckPath: /api/trpc/auth.me
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: VITE_APP_ID
+        sync: false
+      - key: OAUTH_SERVER_URL
+        sync: false
+      - key: VITE_OAUTH_PORTAL_URL
+        sync: false
+      - key: OWNER_OPEN_ID
+        sync: false
+      - key: OWNER_NAME
+        sync: false
+      - key: BUILT_IN_FORGE_API_URL
+        sync: false
+      - key: BUILT_IN_FORGE_API_KEY
+        sync: false

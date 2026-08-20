@@ -1713,3 +1713,11 @@
 - [x] Sıkı entegrasyon doğrulamaları için Vitest regresyon testi ekle
 - [x] Production test, build ve API smoke kontrollerini yeniden çalıştır
 - [x] 375px responsive ve yatay taşma denetimini yeniden doğrula
+
+## Canlı Dağıtım Hazırlık Paketi
+
+- [x] Senaryo A için frontend/backend bağımsız build scriptlerini ve platform yapılandırmalarını ekle
+- [x] Senaryo A için frontend ve backend `.env.example` şablonlarını oluştur
+- [x] Senaryo B için Ubuntu VPS Dockerfile ve docker-compose.yml oluştur
+- [x] Tüm canlı ortam değişkenlerini ve kurulum adımlarını Türkçe kılavuzda belgele
+- [x] Dağıtım paketini test/build ile doğrula ve checkpoint oluştur

@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { apiUrl } from "@/lib/api";
 import { getDraftTitleSaveState } from "@/lib/draftTitleSave";
 import { formatAiQuotaStatus, getAiModelCapabilityLabels, removeAiDraftResult, reorderSelectedIds, selectAiDraftResults, updateAiDraftResult, validateAiDraftResultsForBulkSave, type AiDraftResult } from "@/lib/aiResultManagement";
 import ExportDocumentActions from "@/components/ExportDocumentActions";
@@ -1482,7 +1483,7 @@ function PanelContent() {
         for (const file of aiSourceFiles) {
           const formData = new FormData();
           formData.append("file", file);
-          const response = await fetch(`/api/trpc/files.stageQuestionPdfUpload?fileName=${encodeURIComponent(file.name)}`, { method: "POST", body: formData, credentials: "include" });
+          const response = await fetch(apiUrl(`/api/trpc/files.stageQuestionPdfUpload?fileName=${encodeURIComponent(file.name)}`), { method: "POST", body: formData, credentials: "include" });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok || !payload.storageKey) throw new Error(payload.error || "Kaynak dosya yüklenemedi.");
           const result = await prepareAiSource.mutateAsync({ fileName: file.name, storageKey: payload.storageKey, mimeType: file.type as "application/pdf" | "image/jpeg" | "image/png" | "image/webp" });
