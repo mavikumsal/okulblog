@@ -55,3 +55,8 @@ Admin Soru Havuzu ekranında `questions-ilkokulluyum.pdf` ve `answers-ilkokulluy
 
 Kaynak dosyalar: `/tmp/okulblog-pilot/questions-ilkokulluyum.pdf`, `/tmp/okulblog-pilot/answers-ilkokulluyum.pdf`.
 Kaynak site: `https://www.ilkokulluyum.com/` üzerinden edinilen pilot dosyalar; içerik yalnızca yetkili kullanım ve admin incelemesi için taslakta tutuldu, otomatik yayın yapılmadı.
+## Artı Eğitim portalı yeniden doğrulaması — 2026-08-20
+Artı Eğitim cevap portalında 1. sınıf > Check up > 1.sayfa seçimi açıldı. Doğrudan görsel adresi `https://cevap-anahtari.artiegitimyayinlari.com/books/1.Sinif/Check_up/1.jpg` erişilebilir; görsel 595×765 boyutunda ve sorularla birlikte cevapların sayfa üzerine yazıldığı bir çalışma/etkinlik sayfası. Standalone A–D cevap anahtarı formatı olmadığı için soru-cevap eşleştirme pilotuna uygun eşleşmiş cevap anahtarı olarak seçilmedi. Portal 1–4. sınıf, kitap ve 1–72 sayfa seçimlerini dinamik olarak sunuyor. İçerik yalnızca yetkili kullanım ve admin taslağı bağlamında değerlendirilmelidir.
+## FlipHTML5 kaynak doğrulaması — 2026-08-20
+Kaynak: https://fliphtml5.com/bookcase/twjmz
+Kitaplık başlığı `PROBLEM KİTAPLARIMIZ`; kitaplıkta 3 yayın görünüyor: `Problem Gezegeni 2`, `Problemde Yol Arkadaşım 3` ve `Problemde Yol Arkadaşım 4`. Kitaplık soru/cevap anahtarı çifti veya ayrı indirilebilir cevap anahtarı yapısını açıkça göstermiyor; bu nedenle yetkili eşleşmiş pilot çifti olarak seçilmedi. İçerik indirme/dönüştürme işlemi ancak yayın sahibinin izin verdiği erişim ve kullanım kapsamı netleştirildikten sonra yapılmalı.

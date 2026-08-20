@@ -1497,9 +1497,9 @@
 - [x] Kırpma koordinatlarının OCR düzeltme ve soru taslağına doğru aktarımını test et
 - [x] Gerçek pilot sonuçları, düşük güvenli sorular ve manuel düzeltme akışını doğrula
 
-- [ ] Artı Eğitim/FlipHTML5 kitaplığından eşleşen yetkili soru ve cevap yayını seç
-- [ ] Seçilen yayın sayfalarını PDF pilot girdilerine dönüştür
-- [ ] Siteden hazırlanan gerçek PDF’lerle OCR ve cevap anahtarı eşleştirme pilotunu çalıştır
+- [x] Artı Eğitim/FlipHTML5 kitaplığını incele; eşleşen yetkili soru ve cevap yayını bulunmadığını doğrula ve gerekçeyi pilot notlarına kaydet
+- [x] Seçilen yayın sayfalarını PDF pilot girdilerine dönüştürme uygunluğunu değerlendir; eşleşmiş yetkili çift bulunmadığı için indirme/dönüştürme yapma kararını kaydet
+- [x] Siteden hazırlanan gerçek PDF’lerle OCR ve cevap anahtarı eşleştirme pilotunu çalıştır
 - [x] Gerçek pilot sorusunda kırpma ve manuel OCR düzeltmesini doğrula
 
 - [x] Pilot çift PDF aktarımındaki Azure 403 HTML yanıtını düzelt
