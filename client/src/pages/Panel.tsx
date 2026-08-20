@@ -559,7 +559,16 @@ function PanelContent() {
         duration: 9000,
         action: {
           label: "Taslağı düzenle",
-          onClick: () => document.getElementById("document-draft-queue")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+          onClick: () => {
+            const target = document.getElementById(`document-draft-${result.draftId}`);
+            if (!target) {
+              toast.error("Taslak henüz listelenemedi", { description: "Taslak oluşturuldu ancak liste yenilenmeden önce açılmadı. Dokümanlar bölümünü yenileyip tekrar deneyin." });
+              return;
+            }
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+            window.history.replaceState(null, "", `${window.location.pathname}#document-draft-${result.draftId}`);
+            window.setTimeout(() => (target.querySelector(`#draft-title-${result.draftId}`) as HTMLInputElement | null)?.focus(), 350);
+          },
         },
       });
     },
@@ -2483,7 +2492,7 @@ function PanelContent() {
                 const hasCategory = Boolean(draft.categoryId || draft.institutionCategoryId);
                 const hasCover = Boolean(draft.coverImageUrl);
                 const readyToPublish = hasCategory && hasCover;
-                return <div key={draft.id} className="overflow-hidden rounded-2xl border border-[#dfe8df] bg-[#fbfdf9]">
+                return <div id={`document-draft-${draft.id}`} key={draft.id} className="scroll-mt-24 overflow-hidden rounded-2xl border border-[#dfe8df] bg-[#fbfdf9]">
                   <div className="flex items-center gap-2 border-b border-[#e7eee7] px-4 py-2"><input type="checkbox" checked={selectedDraftIds.includes(draft.id)} onChange={event => setSelectedDraftIds(current => event.target.checked ? (current.includes(draft.id) ? current : [...current, draft.id]) : current.filter(id => id !== draft.id))} aria-label={`${draft.title} taslağını seç`} className="size-4 accent-[#5540e8]" /><span className="text-xs font-semibold text-[#71838b]">Toplu işlem için seç</span></div>
                   <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                     <div className="min-w-0">

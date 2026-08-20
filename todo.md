@@ -1438,3 +1438,10 @@
 - [x] Timeout, indirme, analiz ve depolama hataları için ayrıntılı açıklama göstermek
 - [x] Hata bildiriminde uygulanabilir sonraki adımı belirtmek
 - [x] Test, responsive kontrol ve checkpoint oluşturmak
+
+## PDF Taslak Doğrudan Düzenleme Kısayolu — 2026-08-20
+
+- [x] Başarı bildirimindeki taslak kimliğini doğrudan düzenleme state’ine bağlamak
+- [x] Taslak kısayoluna tıklandığında ilgili taslağı otomatik seçip düzenleme alanını açmak
+- [x] Taslak bulunamazsa güvenli fallback ve açıklayıcı uyarı göstermek
+- [x] Uçtan uca test, responsive kontrol ve checkpoint oluşturmak
