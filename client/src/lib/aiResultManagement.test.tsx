@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAiQuotaStatus, getAiModelCapabilityLabels, removeAiDraftResult, updateAiDraftResult, type AiDraftResult } from "./aiResultManagement";
+import { formatAiQuotaStatus, getAiModelCapabilityLabels, removeAiDraftResult, reorderSelectedIds, updateAiDraftResult, type AiDraftResult } from "./aiResultManagement";
 
 const first: AiDraftResult = {
   id: "one",
@@ -26,6 +26,14 @@ describe("AI result management", () => {
     expect(getAiModelCapabilityLabels({ capabilities: ["Vision", "JSON", 7] })).toEqual(["Vision", "JSON"]);
     expect(formatAiQuotaStatus("12 / 60 istek")).toBe("12 / 60 istek");
     expect(formatAiQuotaStatus(undefined)).toBe("API anahtarı sonrası görünür");
+  });
+
+  it("reorders selected questions without mutating the source list", () => {
+    const ids = [11, 22, 33, 44];
+    expect(reorderSelectedIds(ids, 44, 22)).toEqual([11, 44, 22, 33]);
+    expect(ids).toEqual([11, 22, 33, 44]);
+    expect(reorderSelectedIds(ids, 99, 22)).toBe(ids);
+    expect(reorderSelectedIds(ids, 22, 22)).toBe(ids);
   });
 });
 

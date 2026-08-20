@@ -54,3 +54,14 @@ export function validateAiDraftResultsForBulkSave(results: AiDraftResult[]) {
   );
   return { valid: !invalid, invalidId: invalid?.id ?? null };
 }
+
+export function reorderSelectedIds(ids: number[], draggedId: number, targetId: number) {
+  if (draggedId === targetId) return ids;
+  const next = [...ids];
+  const fromIndex = next.indexOf(draggedId);
+  const toIndex = next.indexOf(targetId);
+  if (fromIndex < 0 || toIndex < 0) return ids;
+  next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, draggedId);
+  return next;
+}

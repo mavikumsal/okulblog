@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { getDraftTitleSaveState } from "@/lib/draftTitleSave";
-import { formatAiQuotaStatus, getAiModelCapabilityLabels, removeAiDraftResult, selectAiDraftResults, updateAiDraftResult, validateAiDraftResultsForBulkSave, type AiDraftResult } from "@/lib/aiResultManagement";
+import { formatAiQuotaStatus, getAiModelCapabilityLabels, removeAiDraftResult, reorderSelectedIds, selectAiDraftResults, updateAiDraftResult, validateAiDraftResultsForBulkSave, type AiDraftResult } from "@/lib/aiResultManagement";
 import ExportDocumentActions from "@/components/ExportDocumentActions";
 import { getDocumentAiStatusLabel, getDocumentPreviewTags } from "@/lib/documentImportPreview";
 import {
@@ -495,6 +495,16 @@ function PanelContent() {
     const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== next) window.history.replaceState(window.history.state, "", next);
   }, [questionSearch, questionTypeFilter, questionStatusFilter, questionDifficultyFilter, questionCategoryFilter, questionSourceFilter, questionSort, questionPage]);
+  const copyQuestionFilters = async () => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}${window.location.search}${window.location.hash}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Filtreli Soru Havuzu bağlantısı kopyalandı.");
+    } catch {
+      toast.error("Bağlantı kopyalanamadı. Tarayıcı izinlerini kontrol edin.");
+    }
+  };
   useEffect(() => {
     const onPopState = () => {
       const next = readQuestionUrlState(window.location.search);
@@ -792,6 +802,12 @@ function PanelContent() {
   const [bulkTestInstitutionCategoryId, setBulkTestInstitutionCategoryId] = useState("");
   const [bulkTestDurationMinutes, setBulkTestDurationMinutes] = useState("20");
   const [bulkExistingTestId, setBulkExistingTestId] = useState("");
+  const [bulkOrderedQuestionIds, setBulkOrderedQuestionIds] = useState<number[]>([]);
+  const [draggedBulkQuestionId, setDraggedBulkQuestionId] = useState<number | null>(null);
+  const bulkOrderedQuestions = useMemo(() => bulkOrderedQuestionIds.flatMap(id => {
+    const item = (questions.data ?? []).find(question => question.id === id);
+    return item ? [item] : [];
+  }), [bulkOrderedQuestionIds, questions.data]);
   const appendQuestionsToTest = (trpc.tests as any).appendQuestions?.useMutation
     ? (trpc.tests as any).appendQuestions.useMutation({
         onSuccess: (result: { added?: number }) => {
@@ -823,8 +839,12 @@ function PanelContent() {
     },
     onError: () => toast.error("Test kaydedilemedi."),
   });
+  const moveBulkQuestion = (fromId: number, toId: number) => {
+    setBulkOrderedQuestionIds(current => reorderSelectedIds(current, fromId, toId));
+  };
   const submitBulkTestWizard = () => {
-    if (!selectedQuestionIds.length) {
+    const orderedIds = bulkOrderedQuestionIds.length ? bulkOrderedQuestionIds : selectedQuestionIds;
+    if (!orderedIds.length) {
       toast.error("Önce en az bir soru seçin.");
       return;
     }
@@ -834,7 +854,7 @@ function PanelContent() {
         toast.error("Soruların ekleneceği testi seçin.");
         return;
       }
-      appendQuestionsToTest.mutate({ testId, questionIds: selectedQuestionIds });
+      appendQuestionsToTest.mutate({ testId, questionIds: orderedIds });
       return;
     }
     if (bulkTestTitle.trim().length < 3 || !bulkTestCategoryId) {
@@ -848,7 +868,7 @@ function PanelContent() {
       durationMinutes: Math.max(1, Math.min(240, Number(bulkTestDurationMinutes) || 20)),
       categoryId: Number(bulkTestCategoryId),
       institutionCategoryId: bulkTestInstitutionCategoryId ? Number(bulkTestInstitutionCategoryId) : null,
-      questionIds: selectedQuestionIds,
+      questionIds: orderedIds,
     });
   };
   const deleteTest = trpc.tests.remove.useMutation({
@@ -2400,8 +2420,9 @@ function PanelContent() {
               <select value={questionStatusFilter} onChange={event => setQuestionStatusFilter(event.target.value as typeof questionStatusFilter)} aria-label="Duruma göre filtrele" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="all">Tüm durumlar</option><option value="draft">Taslak</option><option value="approved">Onaylı</option><option value="archived">Arşiv</option></select>
               <select value={questionSourceFilter} onChange={event => setQuestionSourceFilter(event.target.value as typeof questionSourceFilter)} aria-label="OCR kaynağına göre filtrele" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="all">Tüm kaynaklar</option><option value="with-source">OCR kaynaklı</option><option value="without-source">Kaynaksız</option></select>
               <select value={questionSort} onChange={event => setQuestionSort(event.target.value as typeof questionSort)} aria-label="Soruları sırala" className="h-10 rounded-lg border border-[#e2e9e5] bg-white px-2 text-xs text-[#456073]"><option value="newest">En yeni</option><option value="oldest">En eski</option><option value="difficulty">Zorluk</option><option value="type">Soru türü</option></select>
+              <Button type="button" size="sm" variant="outline" onClick={copyQuestionFilters} className="h-10 rounded-lg border-[#d8dce9] text-[#5540e8] sm:col-span-2 sm:justify-self-end"><FileText className="mr-1 h-3.5 w-3.5" />Filtreleri Kopyala</Button>
             </div>
-            {canManageQuestionBulk && filteredQuestions.length > 0 && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[#edf0eb] bg-white p-3"><button type="button" onClick={() => setSelectedQuestionIds(selectedQuestionIds.length === pagedQuestions.length ? [] : Array.from(new Set([...selectedQuestionIds, ...pagedQuestions.map(item => item.id)])))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{pagedQuestions.length > 0 && pagedQuestions.every(item => selectedQuestionIds.includes(item.id)) ? "Seçimi kaldır" : "Sayfadakileri seç"}</button><span className="text-xs text-[#82918f]">{selectedQuestionIds.length} seçili</span>{selectedQuestionIds.length > 0 && <><Button type="button" size="sm" onClick={() => setBulkTestWizardOpen(true)} className="ml-auto h-8 rounded-lg bg-[#5540e8] text-xs text-white hover:bg-[#4430d1]">Seçilenlerden test oluştur</Button><Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "question", ids: selectedQuestionIds })} className="h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button></>}</div>}
+            {canManageQuestionBulk && filteredQuestions.length > 0 && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[#edf0eb] bg-white p-3"><button type="button" onClick={() => setSelectedQuestionIds(selectedQuestionIds.length === pagedQuestions.length ? [] : Array.from(new Set([...selectedQuestionIds, ...pagedQuestions.map(item => item.id)])))} className="text-xs font-bold text-[#456073] hover:text-[#5540e8]">{pagedQuestions.length > 0 && pagedQuestions.every(item => selectedQuestionIds.includes(item.id)) ? "Seçimi kaldır" : "Sayfadakileri seç"}</button><span className="text-xs text-[#82918f]">{selectedQuestionIds.length} seçili</span>{selectedQuestionIds.length > 0 && <><Button type="button" size="sm" onClick={() => { setBulkOrderedQuestionIds(selectedQuestionIds); setBulkTestWizardOpen(true); }} className="ml-auto h-8 rounded-lg bg-[#5540e8] text-xs text-white hover:bg-[#4430d1]">Seçilenlerden test oluştur</Button><Button type="button" size="sm" variant="outline" onClick={() => setBulkAction({ kind: "question", ids: selectedQuestionIds })} className="h-8 rounded-lg border-[#e6b8ad] text-xs text-[#a65345]">Seçilenleri sil</Button></>}</div>}
             <div className="mt-5 space-y-3">
               {questions.isLoading ? (
                 <div className="rounded-xl bg-[#f7f8f4] p-5 text-sm text-[#728087]">
@@ -2491,6 +2512,21 @@ function PanelContent() {
             <DialogDescription>{selectedQuestionIds.length} soru seçildi. Soruları yeni bir teste ekleyebilir veya mevcut bir teste bağlayabilirsiniz.</DialogDescription>
           </DialogHeader>
           <div className="space-y-5">
+            <div className="rounded-2xl border border-[#e5e9e5] bg-[#fbfcfa] p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div><p className="text-sm font-bold text-[#29465a]">Soru sırası ve anlık önizleme</p><p className="mt-1 text-xs text-[#71838b]">Soruları sürükleyerek testte görünecek sırayı belirleyin.</p></div>
+                <Badge variant="outline">{bulkOrderedQuestions.length} soru</Badge>
+              </div>
+              <div className="mt-3 space-y-2">
+                {bulkOrderedQuestions.map((item, index) => <div key={item.id} draggable onDragStart={() => setDraggedBulkQuestionId(item.id)} onDragOver={event => event.preventDefault()} onDrop={() => { if (draggedBulkQuestionId !== null) moveBulkQuestion(draggedBulkQuestionId, item.id); setDraggedBulkQuestionId(null); }} onDragEnd={() => setDraggedBulkQuestionId(null)} className={`flex cursor-grab items-start gap-3 rounded-xl border bg-white p-3 transition ${draggedBulkQuestionId === item.id ? "border-[#5540e8] opacity-60" : "border-[#edf0eb]"}`}>
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#eeeafd] text-xs font-bold text-[#5540e8]">{index + 1}</span><span className="min-w-0 flex-1 text-sm leading-5 text-[#3b586a]">{item.prompt}</span><span className="text-[10px] font-semibold uppercase tracking-wide text-[#819095]">Sürükle</span>
+                </div>)}
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3">
+                <div><p className="text-xs font-bold text-[#29465a]">Önizleme</p><p className="mt-1 text-xs text-[#71838b]">{bulkTestTitle.trim() || "Başlıksız test"} · {bulkOrderedQuestions.length} soru · {bulkTestDurationMinutes} dk</p></div>
+                <ExportDocumentActions compact title={bulkTestTitle.trim() || "OkulBlog Testi"} questions={bulkOrderedQuestions.map(item => ({ prompt: item.prompt, options: Array.isArray(item.options) ? item.options : undefined, answer: item.answer, explanation: item.explanation }))} />
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-2 rounded-xl bg-[#f7f8f4] p-1">
               <Button type="button" variant={bulkTestMode === "new" ? "default" : "outline"} onClick={() => setBulkTestMode("new")} className={bulkTestMode === "new" ? "rounded-lg bg-[#5540e8] text-white" : "rounded-lg border-0 text-[#456073]"}>Yeni test</Button>
               <Button type="button" variant={bulkTestMode === "existing" ? "default" : "outline"} onClick={() => setBulkTestMode("existing")} className={bulkTestMode === "existing" ? "rounded-lg bg-[#5540e8] text-white" : "rounded-lg border-0 text-[#456073]"}>Mevcut teste ekle</Button>

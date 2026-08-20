@@ -1619,3 +1619,11 @@
 - [x] Seçili sorular için toplu test oluşturma sihirbazı arayüzü ekle
 - [x] Seçili soruları yeni teste veya mevcut teste atama tRPC akışını tamamla
 - [x] Yeni toplu test akışı için yetki, veri bütünlüğü, Vitest, TypeScript, build ve responsive doğrulaması
+
+## Soru Havuzu Kullanım Kolaylığı ve Test Exportu
+
+- [x] URL searchParams bağlantısını panoya kopyalayan “Filtreleri Kopyala” aksiyonu
+- [x] Toplu test sihirbazında seçili sorular için sürükle-bırak sıralama
+- [x] Sihirbaz içinde soru sırasını ve içerik özetini gösteren anlık test önizlemesi
+- [x] Önizleme ve oluşturulan test sonucunu mevcut PDF/Word export bileşenine bağlama
+- [x] Yeni akışlar için Vitest, TypeScript, build ve responsive doğrulaması
