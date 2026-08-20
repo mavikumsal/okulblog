@@ -1549,3 +1549,9 @@
 - [x] PDF ve görsel sonuçlarını cevap anahtarı kalite kontrolü ve split-screen incelemeye aktar
 - [x] Manuel yükleme, OCR ve taslak aktarımı için Vitest, TypeScript, build ve Admin görsel doğrulaması yap
 - [x] Geliştirmeyi geri alınabilir checkpoint olarak kaydet
+
+## AI Sağlayıcıları — Anahtarlar Hosting Sonrası
+- [x] Gemini ve OpenAI API Key girişini hosting sonrası yapılacak şekilde güvenli secret alanlarına bağla
+- [x] API anahtarı yokken fallback model kataloğu ve açıklayıcı “anahtar bekleniyor” durumu göster
+- [x] API anahtarı girildiğinde bağlantı testi ve sağlayıcıdan dinamik model yenileme akışını etkinleştir
+- [x] Seçilen sağlayıcı/model bilgisini soru ve test üretim akışına bağla; anahtarsız durumda kontrollü uyarı göster
