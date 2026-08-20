@@ -1468,3 +1468,8 @@
 - [x] Modal içinden AI analizini yeniden üretme akışını ekle
 - [x] Modal içinden otomatik PDF kapak görselini yeniden üretme akışını ekle
 - [x] Yeniden üretim durumları, hata bildirimi, test ve responsive doğrulama ekle
+
+- [x] Yeniden üretilen kapakların mevcut medya bağlantılarını ve saklama alanlarını incele
+- [x] Eski kapaklar için arşivleme/silme politikasını ve medya referans güvenliğini uygula
+- [x] Orphan kapak temizliği için idempotent yeniden üretim yaşam döngüsü mekanizması ekle
+- [x] Eski kapak temizliği için test, audit kaydı ve Admin durum görünümü ekle

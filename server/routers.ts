@@ -99,7 +99,8 @@ import { getAiProviderConfig, maskSecret } from "./aiProviderConfig";
 import { listProviderModels } from "./aiProviderCatalog";
 import { invokeLLM, listLLMModels } from "./_core/llm";
 import { parsePdfQuestions } from "./pdfQuestionParser";
-import { storagePut } from "./storage";
+import { storagePut, storagePutStable } from "./storage";
+import { describeCoverReplacement, getStableDocumentCoverKey } from "./documentCoverLifecycle";
 import { notifyOwner } from "./_core/notification";
 import { buildGoogleDriveAuthorizationUrl, createGoogleDriveResumableUpload, exchangeGoogleDriveCode, getGoogleDriveMissingConfig } from "./googleDriveProvider";
 import { buildSearchConsoleActions, buildSearchConsoleAuthorizationUrl, createSearchConsoleOAuthState, exchangeSearchConsoleCode, getSearchConsoleMissingConfig, getSearchConsoleTokenMetadata, refreshSearchConsoleToken, verifySearchConsoleOAuthState } from "./searchConsoleProvider";
@@ -947,10 +948,12 @@ export const appRouter = router({
       if (!response.ok) throw new TRPCError({ code: "BAD_REQUEST", message: "PDF dosyası kapak üretimi için alınamadı." });
       const buffer = Buffer.from(await response.arrayBuffer());
       const coverBuffer = await renderPdfCover(buffer);
-      const stem = safeFileStem(asset.fileName || `draft-${input.id}`);
-      const cover = await storagePut(`okulblog/imported/${draft.createdBy}/previews/${stem}-cover-${Date.now()}.webp`, coverBuffer, "image/webp");
+      const replacement = describeCoverReplacement(draft.coverImageUrl, `/manus-storage/${getStableDocumentCoverKey(draft.createdBy, asset.fileName || `draft-${input.id}.pdf`)}`);
+      const cover = await storagePutStable(getStableDocumentCoverKey(draft.createdBy, asset.fileName || `draft-${input.id}.pdf`), coverBuffer, "image/webp");
+      const finalReplacement = describeCoverReplacement(draft.coverImageUrl, cover.url);
       await updateDocumentImportDraft(input.id, { coverImageUrl: cover.url });
-      return { success: true, coverImageUrl: cover.url };
+      await recordSecurityEvent({ eventType: "document_draft_cover_regenerated", severity: "low", description: "Doküman taslağının kapağı yeniden üretildi; eski sürüm arşivlendi ve kararlı anahtar güncellendi.", metadata: { draftId: input.id, ...finalReplacement, storageKey: cover.key, plannedReplacement: replacement } });
+      return { success: true, ...finalReplacement, storageKey: cover.key };
     }),
     revertDocumentImportDraftAi: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => { const draft = await getDocumentImportDraft(input.id); if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Taslak bulunamadı." }); const fallbackTitle = draft.sourceUrl.split("/").pop()?.replace(/[-_]+/g, " ").replace(/\.[^.]+$/, "").trim() || "İçe aktarılan doküman"; await updateDocumentImportDraft(input.id, { title: fallbackTitle.slice(0, 220), summary: null, tags: [], aiStatus: "not_started", aiModel: null, aiError: null, aiSuggestedTitle: null, aiSuggestedSummary: null, aiSuggestedTags: [] }); return { success: true, title: fallbackTitle }; }),
     approveDocumentImportDraft: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => { const draft = await getDocumentImportDraft(input.id); if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Taslak bulunamadı." }); if (!draft.categoryId && !draft.institutionCategoryId) throw new TRPCError({ code: "BAD_REQUEST", message: "Yayınlamadan önce bir kategori seçilmelidir." }); if (!draft.coverImageUrl?.trim()) throw new TRPCError({ code: "BAD_REQUEST", message: "Yayınlamadan önce kapak görseli eklenmelidir." }); const asset = await getMediaAsset(draft.mediaAssetId); if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Medya varlığı bulunamadı." }); const contentId = await createContentItem({ title: draft.title, contentType: "document", summary: draft.summary ?? undefined, body: asset.publicUrl ?? "", coverImageUrl: draft.coverImageUrl, categoryId: draft.categoryId, institutionCategoryId: draft.institutionCategoryId, createdBy: ctx.user.id, status: "published" }); await createMediaAssetLink({ mediaAssetId: draft.mediaAssetId, targetType: "content", targetId: contentId, role: "document-file", createdBy: ctx.user.id }); await updateDocumentImportDraft(input.id, { status: "approved", reviewedBy: ctx.user.id, reviewedAt: new Date() }); return { success: true, contentId }; }),
