@@ -60,3 +60,24 @@ Artı Eğitim cevap portalında 1. sınıf > Check up > 1.sayfa seçimi açıld�
 ## FlipHTML5 kaynak doğrulaması — 2026-08-20
 Kaynak: https://fliphtml5.com/bookcase/twjmz
 Kitaplık başlığı `PROBLEM KİTAPLARIMIZ`; kitaplıkta 3 yayın görünüyor: `Problem Gezegeni 2`, `Problemde Yol Arkadaşım 3` ve `Problemde Yol Arkadaşım 4`. Kitaplık soru/cevap anahtarı çifti veya ayrı indirilebilir cevap anahtarı yapısını açıkça göstermiyor; bu nedenle yetkili eşleşmiş pilot çifti olarak seçilmedi. İçerik indirme/dönüştürme işlemi ancak yayın sahibinin izin verdiği erişim ve kullanım kapsamı netleştirildikten sonra yapılmalı.
+## Admin manuel test — 2026-08-20
+- My Browser ile `/panel/soru-havuzu` Admin oturumunda açıldı.
+- Pilot aktarım kartı sayfada mevcut; `Soru yayını PDF’i`, `Cevap anahtarı PDF’i` ve `Pilot aktarımı başlat` kontrolleri görünür.
+- Mevcut soru havuzunda 36 önceki örnek soru listeleniyor.
+- Pilot inputlarına ulaşmak için sayfa içi kaydırma sürüyor; bu aşamada yeni PDF yükleme veya yeniden çalıştırma yapılmadı.
+
+## Admin Manuel Testi — OCR Kalite ve Fark Vurgulama — 2026-08-20
+- Gerçek `questions-ilkokulluyum.pdf` ve `answers-ilkokulluyum.pdf` dosyaları Admin Soru Havuzu ekranında seçildi ve pilot aktarımı başlatıldı.
+- OCR sonucu ekranda `25/45 cevap eşleştirildi. Sonuçlar taslak olarak hazır.` bildirimi görüldü.
+- Cevap anahtarı kalite kartı görünür: `1 sayfa · 19 numara-harf çifti · Kontrast 25`, `Manuel kontrol önerilir · %77`.
+- Uyarılar: cevap anahtarı görüntü çözünürlüğü düşük; görüntü kontrastı düşük; numara ve harfler bulanık olabilir.
+- Split-screen kartı görünür: `Soru 2 · Sayfa 1`, güven `%34`, `Görseli kırp`, `ORİJİNAL PDF`, `OCR METNİ · MANUEL DÜZELTME`, `OCR FARK VURGULAMA`, başlangıçta `0 eklenen · 0 çıkarılan`.
+- 45/45 soru seçili ve toplu kategori/zorluk/kazanım kontrolleri görünür. Manuel metin alanı pilot sonucunda mevcut; kalite uyarısı ve fark paneli Admin’de render edildi.
+- Kaynak: Admin paneli `/panel/soru-havuzu`, My Browser manuel gözlemi.
+
+## ilkokul1dijital ZKitapX incelemesi — 2026-08-20
+Kullanıcının verdiği `https://www.ilkokul1dijital.com/zkitapx.php?code=VlBBOEhGQTQ=` adresi bir PDF bağlantısı değil; `ZKitapX` başlıklı bir PHP kabuğu ve içinde `https://zkitapx.fernus.net/` iframe’i barındırıyor. Iframe parametresinde içerik kök yolu olarak `https://cdn.fernus.net/218/zk/x/p` ve bir `code` değeri bulunuyor.
+
+Iframe doğrudan açıldığında Türkçe `Bu siteye erisim izniniz bulunmamaktadir. Site adresiniz :` mesajı döndü. Bu nedenle mevcut alan adı/oturum için okuyucu içeriği, PDF veya sayfa görselleri erişilebilir biçimde sunulmadı. Teknik olarak bu kaynak, önceki doğrudan PDF akışından farklı olarak istemci tarafı z-kitap okuyucusuna bağlı; erişim yetkisi ve yayın sahibinin indirme/API izni olmadan sayfa varlıklarını çekmek veya erişim kontrolünü aşmak uygun değildir.
+
+OkulBlog’a güvenli entegrasyon yalnızca yayın sahibinin verdiği resmi PDF, export bağlantısı, API veya yetkili CDN erişim bilgileri sağlanırsa yapılabilir. Bu durumda kaynak türü için özel `zkitapx` import adaptörü; sayfa önizleme, taslak kuyruğu, OCR ve mevcut kalite kontrol akışına bağlanabilir. Şu anki URL ile otomatik çekme doğrulanamadı.

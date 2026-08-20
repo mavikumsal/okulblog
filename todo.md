@@ -1516,3 +1516,8 @@
 - [x] Fark vurgulama için eşleşen, eksik, eklenmiş ve değişmiş metin durumlarını göster; manuel düzenleme sonrası yeniden hesapla
 - [x] OCR kalite uyarıları ve fark vurgulama için Vitest, TypeScript, production build ve responsive görsel doğrulaması yap
 - [x] Bu geliştirme için geri alınabilir checkpoint oluştur
+
+## Yeni Z-Kitap Kaynağı İncelemesi
+- [x] ilkokul1dijital z-kitap URL’sinin erişim, sayfa yükleme ve içerik biçimini pasif olarak incele
+- [x] Kaynağın doğrudan PDF, sayfa görseli veya istemci tarafı z-kitap okuyucusu olduğunu belirle
+- [x] İzinli kullanım sınırları içinde OkulBlog içe aktarma için teknik uygunluk ve sınırlamaları raporla
