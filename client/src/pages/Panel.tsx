@@ -18,6 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { getDraftTitleSaveState } from "@/lib/draftTitleSave";
+import { formatAiQuotaStatus, getAiModelCapabilityLabels, removeAiDraftResult, updateAiDraftResult, type AiDraftResult } from "@/lib/aiResultManagement";
+import ExportDocumentActions from "@/components/ExportDocumentActions";
 import { getDocumentAiStatusLabel, getDocumentPreviewTags } from "@/lib/documentImportPreview";
 import {
   getPanelContentType,
@@ -434,19 +436,29 @@ function PanelContent() {
   const dynamicAiModels = (trpc.admin as any).listAiProviderModels?.useQuery
     ? (trpc.admin as any).listAiProviderModels.useQuery({ provider: aiProvider }, { enabled: isAdmin && section === "ai", staleTime: 60_000 })
     : undefined;
-  const [aiDraft, setAiDraft] = useState<{
-    questionType: "multiple-choice" | "true-false" | "open-ended";
-    prompt: string;
-    options: string[];
-    answer: string;
-    explanation: string;
-  } | null>(null);
+  const [aiDraft, setAiDraft] = useState<AiDraftResult | null>(null);
+  const [aiResults, setAiResults] = useState<AiDraftResult[]>([]);
+  const [aiSelectedResultId, setAiSelectedResultId] = useState<string | null>(null);
+  const [aiSourcePreviewUrl, setAiSourcePreviewUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const sourceFile = aiSourceFiles[0];
+    if (!sourceFile) {
+      setAiSourcePreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(sourceFile);
+    setAiSourcePreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [aiSourceFiles]);
   const prepareAiSource = (trpc.ai as any).prepareSourceContext?.useMutation
     ? (trpc.ai as any).prepareSourceContext.useMutation()
     : { mutateAsync: async () => ({ text: "", pageCount: 0, warnings: ["OCR hazırlama endpointi hazır değil."] }) };
   const aiQuestion = trpc.ai.generateQuestion.useMutation({
     onSuccess: draft => {
-      setAiDraft(draft);
+      const result: AiDraftResult = { ...draft, id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, sourceFileName: aiSourceFiles[0]?.name, sourcePage: 1 };
+      setAiDraft(result);
+      setAiResults(previous => [...previous, result]);
+      setAiSelectedResultId(result.id);
       toast.success("Yapay zekâ taslağı hazırlandı; kaydetmeden önce inceleyebilirsiniz.");
     },
     onError: (error: { message?: string }) => {
@@ -1214,6 +1226,17 @@ function PanelContent() {
       title: "Bu alan yapılandırılıyor.",
       text: "Rolünüze uygun modül ve izin ayarları burada görünür.",
     };
+
+  const updateAiResult = (id: string, patch: Partial<AiDraftResult>) => {
+    setAiResults(previous => updateAiDraftResult(previous, id, patch));
+    setAiDraft(previous => previous?.id === id ? { ...previous, ...patch } : previous);
+  };
+  const removeAiResult = (id: string) => {
+    setAiResults(previous => removeAiDraftResult(previous, id));
+    setAiSelectedResultId(previous => previous === id ? null : previous);
+    setAiDraft(previous => previous?.id === id ? null : previous);
+    toast.success("AI sonucu listeden kaldırıldı.");
+  };
 
   const handleAiGenerate = async () => {
     if (aiTopic.trim().length < 3 || !questionCategoryId || aiQuestion.isPending) return;
@@ -2356,19 +2379,35 @@ function PanelContent() {
                     : "AI ile taslak üret"}
                   <Sparkles size={16} />
                 </Button>
-                {aiDraft && (
-                  <div className="rounded-2xl border border-[#dfe8df] bg-[#f8fbf7] p-4 text-[#29465a]">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-bold">Üretim ön izlemesi</p>
-                      <Badge className="border-0 bg-[#e7f1eb] text-[#477767]">Taslak</Badge>
-                    </div>
-                    <p className="mt-3 text-sm leading-6">{aiDraft.prompt}</p>
-                    {aiDraft.options.length > 0 && <div className="mt-3 grid gap-2 sm:grid-cols-2">{aiDraft.options.map((option, index) => <div key={`${option}-${index}`} className="rounded-xl bg-white px-3 py-2 text-xs">{String.fromCharCode(65 + index)}. {option}</div>)}</div>}
-                    <div className="mt-3 rounded-xl bg-white px-3 py-2 text-xs"><strong>Cevap:</strong> {aiDraft.answer}</div>
-                    <p className="mt-3 text-xs leading-5 text-[#71838b]">{aiDraft.explanation}</p>
-                    <p className="mt-3 text-[11px] text-[#8a9999]">Taslak doğrudan yayınlanmaz; düzenleyip soru havuzuna kaydetme adımı izlenmelidir.</p>
+                {aiResults.length > 0 && <div className="mt-5 space-y-4 rounded-2xl border border-[#dfe8df] bg-[#f8fbf7] p-4 text-[#29465a]">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div><p className="text-sm font-bold">Üretim sonuçları</p><p className="text-[11px] text-[#71838b]">{aiResults.length} soru taslak olarak incelemede.</p></div>
+                    <ExportDocumentActions title={aiTopic || "OkulBlog AI Soruları"} questions={aiResults} compact />
                   </div>
-                )}
+                  <div className="grid gap-3 lg:grid-cols-[minmax(0,.85fr)_minmax(0,1.15fr)]">
+                    <div className="space-y-2">
+                      {aiResults.map((result, index) => <button type="button" key={result.id} onClick={() => setAiSelectedResultId(result.id)} className={cn("w-full rounded-xl border px-3 py-3 text-left transition", aiSelectedResultId === result.id ? "border-[#68558e] bg-[#eeeafd]" : "border-[#e1e6df] bg-white hover:border-[#cfc4e8]")}><div className="flex items-center justify-between gap-2"><span className="text-xs font-bold">Soru {index + 1}</span><Badge className="border-0 bg-[#e7f1eb] text-[#477767]">Taslak</Badge></div><p className="mt-1 line-clamp-2 text-xs leading-5">{result.prompt}</p></button>)}
+                    </div>
+                    {(() => {
+                      const selected = aiResults.find(item => item.id === aiSelectedResultId) ?? aiResults[aiResults.length - 1];
+                      if (!selected) return null;
+                      const selectedModel = ((dynamicAiModels?.data as { models?: Array<Record<string, unknown>> } | undefined)?.models ?? []).find(model => model.id === aiModel);
+                      const capabilities = getAiModelCapabilityLabels(selectedModel);
+                      return <div className="space-y-3 rounded-xl border border-[#e1e6df] bg-white p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-bold text-[#68558e]">Soru düzenleme</span><Button type="button" variant="ghost" size="sm" onClick={() => removeAiResult(selected.id)} className="h-8 text-[#a04f42]"><Trash2 size={14} /> Sil</Button></div>
+                        {selected.sourceFileName && <p className="text-[11px] text-[#71838b]">Kaynak: {selected.sourceFileName} · Sayfa {selected.sourcePage ?? 1}</p>}
+                        <div className="grid gap-3 xl:grid-cols-2">
+                          <div className="min-h-[150px] rounded-xl border border-dashed border-[#cfc4e8] bg-[#fbfaff] p-3"><p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[#68558e]">Kaynak sayfa</p>{aiSourcePreviewUrl ? (aiSourceFiles[0]?.type === "application/pdf" ? <iframe title="Kaynak PDF önizleme" src={`${aiSourcePreviewUrl}#page=${selected.sourcePage ?? 1}`} className="h-48 w-full rounded-lg border-0" /> : <img src={aiSourcePreviewUrl} alt="AI üretim kaynağı" className="h-48 w-full rounded-lg object-contain" />) : <p className="text-xs text-muted-foreground">Üretimde dosya seçilmedi; kaynak OCR metni kullanıldı.</p>}</div>
+                          <div className="space-y-2"><Label className="text-[11px]">Soru metni</Label><Textarea value={selected.prompt} onChange={event => updateAiResult(selected.id, { prompt: event.target.value })} className="min-h-[150px] rounded-xl text-xs leading-5" /></div>
+                        </div>
+                        {selected.options.length > 0 && <div className="grid gap-2 sm:grid-cols-2">{selected.options.map((option, optionIndex) => <Input key={`${selected.id}-${optionIndex}`} value={option} onChange={event => updateAiResult(selected.id, { options: selected.options.map((item, itemIndex) => itemIndex === optionIndex ? event.target.value : item) })} className="h-9 rounded-lg text-xs" placeholder={`${String.fromCharCode(65 + optionIndex)} seçeneği`} />)}</div>}
+                        <div className="grid gap-2 sm:grid-cols-2"><div><Label className="text-[11px]">Doğru cevap</Label><Input value={selected.answer} onChange={event => updateAiResult(selected.id, { answer: event.target.value })} className="mt-1 h-9 rounded-lg text-xs" /></div><div><Label className="text-[11px]">Açıklama</Label><Input value={selected.explanation} onChange={event => updateAiResult(selected.id, { explanation: event.target.value })} className="mt-1 h-9 rounded-lg text-xs" /></div></div>
+                        <div className="flex flex-wrap gap-2 border-t border-[#edf0ea] pt-3"><Badge className="border-0 bg-[#eeeafd] text-[#68558e]">{aiProvider === "gemini" ? "Gemini" : "OpenAI"} · {aiModel}</Badge>{capabilities.map(capability => <Badge key={capability} variant="outline" className="text-[10px]">{capability}</Badge>)}<Badge variant="outline" className="text-[10px]">Kota: {formatAiQuotaStatus((dynamicAiModels?.data as { quota?: unknown } | undefined)?.quota)}</Badge></div>
+                      </div>;
+                    })()}
+                  </div>
+                  <p className="text-[11px] text-[#8a9999]">Düzenlemeler bu önizleme oturumunda korunur. Soru havuzuna kaydetme işlemi yayın öncesi ayrı onay adımıdır.</p>
+                </div>}
               </div>
             ) : (
               <RestrictedNotice />

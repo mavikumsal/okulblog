@@ -1565,3 +1565,21 @@
 - [x] Kota/aşım ve sağlayıcı hız sınırı hatalarını kullanıcı dostu açıklama, tekrar dene ve model değiştir seçenekleriyle göster
 - [x] Yeni akışlar için Vitest, TypeScript, production build ve Admin responsive görsel doğrulaması yap
 - [x] Geliştirmeyi geri alınabilir checkpoint olarak kaydet
+
+## AI Üretim Sonuçları Yönetimi ve Dışa Aktarma
+- [ ] Üretilen soruları tek tek düzenleme ve silme ekranı ekle
+- [ ] Kaynak PDF/görsel sayfasını soru metniyle yan yana göster ve seçili soruya göre eşleştir
+- [ ] Gerçek API anahtarı doğrulandığında model yetenek filtrelerini dinamik olarak göster
+- [ ] Gerçek sağlayıcı kota/limit bilgisini güvenli şekilde göster; veri yoksa açıklayıcı durum sun
+- [ ] Üretilen soru listesini PDF olarak dışa aktarma seçeneği ekle
+- [ ] Üretilen soru listesini Word olarak dışa aktarma seçeneği ekle
+- [ ] Düzenleme, silme, karşılaştırma, yetenek/kota ve dışa aktarma akışları için Vitest, TypeScript, build ve responsive görsel doğrulaması yap
+- [ ] Geliştirmeyi geri alınabilir checkpoint olarak kaydet
+
+## AI Oluşturucu Sonuç Yönetimi
+
+- [x] AI üretim sonuçlarını çoklu soru listesi olarak yönetme; her soruyu düzenleme ve silme
+- [x] AI sonucunda kaynak sayfa/önizleme ile soru metnini yan yana karşılaştırma
+- [x] Model bazlı yetenek filtreleri ve API anahtarı varsa kota/limit göstergesi
+- [x] AI üretim sonuçlarını PDF ve Word olarak dışa aktarma
+- [x] AI sonuç yönetimi için Vitest, TypeScript, production build ve responsive doğrulama
